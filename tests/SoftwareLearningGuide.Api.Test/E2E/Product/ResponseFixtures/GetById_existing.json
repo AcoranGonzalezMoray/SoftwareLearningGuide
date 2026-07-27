@@ -1,0 +1,12 @@
+{
+  "product": {
+    "id": "11111111-1111-1111-1111-111111111111",
+    "name": "Laptop",
+    "description": "Gaming laptop",
+    "price": 999.99,
+    "currency": "USD",
+    "stockQuantity": 10,
+    "createdAt": "2025-06-15T10:00:00",
+    "updatedAt": null
+  }
+}

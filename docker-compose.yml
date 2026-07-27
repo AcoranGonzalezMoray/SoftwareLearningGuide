@@ -1,0 +1,71 @@
+version: '3.8'
+
+name: SoftwareLearningGuide
+
+services:
+  aspire-dashboard:
+    image: mcr.microsoft.com/dotnet/aspire-dashboard:latest
+    container_name: aspire-dashboard
+    ports:
+      - "18888:18888"
+      - "4317:18889"
+    restart: unless-stopped
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sqlserver-slg
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=YourStrong!Passw0rd
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: flagsmith-postgres
+    environment:
+      POSTGRES_DB: flagsmith
+      POSTGRES_USER: flagsmith
+      POSTGRES_PASSWORD: flagsmith_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - flagsmith-pg-data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  flagsmith:
+    image: flagsmith/flagsmith:latest
+    container_name: flagsmith
+    environment:
+      DATABASE_URL: postgres://flagsmith:flagsmith_password@postgres:5432/flagsmith
+      PORT: 8000
+      ALLOWED_HOSTS: "localhost,127.0.0.1,flagsmith,0.0.0.0,*"
+      DJANGO_ALLOWED_HOSTS: "localhost,127.0.0.1,flagsmith,0.0.0.0,*"
+      FLAGSMITH_DOMAIN: "localhost:8000"
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+    restart: unless-stopped
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq-slg
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    restart: unless-stopped
+
+
+volumes:
+  sqlserver-data:
+  flagsmith-pg-data:
+  rabbitmq-data:

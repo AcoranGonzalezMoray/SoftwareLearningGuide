@@ -1,0 +1,21 @@
+{
+  "orders": [
+    {
+      "id": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+      "customerId": "11111111-1111-1111-1111-111111111111",
+      "customerName": "John Doe",
+      "status": "0",
+      "lineCount": 0,
+      "createdAt": "2025-06-15T10:00:00"
+    },
+    {
+      "id": "cccccccc-cccc-cccc-cccc-cccccccccccc",
+      "customerId": "11111111-1111-1111-1111-111111111111",
+      "customerName": "John Doe",
+      "status": "0",
+      "lineCount": 0,
+      "createdAt": "2025-06-15T10:00:00"
+    }
+  ],
+  "totalCount": 2
+}

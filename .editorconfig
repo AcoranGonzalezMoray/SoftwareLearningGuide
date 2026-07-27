@@ -1,0 +1,6 @@
+[*.cs]
+# Mueve la llave de apertura a la misma línea
+csharp_new_line_before_open_brace = none
+
+# Si quieres ser específico por tipo de elemento, usa 'none' en lugar de 'all':
+# csharp_new_line_before_open_brace = methods, types, control_blocks

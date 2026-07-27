@@ -1,0 +1,20 @@
+<Solution>
+  <Folder Name="/Tests/">
+    <Project Path="tests/SoftwareLearningGuide.Api.Test/SoftwareLearningGuide.Api.Test.csproj" />
+    <Project Path="tests/SoftwareLearningGuide.Application.Command.Test/SoftwareLearningGuide.Application.Command.Test.csproj" />
+    <Project Path="tests/SoftwareLearningGuide.Application.Query.Test/SoftwareLearningGuide.Application.Query.Test.csproj" />
+    <Project Path="tests/SoftwareLearningGuide.Core.Business.Test/SoftwareLearningGuide.Core.Business.Test.csproj" />
+    <Project Path="tests/SoftwareLearningGuide.Helper.Test/SoftwareLearningGuide.Helper.Test.csproj" />
+    <Project Path="tests/SoftwareLearningGuide.Infraestructure.Test/SoftwareLearningGuide.Infraestructure.Test.csproj" />
+  </Folder>
+  <Project Path="SoftwareLearningGuide.Api/SoftwareLearningGuide.Api.csproj" />
+  <Project Path="SoftwareLearningGuide.Application.Command/SoftwareLearningGuide.Application.Command.csproj" />
+  <Project Path="SoftwareLearningGuide.Application.Query/SoftwareLearningGuide.Application.Query.csproj" />
+  <Project Path="SoftwareLearningGuide.Application/SoftwareLearningGuide.Application.csproj" Id="b0923771-f291-44ba-bb3c-032e4bbec7ac" />
+  <Project Path="SoftwareLearningGuide.Consumer/SoftwareLearningGuide.Consumer.csproj" />
+  <Project Path="SoftwareLearningGuide.Contracts/SoftwareLearningGuide.Contracts.csproj" />
+  <Project Path="SoftwareLearningGuide.Core.Business/SoftwareLearningGuide.Core.Business.csproj" />
+  <Project Path="SoftwareLearningGuide.Infraestructure.Data/SoftwareLearningGuide.Infraestructure.Data.csproj" />
+  <Project Path="SoftwareLearningGuide.Infraestructure/SoftwareLearningGuide.Infraestructure.csproj" />
+  <Project Path="SoftwareLearningGuide.OutboxProcessor/SoftwareLearningGuide.OutboxProcessor.csproj" />
+</Solution>

@@ -1,0 +1,19 @@
+[
+  {
+    "Name": "Api + Outbox + Consumer",
+    "Projects": [
+      {
+        "Path": "SoftwareLearningGuide.Api\\SoftwareLearningGuide.Api.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "SoftwareLearningGuide.OutboxProcessor\\SoftwareLearningGuide.OutboxProcessor.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "SoftwareLearningGuide.Consumer\\SoftwareLearningGuide.Consumer.csproj",
+        "Action": "Start"
+      }
+    ]
+  }
+]

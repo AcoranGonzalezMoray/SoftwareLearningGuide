@@ -1,0 +1,16 @@
+{
+  "customer": {
+    "id": "11111111-1111-1111-1111-111111111111",
+    "firstName": "John",
+    "lastName": "Doe",
+    "email": "john@test.com",
+    "defaultStreet": null,
+    "defaultCity": null,
+    "defaultState": null,
+    "defaultPostalCode": null,
+    "defaultCountry": null,
+    "createdAt": "2025-06-15T10:00:00",
+    "updatedAt": null,
+    "orderCount": 0
+  }
+}

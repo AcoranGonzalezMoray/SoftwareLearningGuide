@@ -1,0 +1,5 @@
+using SoftwareLearningGuide.Helper.Test.Fixtures;
+
+namespace SoftwareLearningGuide.Application.Query;
+
+public class TestSqlServerTestContainerSetupFixture : TestSqlServerTestContainerFixture;
