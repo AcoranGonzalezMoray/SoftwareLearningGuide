@@ -18,7 +18,7 @@ public record Email {
 
     public string Value { get; }
 
-    public Email(string value) {
+    private Email(string value) {
         if (string.IsNullOrWhiteSpace(value))
             throw new ArgumentException(DomainErrors.EmailErrors.CannotBeEmpty());
 

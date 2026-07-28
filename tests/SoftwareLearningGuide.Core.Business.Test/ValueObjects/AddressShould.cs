@@ -1,12 +1,13 @@
 using AwesomeAssertions;
 using NUnit.Framework;
 using SoftwareLearningGuide.Core.Business.Errors;
+using SoftwareLearningGuide.Core.Business.Exceptions;
 using SoftwareLearningGuide.Core.Business.ValueObjects;
 
 namespace SoftwareLearningGuide.Core.Business.Test.ValueObjects;
 
 public class AddressShould {
-    private static Address ValidAddress() => new("123 Main St", "Springfield", "IL", "62704", "US");
+    private static Address ValidAddress() => Address.Create("123 Main St", "Springfield", "IL", "62704", "US").Value;
 
     [Test]
     public void Create_ValidAddress_ReturnsSuccess() {
@@ -109,6 +110,45 @@ public class AddressShould {
     }
 
     [Test]
+    public void Create_NullCity_ReturnsFailure() {
+        var result = Address.Create("123 Main St", null!, "IL", "62704", "US");
+
+        result.IsSuccess.Should().BeFalse();
+        result.Error.Should().Be(DomainErrors.AddressErrors.CityCannotBeEmpty());
+    }
+
+    [Test]
+    public void Create_NullState_ReturnsFailure() {
+        var result = Address.Create("123 Main St", "Springfield", null!, "62704", "US");
+
+        result.IsSuccess.Should().BeFalse();
+        result.Error.Should().Be(DomainErrors.AddressErrors.StateCannotBeEmpty());
+    }
+
+    [Test]
+    public void Create_NullPostalCode_ReturnsFailure() {
+        var result = Address.Create("123 Main St", "Springfield", "IL", null!, "US");
+
+        result.IsSuccess.Should().BeFalse();
+        result.Error.Should().Be(DomainErrors.AddressErrors.PostalCodeCannotBeEmpty());
+    }
+
+    [Test]
+    public void Create_NullCountry_ReturnsFailure() {
+        var result = Address.Create("123 Main St", "Springfield", "IL", "62704", null!);
+
+        result.IsSuccess.Should().BeFalse();
+        result.Error.Should().Be(DomainErrors.AddressErrors.CountryCannotBeEmpty());
+    }
+
+    [Test]
+    public void Create_AllFieldsEmpty_ReturnsFailure() {
+        var result = Address.Create("", "", "", "", "");
+
+        result.IsSuccess.Should().BeFalse();
+    }
+
+    [Test]
     public void Create_TrimsWhitespace() {
         var result = Address.Create("  123 Main St  ", "  Springfield  ", "  IL  ", "  62704  ", "  US  ");
 
@@ -135,16 +175,8 @@ public class AddressShould {
     [Test]
     public void RecordEquality_DifferentValues_AreNotEqual() {
         var a = ValidAddress();
-        var b = new Address("456 Oak Ave", "Chicago", "IL", "60601", "US");
+        var b = Address.Create("456 Oak Ave", "Chicago", "IL", "60601", "US").Value;
 
         a.Should().NotBe(b);
-    }
-
-    [Test]
-    public void Constructor_EmptyStreet_ThrowsArgumentException() {
-        var act = () => new Address("", "Springfield", "IL", "62704", "US");
-
-        act.Should().Throw<ArgumentException>()
-            .WithMessage(DomainErrors.AddressErrors.StreetCannotBeEmpty());
     }
 }

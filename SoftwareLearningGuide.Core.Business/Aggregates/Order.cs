@@ -28,7 +28,7 @@ public class Order : ProduceEvents {
 
     private Order() { }
 
-    public Order(OrderId id, CustomerId customerId, Address shippingAddress) {
+    private Order(OrderId id, CustomerId customerId, Address shippingAddress) {
         if (id == null)
             throw new ArgumentNullException(nameof(id));
         if (customerId == null)

@@ -9,7 +9,7 @@ using SoftwareLearningGuide.Core.Business.Exceptions;
 public record CustomerId {
     public Guid Value { get; }
 
-    public CustomerId(Guid value) {
+    private CustomerId(Guid value) {
         if (value == Guid.Empty)
             throw new ArgumentException(DomainErrors.IdErrors.CustomerIdCannotBeEmpty());
 

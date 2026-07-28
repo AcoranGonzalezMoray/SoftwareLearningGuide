@@ -18,13 +18,13 @@ public class OrderLineConfiguration : IEntityTypeConfiguration<OrderLine> {
         builder.Property(ol => ol.Id)
             .HasConversion(
                 id => id.Value,
-                value => new OrderLineId(value))
+                value => OrderLineId.From(value).Value)
             .ValueGeneratedNever();
 
         builder.Property(ol => ol.ProductId)
             .HasConversion(
                 id => id.Value,
-                value => new ProductId(value));
+                value => ProductId.From(value).Value);
 
         builder.Property(ol => ol.ProductName).HasMaxLength(200).IsRequired();
 

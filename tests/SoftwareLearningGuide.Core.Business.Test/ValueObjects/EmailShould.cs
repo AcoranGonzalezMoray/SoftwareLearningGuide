@@ -129,20 +129,4 @@ public class EmailShould {
         result.IsSuccess.Should().BeFalse();
         result.Error.Should().Be(DomainErrors.EmailErrors.CannotExceedMaxLength(254));
     }
-
-    [Test]
-    public void Constructor_EmptyEmail_ThrowsArgumentException() {
-        var act = () => new Email("");
-
-        act.Should().Throw<ArgumentException>()
-            .WithMessage(DomainErrors.EmailErrors.CannotBeEmpty());
-    }
-
-    [Test]
-    public void Constructor_InvalidFormat_ThrowsArgumentException() {
-        var act = () => new Email("not-valid");
-
-        act.Should().Throw<ArgumentException>()
-            .WithMessage(DomainErrors.EmailErrors.InvalidFormat("not-valid"));
-    }
 }

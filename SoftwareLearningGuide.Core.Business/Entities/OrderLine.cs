@@ -18,7 +18,7 @@ public class OrderLine {
 
     private OrderLine() { }
 
-    public OrderLine(OrderLineId id, ProductId productId, string productName, Money unitPrice, int quantity) {
+    private OrderLine(OrderLineId id, ProductId productId, string productName, Money unitPrice, int quantity) {
         if (id == null)
             throw new ArgumentNullException(nameof(id));
 

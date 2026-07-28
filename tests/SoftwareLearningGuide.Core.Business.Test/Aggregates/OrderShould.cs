@@ -11,9 +11,9 @@ namespace SoftwareLearningGuide.Core.Business.Test.Aggregates;
 public class OrderShould {
     private static OrderId ValidOrderId() => OrderId.Create();
     private static CustomerId ValidCustomerId() => CustomerId.Create();
-    private static Address ValidAddress() => new("123 Main St", "Springfield", "IL", "62704", "US");
-    private static Product ValidProduct(int stock = 100) => new(ProductId.Create(), "Laptop", "Gaming", new Money(100m, "USD"), stock);
-    private static Order ValidOrder() => new(ValidOrderId(), ValidCustomerId(), ValidAddress());
+    private static Address ValidAddress() => Address.Create("123 Main St", "Springfield", "IL", "62704", "US").Value;
+    private static Product ValidProduct(int stock = 100) => Product.Create(ProductId.Create(), "Laptop", "Gaming", Money.Create(100m, "USD").Value, stock).Value;
+    private static Order ValidOrder() => Order.Create(ValidOrderId(), ValidCustomerId(), ValidAddress()).Value;
 
     #region Create
 
@@ -34,35 +34,6 @@ public class OrderShould {
     }
 
     [Test]
-    public void Create_EmptyOrderId_ReturnsFailure() {
-        var act = () => new Order(new OrderId(Guid.Empty), ValidCustomerId(), ValidAddress());
-
-        act.Should().Throw<ArgumentException>()
-            .WithMessage(DomainErrors.IdErrors.OrderIdCannotBeEmpty());
-    }
-
-    [Test]
-    public void Create_NullOrderId_ThrowsArgumentNullException() {
-        var act = () => new Order(null!, ValidCustomerId(), ValidAddress());
-
-        act.Should().Throw<ArgumentNullException>();
-    }
-
-    [Test]
-    public void Create_NullCustomerId_ThrowsArgumentNullException() {
-        var act = () => new Order(ValidOrderId(), null!, ValidAddress());
-
-        act.Should().Throw<ArgumentNullException>();
-    }
-
-    [Test]
-    public void Create_NullAddress_ThrowsArgumentNullException() {
-        var act = () => new Order(ValidOrderId(), ValidCustomerId(), null!);
-
-        act.Should().Throw<ArgumentNullException>();
-    }
-
-    [Test]
     public void Create_FiresOrderCreatedDomainEvent() {
         var order = ValidOrder();
 
@@ -72,6 +43,20 @@ public class OrderShould {
     [Test]
     public void Create_WithNullCustomerId_ReturnsFailure() {
         var result = Order.Create(ValidOrderId(), null!, ValidAddress());
+
+        result.IsSuccess.Should().BeFalse();
+    }
+
+    [Test]
+    public void Create_WithNullOrderId_ReturnsFailure() {
+        var result = Order.Create(null!, ValidCustomerId(), ValidAddress());
+
+        result.IsSuccess.Should().BeFalse();
+    }
+
+    [Test]
+    public void Create_WithNullAddress_ReturnsFailure() {
+        var result = Order.Create(ValidOrderId(), ValidCustomerId(), null!);
 
         result.IsSuccess.Should().BeFalse();
     }
@@ -397,7 +382,7 @@ public class OrderShould {
     public void Clear_WithPendingStatus_RemovesAllLines() {
         var order = ValidOrder();
         var product1 = ValidProduct();
-        var product2 = new Product(ProductId.Create(), "Desktop", "Office", new Money(200m, "USD"), 50);
+        var product2 = Product.Create(ProductId.Create(), "Desktop", "Office", Money.Create(200m, "USD").Value, 50).Value;
         order.AddProduct(product1, 2);
         order.AddProduct(product2, 1);
 
@@ -504,6 +489,20 @@ public class OrderShould {
         result.IsSuccess.Should().BeFalse();
     }
 
+    [Test]
+    public void Ship_CancelledOrder_ReturnsFailure() {
+        var order = ValidOrder();
+        var product = ValidProduct();
+        order.AddProduct(product, 1);
+        order.Confirm();
+        order.Cancel();
+
+        var result = order.Ship();
+
+        result.IsSuccess.Should().BeFalse();
+        result.Error.Should().Be(DomainErrors.Order.CannotShipOrderInState(OrderStatus.Cancelled.ToString()));
+    }
+
     #endregion
 
     #region Deliver
@@ -543,6 +542,35 @@ public class OrderShould {
         var result = order.Deliver();
 
         result.IsSuccess.Should().BeFalse();
+    }
+
+    [Test]
+    public void Deliver_AlreadyDelivered_ReturnsFailure() {
+        var order = ValidOrder();
+        var product = ValidProduct();
+        order.AddProduct(product, 1);
+        order.Confirm();
+        order.Ship();
+        order.Deliver();
+
+        var result = order.Deliver();
+
+        result.IsSuccess.Should().BeFalse();
+        result.Error.Should().Be(DomainErrors.Order.CannotDeliverOrderInState(OrderStatus.Delivered.ToString()));
+    }
+
+    [Test]
+    public void Deliver_CancelledOrder_ReturnsFailure() {
+        var order = ValidOrder();
+        var product = ValidProduct();
+        order.AddProduct(product, 1);
+        order.Confirm();
+        order.Cancel();
+
+        var result = order.Deliver();
+
+        result.IsSuccess.Should().BeFalse();
+        result.Error.Should().Be(DomainErrors.Order.CannotDeliverOrderInState(OrderStatus.Cancelled.ToString()));
     }
 
     #endregion
@@ -640,8 +668,8 @@ public class OrderShould {
     [Test]
     public void GetTotalAmount_WithProducts_ReturnsCorrectTotal() {
         var order = ValidOrder();
-        var product1 = new Product(ProductId.Create(), "A", "Desc", new Money(50m, "USD"), 100);
-        var product2 = new Product(ProductId.Create(), "B", "Desc", new Money(30m, "USD"), 100);
+        var product1 = Product.Create(ProductId.Create(), "A", "Desc", Money.Create(50m, "USD").Value, 100).Value;
+        var product2 = Product.Create(ProductId.Create(), "B", "Desc", Money.Create(30m, "USD").Value, 100).Value;
         order.AddProduct(product1, 2);
         order.AddProduct(product2, 3);
 
@@ -669,8 +697,8 @@ public class OrderShould {
     [Test]
     public void GetAverageLinePrice_WithProducts_ReturnsCorrectAverage() {
         var order = ValidOrder();
-        var product1 = new Product(ProductId.Create(), "A", "Desc", new Money(100m, "USD"), 100);
-        var product2 = new Product(ProductId.Create(), "B", "Desc", new Money(200m, "USD"), 100);
+        var product1 = Product.Create(ProductId.Create(), "A", "Desc", Money.Create(100m, "USD").Value, 100).Value;
+        var product2 = Product.Create(ProductId.Create(), "B", "Desc", Money.Create(200m, "USD").Value, 100).Value;
         order.AddProduct(product1, 1);
         order.AddProduct(product2, 1);
 
@@ -708,8 +736,8 @@ public class OrderShould {
     [Test]
     public void GetMostExpensiveLine_WithProducts_ReturnsCorrectLine() {
         var order = ValidOrder();
-        var cheap = new Product(ProductId.Create(), "Cheap", "Desc", new Money(10m, "USD"), 100);
-        var expensive = new Product(ProductId.Create(), "Expensive", "Desc", new Money(100m, "USD"), 100);
+        var cheap = Product.Create(ProductId.Create(), "Cheap", "Desc", Money.Create(10m, "USD").Value, 100).Value;
+        var expensive = Product.Create(ProductId.Create(), "Expensive", "Desc", Money.Create(100m, "USD").Value, 100).Value;
         order.AddProduct(cheap, 1);
         order.AddProduct(expensive, 1);
 
@@ -742,8 +770,8 @@ public class OrderShould {
     [Test]
     public void GetCheapestLine_WithProducts_ReturnsCorrectLine() {
         var order = ValidOrder();
-        var cheap = new Product(ProductId.Create(), "Cheap", "Desc", new Money(10m, "USD"), 100);
-        var expensive = new Product(ProductId.Create(), "Expensive", "Desc", new Money(100m, "USD"), 100);
+        var cheap = Product.Create(ProductId.Create(), "Cheap", "Desc", Money.Create(10m, "USD").Value, 100).Value;
+        var expensive = Product.Create(ProductId.Create(), "Expensive", "Desc", Money.Create(100m, "USD").Value, 100).Value;
         order.AddProduct(cheap, 1);
         order.AddProduct(expensive, 1);
 
@@ -780,12 +808,12 @@ public class OrderShould {
     [Test]
     public void HasItemsAbovePrice_AboveThreshold_ReturnsTrue() {
         var order = ValidOrder();
-        var cheap = new Product(ProductId.Create(), "Cheap", "Desc", new Money(10m, "USD"), 100);
-        var expensive = new Product(ProductId.Create(), "Expensive", "Desc", new Money(100m, "USD"), 100);
+        var cheap = Product.Create(ProductId.Create(), "Cheap", "Desc", Money.Create(10m, "USD").Value, 100).Value;
+        var expensive = Product.Create(ProductId.Create(), "Expensive", "Desc", Money.Create(100m, "USD").Value, 100).Value;
         order.AddProduct(cheap, 1);
         order.AddProduct(expensive, 1);
 
-        var result = order.HasItemsAbovePrice(new Money(50m, "USD"));
+        var result = order.HasItemsAbovePrice(Money.Create(50m, "USD").Value);
 
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().BeTrue();
@@ -794,10 +822,10 @@ public class OrderShould {
     [Test]
     public void HasItemsAbovePrice_BelowThreshold_ReturnsFalse() {
         var order = ValidOrder();
-        var cheap = new Product(ProductId.Create(), "Cheap", "Desc", new Money(10m, "USD"), 100);
+        var cheap = Product.Create(ProductId.Create(), "Cheap", "Desc", Money.Create(10m, "USD").Value, 100).Value;
         order.AddProduct(cheap, 1);
 
-        var result = order.HasItemsAbovePrice(new Money(50m, "USD"));
+        var result = order.HasItemsAbovePrice(Money.Create(50m, "USD").Value);
 
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().BeFalse();
@@ -807,7 +835,7 @@ public class OrderShould {
     public void HasItemsAbovePrice_EmptyOrder_ReturnsFalse() {
         var order = ValidOrder();
 
-        var result = order.HasItemsAbovePrice(new Money(50m, "USD"));
+        var result = order.HasItemsAbovePrice(Money.Create(50m, "USD").Value);
 
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().BeFalse();
@@ -830,10 +858,10 @@ public class OrderShould {
     [Test]
     public void MeetsMinimumOrderValue_AboveMinimum_ReturnsTrue() {
         var order = ValidOrder();
-        var product = new Product(ProductId.Create(), "A", "Desc", new Money(100m, "USD"), 100);
+        var product = Product.Create(ProductId.Create(), "A", "Desc", Money.Create(100m, "USD").Value, 100).Value;
         order.AddProduct(product, 2);
 
-        var result = order.MeetsMinimumOrderValue(new Money(150m, "USD"));
+        var result = order.MeetsMinimumOrderValue(Money.Create(150m, "USD").Value);
 
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().BeTrue();
@@ -842,10 +870,10 @@ public class OrderShould {
     [Test]
     public void MeetsMinimumOrderValue_EqualMinimum_ReturnsTrue() {
         var order = ValidOrder();
-        var product = new Product(ProductId.Create(), "A", "Desc", new Money(100m, "USD"), 100);
+        var product = Product.Create(ProductId.Create(), "A", "Desc", Money.Create(100m, "USD").Value, 100).Value;
         order.AddProduct(product, 2);
 
-        var result = order.MeetsMinimumOrderValue(new Money(200m, "USD"));
+        var result = order.MeetsMinimumOrderValue(Money.Create(200m, "USD").Value);
 
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().BeTrue();
@@ -854,10 +882,10 @@ public class OrderShould {
     [Test]
     public void MeetsMinimumOrderValue_BelowMinimum_ReturnsFalse() {
         var order = ValidOrder();
-        var product = new Product(ProductId.Create(), "A", "Desc", new Money(100m, "USD"), 100);
+        var product = Product.Create(ProductId.Create(), "A", "Desc", Money.Create(100m, "USD").Value, 100).Value;
         order.AddProduct(product, 1);
 
-        var result = order.MeetsMinimumOrderValue(new Money(200m, "USD"));
+        var result = order.MeetsMinimumOrderValue(Money.Create(200m, "USD").Value);
 
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().BeFalse();
@@ -877,7 +905,7 @@ public class OrderShould {
     public void MeetsMinimumOrderValue_EmptyOrder_ReturnsFalse() {
         var order = ValidOrder();
 
-        var result = order.MeetsMinimumOrderValue(new Money(100m, "USD"));
+        var result = order.MeetsMinimumOrderValue(Money.Create(100m, "USD").Value);
 
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().BeFalse();
@@ -890,7 +918,7 @@ public class OrderShould {
     [Test]
     public void CalculateRefundForProduct_ValidProduct_ReturnsCorrectAmount() {
         var order = ValidOrder();
-        var product = new Product(ProductId.Create(), "A", "Desc", new Money(50m, "USD"), 100);
+        var product = Product.Create(ProductId.Create(), "A", "Desc", Money.Create(50m, "USD").Value, 100).Value;
         order.AddProduct(product, 5);
 
         var result = order.CalculateRefundForProduct(product.Id, 3);
@@ -902,7 +930,7 @@ public class OrderShould {
     [Test]
     public void CalculateRefundForProduct_SingleUnit_ReturnsUnitPrice() {
         var order = ValidOrder();
-        var product = new Product(ProductId.Create(), "A", "Desc", new Money(50m, "USD"), 100);
+        var product = Product.Create(ProductId.Create(), "A", "Desc", Money.Create(50m, "USD").Value, 100).Value;
         order.AddProduct(product, 5);
 
         var result = order.CalculateRefundForProduct(product.Id, 1);
@@ -924,7 +952,7 @@ public class OrderShould {
     [Test]
     public void CalculateRefundForProduct_ZeroQuantity_ReturnsFailure() {
         var order = ValidOrder();
-        var product = new Product(ProductId.Create(), "A", "Desc", new Money(50m, "USD"), 100);
+        var product = Product.Create(ProductId.Create(), "A", "Desc", Money.Create(50m, "USD").Value, 100).Value;
         order.AddProduct(product, 5);
 
         var result = order.CalculateRefundForProduct(product.Id, 0);
@@ -936,7 +964,7 @@ public class OrderShould {
     [Test]
     public void CalculateRefundForProduct_NegativeQuantity_ReturnsFailure() {
         var order = ValidOrder();
-        var product = new Product(ProductId.Create(), "A", "Desc", new Money(50m, "USD"), 100);
+        var product = Product.Create(ProductId.Create(), "A", "Desc", Money.Create(50m, "USD").Value, 100).Value;
         order.AddProduct(product, 5);
 
         var result = order.CalculateRefundForProduct(product.Id, -1);
@@ -959,7 +987,7 @@ public class OrderShould {
     [Test]
     public void CalculateRefundForProduct_ExceedsAvailable_ReturnsFailure() {
         var order = ValidOrder();
-        var product = new Product(ProductId.Create(), "A", "Desc", new Money(50m, "USD"), 100);
+        var product = Product.Create(ProductId.Create(), "A", "Desc", Money.Create(50m, "USD").Value, 100).Value;
         order.AddProduct(product, 3);
 
         var result = order.CalculateRefundForProduct(product.Id, 5);
@@ -975,10 +1003,10 @@ public class OrderShould {
     [Test]
     public void CalculateTotalDifference_ValidOtherTotal_ReturnsDifference() {
         var order = ValidOrder();
-        var product = new Product(ProductId.Create(), "A", "Desc", new Money(100m, "USD"), 100);
+        var product = Product.Create(ProductId.Create(), "A", "Desc", Money.Create(100m, "USD").Value, 100).Value;
         order.AddProduct(product, 3);
 
-        var result = order.CalculateTotalDifference(new Money(100m, "USD"));
+        var result = order.CalculateTotalDifference(Money.Create(100m, "USD").Value);
 
         result.IsSuccess.Should().BeTrue();
         result.Value!.Amount.Should().Be(200m);
@@ -988,7 +1016,7 @@ public class OrderShould {
     public void CalculateTotalDifference_EmptyOrder_ReturnsNegative() {
         var order = ValidOrder();
 
-        var result = order.CalculateTotalDifference(new Money(100m, "USD"));
+        var result = order.CalculateTotalDifference(Money.Create(100m, "USD").Value);
 
         result.IsSuccess.Should().BeFalse();
     }
@@ -1010,8 +1038,8 @@ public class OrderShould {
     [Test]
     public void HasEqualPriceLines_SamePrice_ReturnsTrue() {
         var order = ValidOrder();
-        var product1 = new Product(ProductId.Create(), "A", "Desc", new Money(50m, "USD"), 100);
-        var product2 = new Product(ProductId.Create(), "B", "Desc", new Money(50m, "USD"), 100);
+        var product1 = Product.Create(ProductId.Create(), "A", "Desc", Money.Create(50m, "USD").Value, 100).Value;
+        var product2 = Product.Create(ProductId.Create(), "B", "Desc", Money.Create(50m, "USD").Value, 100).Value;
         order.AddProduct(product1, 1);
         order.AddProduct(product2, 1);
 
@@ -1024,8 +1052,8 @@ public class OrderShould {
     [Test]
     public void HasEqualPriceLines_DifferentPrice_ReturnsFalse() {
         var order = ValidOrder();
-        var product1 = new Product(ProductId.Create(), "A", "Desc", new Money(50m, "USD"), 100);
-        var product2 = new Product(ProductId.Create(), "B", "Desc", new Money(100m, "USD"), 100);
+        var product1 = Product.Create(ProductId.Create(), "A", "Desc", Money.Create(50m, "USD").Value, 100).Value;
+        var product2 = Product.Create(ProductId.Create(), "B", "Desc", Money.Create(100m, "USD").Value, 100).Value;
         order.AddProduct(product1, 1);
         order.AddProduct(product2, 1);
 
@@ -1058,7 +1086,7 @@ public class OrderShould {
     [Test]
     public void HasEqualPriceLines_Product1NotFound_ReturnsFailure() {
         var order = ValidOrder();
-        var product2 = new Product(ProductId.Create(), "B", "Desc", new Money(50m, "USD"), 100);
+        var product2 = Product.Create(ProductId.Create(), "B", "Desc", Money.Create(50m, "USD").Value, 100).Value;
         order.AddProduct(product2, 1);
 
         var result = order.HasEqualPriceLines(ProductId.Create(), product2.Id);
@@ -1070,7 +1098,7 @@ public class OrderShould {
     [Test]
     public void HasEqualPriceLines_Product2NotFound_ReturnsFailure() {
         var order = ValidOrder();
-        var product1 = new Product(ProductId.Create(), "A", "Desc", new Money(50m, "USD"), 100);
+        var product1 = Product.Create(ProductId.Create(), "A", "Desc", Money.Create(50m, "USD").Value, 100).Value;
         order.AddProduct(product1, 1);
 
         var result = order.HasEqualPriceLines(product1.Id, ProductId.Create());
@@ -1086,7 +1114,7 @@ public class OrderShould {
     [Test]
     public void UpdateShippingAddress_PendingOrder_ReturnsSuccess() {
         var order = ValidOrder();
-        var newAddress = new Address("456 Oak Ave", "Chicago", "IL", "60601", "US");
+        var newAddress = Address.Create("456 Oak Ave", "Chicago", "IL", "60601", "US").Value;
 
         var result = order.UpdateShippingAddress(newAddress);
 
@@ -1101,7 +1129,7 @@ public class OrderShould {
         order.AddProduct(product, 1);
         order.Confirm();
 
-        var result = order.UpdateShippingAddress(new Address("456 Oak Ave", "Chicago", "IL", "60601", "US"));
+        var result = order.UpdateShippingAddress(Address.Create("456 Oak Ave", "Chicago", "IL", "60601", "US").Value);
 
         result.IsSuccess.Should().BeFalse();
         result.Error.Should().Be(DomainErrors.Order.RequiresPendingState(OrderStatus.Confirmed.ToString()));
@@ -1125,7 +1153,7 @@ public class OrderShould {
         order.Confirm();
         order.Ship();
 
-        var result = order.UpdateShippingAddress(new Address("456 Oak Ave", "Chicago", "IL", "60601", "US"));
+        var result = order.UpdateShippingAddress(Address.Create("456 Oak Ave", "Chicago", "IL", "60601", "US").Value);
 
         result.IsSuccess.Should().BeFalse();
     }
@@ -1137,8 +1165,8 @@ public class OrderShould {
     [Test]
     public void Equals_SameId_ReturnsTrue() {
         var id = ValidOrderId();
-        var a = new Order(id, ValidCustomerId(), ValidAddress());
-        var b = new Order(id, ValidCustomerId(), ValidAddress());
+        var a = Order.Create(id, ValidCustomerId(), ValidAddress()).Value;
+        var b = Order.Create(id, ValidCustomerId(), ValidAddress()).Value;
 
         a.Equals(b).Should().BeTrue();
     }

@@ -21,7 +21,7 @@ public class Product : ProduceEvents {
 
     private Product() { }
 
-    public Product(ProductId id, string name, string description, Money price, int stockQuantity) {
+    private Product(ProductId id, string name, string description, Money price, int stockQuantity) {
         if (id == null)
             throw new ArgumentNullException(nameof(id));
 

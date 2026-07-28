@@ -9,7 +9,7 @@ namespace SoftwareLearningGuide.Core.Business.Test.Entities;
 public class OrderLineShould {
     private static OrderLineId ValidId() => OrderLineId.Create();
     private static ProductId ValidProductId() => ProductId.Create();
-    private static Money ValidPrice() => new(25m, "USD");
+    private static Money ValidPrice() => Money.Create(25m, "USD").Value;
 
     [Test]
     public void Create_ValidOrderLine_ReturnsSuccess() {
@@ -63,36 +63,15 @@ public class OrderLineShould {
     [Test]
     public void Create_ZeroPrice_ReturnsFailure() {
         var productId = ValidProductId();
-        var result = OrderLine.Create(ValidId(), productId, "Laptop", new Money(0m, "USD"), 1);
+        var result = OrderLine.Create(ValidId(), productId, "Laptop", Money.Create(0m, "USD").Value, 1);
 
         result.IsSuccess.Should().BeFalse();
         result.Error.Should().Be(DomainErrors.OrderLine.UnitPriceMustBeGreaterThanZero(productId.Value));
     }
 
     [Test]
-    public void Create_NullId_ThrowsArgumentNullException() {
-        var act = () => new OrderLine(null!, ValidProductId(), "Laptop", ValidPrice(), 1);
-
-        act.Should().Throw<ArgumentNullException>();
-    }
-
-    [Test]
-    public void Create_NullProductId_ThrowsArgumentNullException() {
-        var act = () => new OrderLine(ValidId(), null!, "Laptop", ValidPrice(), 1);
-
-        act.Should().Throw<ArgumentNullException>();
-    }
-
-    [Test]
-    public void Create_NullUnitPrice_ThrowsArgumentNullException() {
-        var act = () => new OrderLine(ValidId(), ValidProductId(), "Laptop", null!, 1);
-
-        act.Should().Throw<ArgumentNullException>();
-    }
-
-    [Test]
     public void GetSubtotal_CalculatesCorrectly() {
-        var line = new OrderLine(ValidId(), ValidProductId(), "Laptop", new Money(25m, "USD"), 3);
+        var line = OrderLine.Create(ValidId(), ValidProductId(), "Laptop", Money.Create(25m, "USD").Value, 3).Value;
 
         var result = line.GetSubtotal();
 
@@ -103,7 +82,7 @@ public class OrderLineShould {
 
     [Test]
     public void GetSubtotal_WithSingleQuantity_ReturnsUnitPrice() {
-        var line = new OrderLine(ValidId(), ValidProductId(), "Laptop", new Money(25m, "USD"), 1);
+        var line = OrderLine.Create(ValidId(), ValidProductId(), "Laptop", Money.Create(25m, "USD").Value, 1).Value;
 
         var result = line.GetSubtotal();
 
@@ -113,7 +92,7 @@ public class OrderLineShould {
 
     [Test]
     public void UpdateQuantity_ValidQuantity_ReturnsSuccess() {
-        var line = new OrderLine(ValidId(), ValidProductId(), "Laptop", ValidPrice(), 2);
+        var line = OrderLine.Create(ValidId(), ValidProductId(), "Laptop", ValidPrice(), 2).Value;
 
         var result = line.UpdateQuantity(5);
 
@@ -123,7 +102,7 @@ public class OrderLineShould {
 
     [Test]
     public void UpdateQuantity_ZeroQuantity_ReturnsFailure() {
-        var line = new OrderLine(ValidId(), ValidProductId(), "Laptop", ValidPrice(), 2);
+        var line = OrderLine.Create(ValidId(), ValidProductId(), "Laptop", ValidPrice(), 2).Value;
 
         var result = line.UpdateQuantity(0);
 
@@ -134,7 +113,7 @@ public class OrderLineShould {
 
     [Test]
     public void UpdateQuantity_NegativeQuantity_ReturnsFailure() {
-        var line = new OrderLine(ValidId(), ValidProductId(), "Laptop", ValidPrice(), 2);
+        var line = OrderLine.Create(ValidId(), ValidProductId(), "Laptop", ValidPrice(), 2).Value;
 
         var result = line.UpdateQuantity(-1);
 
@@ -147,8 +126,8 @@ public class OrderLineShould {
     public void Equals_SameId_ReturnsTrue() {
         var id = ValidId();
         var productId = ValidProductId();
-        var a = new OrderLine(id, productId, "Laptop", ValidPrice(), 2);
-        var b = new OrderLine(id, productId, "Desktop", new Money(50m, "USD"), 5);
+        var a = OrderLine.Create(id, productId, "Laptop", ValidPrice(), 2).Value;
+        var b = OrderLine.Create(id, productId, "Desktop", Money.Create(50m, "USD").Value, 5).Value;
 
         a.Equals(b).Should().BeTrue();
     }
@@ -156,16 +135,52 @@ public class OrderLineShould {
     [Test]
     public void Equals_DifferentId_ReturnsFalse() {
         var productId = ValidProductId();
-        var a = new OrderLine(ValidId(), productId, "Laptop", ValidPrice(), 2);
-        var b = new OrderLine(ValidId(), productId, "Laptop", ValidPrice(), 2);
+        var a = OrderLine.Create(ValidId(), productId, "Laptop", ValidPrice(), 2).Value;
+        var b = OrderLine.Create(ValidId(), productId, "Laptop", ValidPrice(), 2).Value;
 
         a.Equals(b).Should().BeFalse();
     }
 
     [Test]
     public void Equals_NullObject_ReturnsFalse() {
-        var line = new OrderLine(ValidId(), ValidProductId(), "Laptop", ValidPrice(), 2);
+        var line = OrderLine.Create(ValidId(), ValidProductId(), "Laptop", ValidPrice(), 2).Value;
 
         line.Equals(null).Should().BeFalse();
+    }
+
+    [Test]
+    public void Create_NullId_ReturnsFailure() {
+        var result = OrderLine.Create(null!, ValidProductId(), "Laptop", ValidPrice(), 1);
+
+        result.IsSuccess.Should().BeFalse();
+    }
+
+    [Test]
+    public void Create_NullProductId_ReturnsFailure() {
+        var result = OrderLine.Create(ValidId(), null!, "Laptop", ValidPrice(), 1);
+
+        result.IsSuccess.Should().BeFalse();
+    }
+
+    [Test]
+    public void Create_NullUnitPrice_ReturnsFailure() {
+        var result = OrderLine.Create(ValidId(), ValidProductId(), "Laptop", null!, 1);
+
+        result.IsSuccess.Should().BeFalse();
+    }
+
+    [Test]
+    public void Create_NegativePrice_ReturnsFailure() {
+        var result = OrderLine.Create(ValidId(), ValidProductId(), "Laptop", Money.Create(-10m, "USD").Value!, 1);
+
+        result.IsSuccess.Should().BeFalse();
+    }
+
+    [Test]
+    public void Create_NullProductName_ReturnsFailure() {
+        var productId = ValidProductId();
+        var result = OrderLine.Create(ValidId(), productId, null!, ValidPrice(), 1);
+
+        result.IsSuccess.Should().BeFalse();
     }
 }

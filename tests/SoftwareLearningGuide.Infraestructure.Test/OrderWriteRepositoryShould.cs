@@ -29,8 +29,8 @@ public class OrderWriteRepositoryShould : EFDatabase<ApplicationDbContext> {
         await Context.SaveChangesAsync();
 
         var orderId = OrderId.Create();
-        var address = new AddressBuilder().Build();
-        var order = new Order(orderId, customerId, address);
+        var address = Address.Create("123 Main St", "Springfield", "IL", "62704", "US").Value;
+        var order = Order.Create(orderId, customerId, address).Value;
 
         var product = await Context.Products.FirstAsync(p => p.Id == productId);
         order.AddProduct(product, 2);
@@ -54,8 +54,8 @@ public class OrderWriteRepositoryShould : EFDatabase<ApplicationDbContext> {
         await Context.SaveChangesAsync();
 
         var orderId = OrderId.Create();
-        var address = new AddressBuilder().Build();
-        var order = new Order(orderId, customerId, address);
+        var address = Address.Create("123 Main St", "Springfield", "IL", "62704", "US").Value;
+        var order = Order.Create(orderId, customerId, address).Value;
 
         await repository.AddAsync(order, CancellationToken.None);
         await Context.SaveChangesAsync();
@@ -78,8 +78,8 @@ public class OrderWriteRepositoryShould : EFDatabase<ApplicationDbContext> {
         await Context.SaveChangesAsync();
 
         var orderId = OrderId.Create();
-        var address = new AddressBuilder().Build();
-        var order = new Order(orderId, customerId, address);
+        var address = Address.Create("123 Main St", "Springfield", "IL", "62704", "US").Value;
+        var order = Order.Create(orderId, customerId, address).Value;
 
         var product = await Context.Products.FirstAsync(p => p.Id == productId);
         order.AddProduct(product, 2);

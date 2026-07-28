@@ -15,7 +15,7 @@ public record Address {
     public string PostalCode { get; }
     public string Country { get; }
 
-    public Address(string street, string city, string state, string postalCode, string country) {
+    private Address(string street, string city, string state, string postalCode, string country) {
         if (string.IsNullOrWhiteSpace(street))
             throw new ArgumentException(DomainErrors.AddressErrors.StreetCannotBeEmpty());
 

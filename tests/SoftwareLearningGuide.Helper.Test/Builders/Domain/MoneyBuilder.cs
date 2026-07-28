@@ -10,7 +10,7 @@ public class MoneyBuilder {
     public MoneyBuilder WithAmount(decimal amount) { _amount = amount; return this; }
     public MoneyBuilder WithCurrency(string currency) { _currency = currency; return this; }
 
-    public Money Build() => new(_amount, _currency);
+    public Money Build() => Money.Create(_amount, _currency).Value;
 
     public Result<Money> BuildResult() => Money.Create(_amount, _currency);
 }

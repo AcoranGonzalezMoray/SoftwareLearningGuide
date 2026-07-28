@@ -17,7 +17,7 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product> {
         builder.Property(p => p.Id)
             .HasConversion(
                 id => id.Value,
-                value => new ProductId(value))
+                value => ProductId.From(value).Value)
             .ValueGeneratedNever();
 
         builder.Property(p => p.Name).HasMaxLength(200).IsRequired();

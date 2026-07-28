@@ -16,7 +16,7 @@ public class AddressBuilder {
     public AddressBuilder WithPostalCode(string postalCode) { _postalCode = postalCode; return this; }
     public AddressBuilder WithCountry(string country) { _country = country; return this; }
 
-    public Address Build() => new(_street, _city, _state, _postalCode, _country);
+    public Address Build() => Address.Create(_street, _city, _state, _postalCode, _country).Value;
 
     public Result<Address> BuildResult() => Address.Create(_street, _city, _state, _postalCode, _country);
 }

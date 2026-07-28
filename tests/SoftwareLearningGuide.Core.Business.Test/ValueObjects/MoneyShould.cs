@@ -87,8 +87,8 @@ public class MoneyShould {
 
     [Test]
     public void Add_SameCurrency_ReturnsSum() {
-        var a = new Money(100m, "USD");
-        var b = new Money(50m, "USD");
+        var a = Money.Create(100m, "USD").Value;
+        var b = Money.Create(50m, "USD").Value;
 
         var result = a.Add(b);
 
@@ -98,7 +98,7 @@ public class MoneyShould {
 
     [Test]
     public void Add_WithZero_ReturnsSame() {
-        var a = new Money(100m, "USD");
+        var a = Money.Create(100m, "USD").Value;
         var b = Money.Zero();
 
         var result = a.Add(b);
@@ -109,8 +109,8 @@ public class MoneyShould {
 
     [Test]
     public void Add_DifferentCurrencies_ReturnsFailure() {
-        var a = new Money(100m, "USD");
-        var b = new Money(50m, "EUR");
+        var a = Money.Create(100m, "USD").Value;
+        var b = Money.Create(50m, "EUR").Value;
 
         var result = a.Add(b);
 
@@ -120,7 +120,7 @@ public class MoneyShould {
 
     [Test]
     public void Add_NullMoney_ReturnsFailure() {
-        var a = new Money(100m, "USD");
+        var a = Money.Create(100m, "USD").Value;
 
         var result = a.Add(null!);
 
@@ -130,8 +130,8 @@ public class MoneyShould {
 
     [Test]
     public void Subtract_SameCurrency_ReturnsDifference() {
-        var a = new Money(100m, "USD");
-        var b = new Money(30m, "USD");
+        var a = Money.Create(100m, "USD").Value;
+        var b = Money.Create(30m, "USD").Value;
 
         var result = a.Subtract(b);
 
@@ -141,8 +141,8 @@ public class MoneyShould {
 
     [Test]
     public void Subtract_EqualAmount_ReturnsZero() {
-        var a = new Money(100m, "USD");
-        var b = new Money(100m, "USD");
+        var a = Money.Create(100m, "USD").Value;
+        var b = Money.Create(100m, "USD").Value;
 
         var result = a.Subtract(b);
 
@@ -152,8 +152,8 @@ public class MoneyShould {
 
     [Test]
     public void Subtract_ResultNegative_ReturnsFailure() {
-        var a = new Money(30m, "USD");
-        var b = new Money(100m, "USD");
+        var a = Money.Create(30m, "USD").Value;
+        var b = Money.Create(100m, "USD").Value;
 
         var result = a.Subtract(b);
 
@@ -163,8 +163,8 @@ public class MoneyShould {
 
     [Test]
     public void Subtract_DifferentCurrencies_ReturnsFailure() {
-        var a = new Money(100m, "USD");
-        var b = new Money(50m, "EUR");
+        var a = Money.Create(100m, "USD").Value;
+        var b = Money.Create(50m, "EUR").Value;
 
         var result = a.Subtract(b);
 
@@ -174,7 +174,7 @@ public class MoneyShould {
 
     [Test]
     public void Subtract_NullMoney_ReturnsFailure() {
-        var a = new Money(100m, "USD");
+        var a = Money.Create(100m, "USD").Value;
 
         var result = a.Subtract(null!);
 
@@ -184,7 +184,7 @@ public class MoneyShould {
 
     [Test]
     public void Multiply_PositiveFactor_ReturnsProduct() {
-        var money = new Money(100m, "USD");
+        var money = Money.Create(100m, "USD").Value;
 
         var result = money.Multiply(3);
 
@@ -194,7 +194,7 @@ public class MoneyShould {
 
     [Test]
     public void Multiply_ByZero_ReturnsZero() {
-        var money = new Money(100m, "USD");
+        var money = Money.Create(100m, "USD").Value;
 
         var result = money.Multiply(0);
 
@@ -204,7 +204,7 @@ public class MoneyShould {
 
     [Test]
     public void Multiply_ByOne_ReturnsSame() {
-        var money = new Money(100m, "USD");
+        var money = Money.Create(100m, "USD").Value;
 
         var result = money.Multiply(1);
 
@@ -214,7 +214,7 @@ public class MoneyShould {
 
     [Test]
     public void Multiply_ByDecimalFactor() {
-        var money = new Money(100m, "USD");
+        var money = Money.Create(100m, "USD").Value;
 
         var result = money.Multiply(0.5m);
 
@@ -224,7 +224,7 @@ public class MoneyShould {
 
     [Test]
     public void Multiply_NegativeFactor_ReturnsFailure() {
-        var money = new Money(100m, "USD");
+        var money = Money.Create(100m, "USD").Value;
 
         var result = money.Multiply(-1);
 
@@ -234,7 +234,7 @@ public class MoneyShould {
 
     [Test]
     public void Divide_ByPositiveNumber_ReturnsQuotient() {
-        var money = new Money(100m, "USD");
+        var money = Money.Create(100m, "USD").Value;
 
         var result = money.Divide(4);
 
@@ -244,7 +244,7 @@ public class MoneyShould {
 
     [Test]
     public void Divide_ByOne_ReturnsSame() {
-        var money = new Money(100m, "USD");
+        var money = Money.Create(100m, "USD").Value;
 
         var result = money.Divide(1);
 
@@ -254,7 +254,7 @@ public class MoneyShould {
 
     [Test]
     public void Divide_ByDecimalFactor() {
-        var money = new Money(100m, "USD");
+        var money = Money.Create(100m, "USD").Value;
 
         var result = money.Divide(0.5m);
 
@@ -264,7 +264,7 @@ public class MoneyShould {
 
     [Test]
     public void Divide_ByZero_ReturnsFailure() {
-        var money = new Money(100m, "USD");
+        var money = Money.Create(100m, "USD").Value;
 
         var result = money.Divide(0);
 
@@ -274,7 +274,7 @@ public class MoneyShould {
 
     [Test]
     public void Divide_ByNegative_ReturnsFailure() {
-        var money = new Money(100m, "USD");
+        var money = Money.Create(100m, "USD").Value;
 
         var result = money.Divide(-2);
 
@@ -284,8 +284,8 @@ public class MoneyShould {
 
     [Test]
     public void IsGreaterThan_SameCurrency_ReturnsTrue() {
-        var a = new Money(100m, "USD");
-        var b = new Money(50m, "USD");
+        var a = Money.Create(100m, "USD").Value;
+        var b = Money.Create(50m, "USD").Value;
 
         var result = a.IsGreaterThan(b);
 
@@ -295,8 +295,8 @@ public class MoneyShould {
 
     [Test]
     public void IsGreaterThan_EqualAmount_ReturnsFalse() {
-        var a = new Money(100m, "USD");
-        var b = new Money(100m, "USD");
+        var a = Money.Create(100m, "USD").Value;
+        var b = Money.Create(100m, "USD").Value;
 
         var result = a.IsGreaterThan(b);
 
@@ -306,8 +306,8 @@ public class MoneyShould {
 
     [Test]
     public void IsGreaterThan_SmallerAmount_ReturnsFalse() {
-        var a = new Money(50m, "USD");
-        var b = new Money(100m, "USD");
+        var a = Money.Create(50m, "USD").Value;
+        var b = Money.Create(100m, "USD").Value;
 
         var result = a.IsGreaterThan(b);
 
@@ -317,8 +317,8 @@ public class MoneyShould {
 
     [Test]
     public void IsGreaterThan_DifferentCurrencies_ReturnsFailure() {
-        var a = new Money(100m, "USD");
-        var b = new Money(50m, "EUR");
+        var a = Money.Create(100m, "USD").Value;
+        var b = Money.Create(50m, "EUR").Value;
 
         var result = a.IsGreaterThan(b);
 
@@ -328,7 +328,7 @@ public class MoneyShould {
 
     [Test]
     public void IsGreaterThan_NullMoney_ReturnsFailure() {
-        var a = new Money(100m, "USD");
+        var a = Money.Create(100m, "USD").Value;
 
         var result = a.IsGreaterThan(null!);
 
@@ -338,8 +338,8 @@ public class MoneyShould {
 
     [Test]
     public void IsLessThan_SameCurrency_ReturnsTrue() {
-        var a = new Money(50m, "USD");
-        var b = new Money(100m, "USD");
+        var a = Money.Create(50m, "USD").Value;
+        var b = Money.Create(100m, "USD").Value;
 
         var result = a.IsLessThan(b);
 
@@ -349,8 +349,8 @@ public class MoneyShould {
 
     [Test]
     public void IsLessThan_EqualAmount_ReturnsFalse() {
-        var a = new Money(100m, "USD");
-        var b = new Money(100m, "USD");
+        var a = Money.Create(100m, "USD").Value;
+        var b = Money.Create(100m, "USD").Value;
 
         var result = a.IsLessThan(b);
 
@@ -360,8 +360,8 @@ public class MoneyShould {
 
     [Test]
     public void IsLessThan_GreaterAmount_ReturnsFalse() {
-        var a = new Money(100m, "USD");
-        var b = new Money(50m, "USD");
+        var a = Money.Create(100m, "USD").Value;
+        var b = Money.Create(50m, "USD").Value;
 
         var result = a.IsLessThan(b);
 
@@ -371,8 +371,8 @@ public class MoneyShould {
 
     [Test]
     public void IsLessThan_DifferentCurrencies_ReturnsFailure() {
-        var a = new Money(100m, "USD");
-        var b = new Money(50m, "EUR");
+        var a = Money.Create(100m, "USD").Value;
+        var b = Money.Create(50m, "EUR").Value;
 
         var result = a.IsLessThan(b);
 
@@ -382,7 +382,7 @@ public class MoneyShould {
 
     [Test]
     public void IsLessThan_NullMoney_ReturnsFailure() {
-        var a = new Money(100m, "USD");
+        var a = Money.Create(100m, "USD").Value;
 
         var result = a.IsLessThan(null!);
 
@@ -392,8 +392,8 @@ public class MoneyShould {
 
     [Test]
     public void IsGreaterThanOrEqual_EqualAmount_ReturnsTrue() {
-        var a = new Money(100m, "USD");
-        var b = new Money(100m, "USD");
+        var a = Money.Create(100m, "USD").Value;
+        var b = Money.Create(100m, "USD").Value;
 
         var result = a.IsGreaterThanOrEqual(b);
 
@@ -403,8 +403,8 @@ public class MoneyShould {
 
     [Test]
     public void IsGreaterThanOrEqual_GreaterAmount_ReturnsTrue() {
-        var a = new Money(200m, "USD");
-        var b = new Money(100m, "USD");
+        var a = Money.Create(200m, "USD").Value;
+        var b = Money.Create(100m, "USD").Value;
 
         var result = a.IsGreaterThanOrEqual(b);
 
@@ -414,8 +414,8 @@ public class MoneyShould {
 
     [Test]
     public void IsGreaterThanOrEqual_LesserAmount_ReturnsFalse() {
-        var a = new Money(50m, "USD");
-        var b = new Money(100m, "USD");
+        var a = Money.Create(50m, "USD").Value;
+        var b = Money.Create(100m, "USD").Value;
 
         var result = a.IsGreaterThanOrEqual(b);
 
@@ -425,7 +425,7 @@ public class MoneyShould {
 
     [Test]
     public void IsGreaterThanOrEqual_NullMoney_ReturnsFailure() {
-        var a = new Money(100m, "USD");
+        var a = Money.Create(100m, "USD").Value;
 
         var result = a.IsGreaterThanOrEqual(null!);
 
@@ -435,8 +435,8 @@ public class MoneyShould {
 
     [Test]
     public void IsGreaterThanOrEqual_DifferentCurrencies_ReturnsFailure() {
-        var a = new Money(100m, "USD");
-        var b = new Money(100m, "EUR");
+        var a = Money.Create(100m, "USD").Value;
+        var b = Money.Create(100m, "EUR").Value;
 
         var result = a.IsGreaterThanOrEqual(b);
 
@@ -446,38 +446,38 @@ public class MoneyShould {
 
     [Test]
     public void IsEqual_SameAmountAndCurrency_ReturnsTrue() {
-        var a = new Money(100m, "USD");
-        var b = new Money(100m, "USD");
+        var a = Money.Create(100m, "USD").Value;
+        var b = Money.Create(100m, "USD").Value;
 
         a.IsEqual(b).Should().BeTrue();
     }
 
     [Test]
     public void IsEqual_SameAmountDifferentCurrency_ReturnsFalse() {
-        var a = new Money(100m, "USD");
-        var b = new Money(100m, "EUR");
+        var a = Money.Create(100m, "USD").Value;
+        var b = Money.Create(100m, "EUR").Value;
 
         a.IsEqual(b).Should().BeFalse();
     }
 
     [Test]
     public void IsEqual_DifferentAmount_ReturnsFalse() {
-        var a = new Money(100m, "USD");
-        var b = new Money(200m, "USD");
+        var a = Money.Create(100m, "USD").Value;
+        var b = Money.Create(200m, "USD").Value;
 
         a.IsEqual(b).Should().BeFalse();
     }
 
     [Test]
     public void IsEqual_NullMoney_ReturnsFalse() {
-        var a = new Money(100m, "USD");
+        var a = Money.Create(100m, "USD").Value;
 
         a.IsEqual(null!).Should().BeFalse();
     }
 
     [Test]
     public void ToString_FormatsCorrectly() {
-        var money = new Money(123.456m, "USD");
+        var money = Money.Create(123.456m, "USD").Value;
 
         money.ToString().Should().Match("*123*46 USD*");
     }
@@ -491,41 +491,17 @@ public class MoneyShould {
 
     [Test]
     public void RecordEquality_SameValues_AreEqual() {
-        var a = new Money(100m, "USD");
-        var b = new Money(100m, "USD");
+        var a = Money.Create(100m, "USD").Value;
+        var b = Money.Create(100m, "USD").Value;
 
         a.Should().Be(b);
     }
 
     [Test]
     public void RecordEquality_DifferentValues_AreNotEqual() {
-        var a = new Money(100m, "USD");
-        var b = new Money(200m, "USD");
+        var a = Money.Create(100m, "USD").Value;
+        var b = Money.Create(200m, "USD").Value;
 
         a.Should().NotBe(b);
-    }
-
-    [Test]
-    public void Constructor_NegativeAmount_ThrowsArgumentException() {
-        var act = () => new Money(-1m, "USD");
-
-        act.Should().Throw<ArgumentException>()
-            .WithMessage(DomainErrors.MoneyErrors.AmountCannotBeNegative(-1m));
-    }
-
-    [Test]
-    public void Constructor_EmptyCurrency_ThrowsArgumentException() {
-        var act = () => new Money(100m, "");
-
-        act.Should().Throw<ArgumentException>()
-            .WithMessage(DomainErrors.MoneyErrors.CurrencyCannotBeEmpty());
-    }
-
-    [Test]
-    public void Constructor_WrongLengthCurrency_ThrowsArgumentException() {
-        var act = () => new Money(100m, "US");
-
-        act.Should().Throw<ArgumentException>()
-            .WithMessage(DomainErrors.MoneyErrors.CurrencyMustBeThreeCharacters());
     }
 }

@@ -20,7 +20,7 @@ public class Customer : ProduceEvents {
 
     private Customer() { }
 
-    public Customer(CustomerId id, string firstName, string lastName, Email email) {
+    private Customer(CustomerId id, string firstName, string lastName, Email email) {
         if (id == null)
             throw new ArgumentNullException(nameof(id));
 

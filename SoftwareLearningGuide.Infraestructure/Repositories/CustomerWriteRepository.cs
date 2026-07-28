@@ -10,6 +10,6 @@ namespace SoftwareLearningGuide.Infraestructure.Data.Repositories;
 /// </summary>
 public sealed class CustomerWriteRepository : BaseRepository<Customer, CustomerId, Guid>, ICustomerWriteRepository {
     public CustomerWriteRepository(ApplicationDbContext context)
-        : base(context, guid => new CustomerId(guid)) {
+        : base(context, guid => CustomerId.From(guid).Value) {
     }
 }

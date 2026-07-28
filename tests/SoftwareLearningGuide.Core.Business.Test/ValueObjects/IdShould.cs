@@ -40,14 +40,6 @@ public class OrderIdShould {
     }
 
     [Test]
-    public void Constructor_EmptyGuid_ThrowsArgumentException() {
-        var act = () => new OrderId(Guid.Empty);
-
-        act.Should().Throw<ArgumentException>()
-            .WithMessage(DomainErrors.IdErrors.OrderIdCannotBeEmpty());
-    }
-
-    [Test]
     public void ToString_ReturnsGuidString() {
         var id = OrderId.Create();
 
@@ -79,14 +71,6 @@ public class CustomerIdShould {
 
         result.IsSuccess.Should().BeFalse();
         result.Error.Should().Be(DomainErrors.IdErrors.CustomerIdCannotBeEmpty());
-    }
-
-    [Test]
-    public void Constructor_EmptyGuid_ThrowsArgumentException() {
-        var act = () => new CustomerId(Guid.Empty);
-
-        act.Should().Throw<ArgumentException>()
-            .WithMessage(DomainErrors.IdErrors.CustomerIdCannotBeEmpty());
     }
 
     [Test]
@@ -124,14 +108,6 @@ public class ProductIdShould {
     }
 
     [Test]
-    public void Constructor_EmptyGuid_ThrowsArgumentException() {
-        var act = () => new ProductId(Guid.Empty);
-
-        act.Should().Throw<ArgumentException>()
-            .WithMessage(DomainErrors.IdErrors.ProductIdCannotBeEmpty());
-    }
-
-    [Test]
     public void ToString_ReturnsGuidString() {
         var id = ProductId.Create();
 
@@ -163,14 +139,6 @@ public class OrderLineIdShould {
 
         result.IsSuccess.Should().BeFalse();
         result.Error.Should().Be(DomainErrors.IdErrors.OrderLineIdCannotBeEmpty());
-    }
-
-    [Test]
-    public void Constructor_EmptyGuid_ThrowsArgumentException() {
-        var act = () => new OrderLineId(Guid.Empty);
-
-        act.Should().Throw<ArgumentException>()
-            .WithMessage(DomainErrors.IdErrors.OrderLineIdCannotBeEmpty());
     }
 
     [Test]

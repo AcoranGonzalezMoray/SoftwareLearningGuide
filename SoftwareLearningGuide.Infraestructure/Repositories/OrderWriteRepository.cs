@@ -10,6 +10,6 @@ namespace SoftwareLearningGuide.Infraestructure.Data.Repositories;
 /// </summary>
 public sealed class OrderWriteRepository : BaseRepository<Order, OrderId, Guid>, IOrderWriteRepository {
     public OrderWriteRepository(ApplicationDbContext context)
-        : base(context, guid => new OrderId(guid)) {
+        : base(context, guid => OrderId.From(guid).Value) {
     }
 }

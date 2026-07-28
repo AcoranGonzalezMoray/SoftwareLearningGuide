@@ -19,13 +19,13 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order> {
         builder.Property(o => o.Id)
             .HasConversion(
                 id => id.Value,
-                value => new OrderId(value))
+                value => OrderId.From(value).Value)
             .ValueGeneratedNever();
 
         builder.Property(o => o.CustomerId)
             .HasConversion(
                 id => id.Value,
-                value => new CustomerId(value));
+                value => CustomerId.From(value).Value);
 
         builder.Property(o => o.Status)
             .HasConversion<string>()

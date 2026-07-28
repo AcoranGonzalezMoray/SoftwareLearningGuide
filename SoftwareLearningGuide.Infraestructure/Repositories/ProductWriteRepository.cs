@@ -10,6 +10,6 @@ namespace SoftwareLearningGuide.Infraestructure.Data.Repositories;
 /// </summary>
 public sealed class ProductWriteRepository : BaseRepository<Product, ProductId, Guid>, IProductWriteRepository {
     public ProductWriteRepository(ApplicationDbContext context)
-        : base(context, guid => new ProductId(guid)) {
+        : base(context, guid => ProductId.From(guid).Value) {
     }
 }

@@ -17,7 +17,7 @@ public class CustomerConfiguration : IEntityTypeConfiguration<Customer> {
         builder.Property(c => c.Id)
             .HasConversion(
                 id => id.Value,
-                value => new CustomerId(value))
+                value => CustomerId.From(value).Value)
             .ValueGeneratedNever();
 
         builder.Property(c => c.FirstName).HasMaxLength(100).IsRequired();
