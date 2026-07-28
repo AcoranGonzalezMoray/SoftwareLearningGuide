@@ -10,6 +10,9 @@
   <!-- Docsify Theme -->
   <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css">
   
+  <!-- Docsify Sidebar Collapse Plugin CSS -->
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify-sidebar-collapse/dist/sidebar.min.css" />
+  
   <style>
     :root {
       --bg-primary: #ffffff;
@@ -118,12 +121,13 @@
       border-color: var(--accent-color);
     }
 
-    /* Sidebar Styling */
+    /* Sidebar Base Styling */
     .sidebar {
       background-color: var(--sidebar-bg) !important;
       border-right: 1px solid var(--border-color) !important;
       color: var(--sidebar-text) !important;
       padding-top: 20px;
+      width: 280px;
     }
 
     .sidebar h1 {
@@ -133,16 +137,70 @@
       font-weight: 700;
     }
 
-    .sidebar ul li a {
-      color: var(--sidebar-text) !important;
-      transition: color 0.2s ease;
-      line-height: 1.8;
+    /* Compact & Aligned Sidebar Navigation (Evita desplazamientos excesivos a la derecha) */
+    .sidebar-nav {
+      padding: 0 15px !important;
     }
 
-    .sidebar ul li a:hover,
-    .sidebar ul li.active > a {
+    .sidebar-nav ul, 
+    .sidebar-nav ol {
+      margin: 0 !important;
+      padding-left: 0 !important;
+    }
+
+    .sidebar-nav > ul > li {
+      margin-top: 8px !important;
+      font-weight: 600;
+    }
+
+    /* Contenedores hijos alineados verticalmente con borde fino estilo VSCode */
+    .sidebar-nav ul ul,
+    .sidebar-nav .app-sub-sidebar {
+      padding-left: 8px !important;
+      margin-left: 4px !important;
+      border-left: 1px solid var(--border-color) !important;
+    }
+
+    .sidebar-nav ul ul ul,
+    .sidebar-nav .app-sub-sidebar ul {
+      padding-left: 6px !important;
+      margin-left: 2px !important;
+      border-left: none !important;
+    }
+
+    .sidebar-nav li {
+      margin: 2px 0 !important;
+    }
+
+    .sidebar-nav li a {
+      color: var(--sidebar-text) !important;
+      transition: color 0.2s ease;
+      line-height: 1.5 !important;
+      padding: 4px 6px !important;
+      font-size: 0.88em !important;
+      font-weight: 400;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: block;
+    }
+
+    .sidebar-nav li a:hover,
+    .sidebar-nav li.active > a {
       color: var(--sidebar-active) !important;
       font-weight: 600;
+    }
+
+    /* Custom Flechas de Desplegable del Plugin */
+    .sidebar-nav li.collapse > a::after,
+    .sidebar-nav li.open > a::after,
+    .sidebar-nav .folder > a::after {
+      border-left-color: var(--text-secondary) !important;
+      right: 6px !important;
+    }
+
+    .sidebar-nav li.active > a::after {
+      border-left-color: var(--accent-color) !important;
     }
 
     /* Content Area Styling */
@@ -338,7 +396,8 @@
       repo: '',
       loadSidebar: true,
       auto2top: true,
-      subMaxLevel: 3,
+      subMaxLevel: 2,
+      sidebarDisplayLevel: 1,
       themeColor: '#512BD4',
       homepage: 'README.md',
       
@@ -388,6 +447,9 @@
   <!-- Docsify Core -->
   <script src="//cdn.jsdelivr.net/npm/docsify@4"></script>
   
+  <!-- Docsify Sidebar Collapse Plugin JS -->
+  <script src="//cdn.jsdelivr.net/npm/docsify-sidebar-collapse/dist/docsify-sidebar-collapse.min.js"></script>
+
   <!-- Search Plugin -->
   <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/search.min.js"></script>
   
