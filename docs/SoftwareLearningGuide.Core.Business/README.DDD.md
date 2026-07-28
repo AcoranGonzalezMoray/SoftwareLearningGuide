@@ -26,6 +26,11 @@ Este documento explica los conceptos fundamentales de **Domain-Driven Design** y
 - ✅ **Modeling** - Crear modelos que representen la realidad del negocio
 - ✅ **Isolation** - Aislar las reglas de negocio de la infraestructura
 
+> **¿Por qué los constructores en DDD son privados (`private`)?**
+>
+> 1. **Protección de Invariantes del Dominio:** En DDD, un objeto de dominio (Entidad, Agregado o Value Object) jamás debe existir en un estado inconsistente o inválido. Si el constructor fuera `public`, cualquier parte del código podría instanciar el objeto usando `new MyEntity(...)` omitiendo las validaciones del negocio.
+> 2. **Encapsulación y Métodos de Fábrica (`Create`):** Al hacer el constructor `private`, todas las instanciaciones se canalizan obligatoriamente a través de métodos estáticos de fábrica (como `Result<Money>.Create(...)` o `Result<Order>.Create(...)`). Estos métodos validan las reglas e invariantes del negocio y retornan un `Result<T>`, impidiendo la creación del objeto si alguna validación falla.
+> 3. **Compatibilidad con ORMs (EF Core):** EF Core requiere un constructor sin parámetros para reconstruir entidades desde la base de datos mediante reflexión. Este constructor también se declara `private` (o `protected`), manteniendo la encapsulación intacta para el resto de la aplicación.
 ---
 
 ## Value Objects

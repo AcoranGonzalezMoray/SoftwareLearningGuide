@@ -42,6 +42,11 @@
 | **Entities** | Represent objects with identity that change | `Product`, `Customer`, `Order` |
 | **Aggregates** | Groups of entities that must be consistent | `Order` (with its `OrderLines`) |
 
+> **Why are constructors in DDD private (`private`)?**
+>
+> 1. **Domain Invariant Protection:** In DDD, a domain object (Entity, Aggregate, or Value Object) must never exist in an invalid or inconsistent state. If constructors were `public`, external code could instantiate objects using `new MyEntity(...)`, bypassing business rules and domain validations.
+> 2. **Encapsulation & Factory Methods (`Create`):** By making constructors `private`, all instantiations are forced through static factory methods (such as `Result<Money>.Create(...)` or `Result<Order>.Create(...)`). These methods validate all domain rules and return a `Result<T>`, preventing object creation whenever a validation fails.
+> 3. **ORM Compatibility (EF Core):** EF Core requires a parameterless constructor to reconstruct entities from the database via reflection. This constructor is also declared `private` (or `protected`), preserving encapsulation throughout the rest of the application.
 ---
 
 ## Project Structure

@@ -10,9 +10,6 @@
   <!-- Docsify Theme -->
   <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css">
   
-  <!-- Docsify Sidebar Collapse Plugin CSS -->
-  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify-sidebar-collapse/dist/sidebar.min.css" />
-  
   <style>
     :root {
       --bg-primary: #ffffff;
@@ -127,7 +124,7 @@
       border-right: 1px solid var(--border-color) !important;
       color: var(--sidebar-text) !important;
       padding-top: 20px;
-      width: 280px;
+      width: 290px;
     }
 
     .sidebar h1 {
@@ -137,70 +134,129 @@
       font-weight: 700;
     }
 
-    /* Compact & Aligned Sidebar Navigation (Evita desplazamientos excesivos a la derecha) */
     .sidebar-nav {
-      padding: 0 15px !important;
+      padding: 0 14px !important;
     }
 
-    .sidebar-nav ul, 
-    .sidebar-nav ol {
-      margin: 0 !important;
-      padding-left: 0 !important;
+    /* Categorías Principales (Padres) con Flechas Visibles (▼ / ▶) */
+    .sidebar-nav li.category-item > p,
+    .sidebar-nav li.category-item > strong {
+      cursor: pointer !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      padding: 8px 10px !important;
+      margin: 6px 0 2px 0 !important;
+      color: var(--text-primary) !important;
+      font-weight: 700 !important;
+      font-size: 0.93em !important;
+      user-select: none !important;
+      border-radius: 6px !important;
+      transition: background-color 0.2s ease !important;
     }
 
-    .sidebar-nav > ul > li {
-      margin-top: 8px !important;
-      font-weight: 600;
+    .sidebar-nav li.category-item > p:hover,
+    .sidebar-nav li.category-item > strong:hover {
+      background-color: var(--bg-secondary) !important;
     }
 
-    /* Contenedores hijos alineados verticalmente con borde fino estilo VSCode */
-    .sidebar-nav ul ul,
-    .sidebar-nav .app-sub-sidebar {
-      padding-left: 8px !important;
-      margin-left: 4px !important;
-      border-left: 1px solid var(--border-color) !important;
+    .sidebar-nav li.category-item > p::after,
+    .sidebar-nav li.category-item > strong::after {
+      content: '▼' !important;
+      display: inline-block !important;
+      font-size: 0.7em !important;
+      color: var(--accent-color) !important;
+      transition: transform 0.2s ease !important;
     }
 
-    .sidebar-nav ul ul ul,
-    .sidebar-nav .app-sub-sidebar ul {
-      padding-left: 6px !important;
-      margin-left: 2px !important;
-      border-left: none !important;
+    .sidebar-nav li.category-item.closed > p::after,
+    .sidebar-nav li.category-item.closed > strong::after {
+      transform: rotate(-90deg) !important;
     }
 
+    .sidebar-nav li.category-item.closed > ul:not(.app-sub-sidebar) {
+      display: none !important;
+    }
+
+    /* Limpieza general de listas y viñetas */
+    .sidebar-nav ul,
+    .sidebar-nav ol,
     .sidebar-nav li {
-      margin: 2px 0 !important;
+      margin-left: 0 !important;
+      padding-left: 0 !important;
+      list-style: none !important;
+    }
+
+    /* Eliminar cualquier guión '-' o viñeta pseudo-elemento */
+    .sidebar-nav li::before,
+    .sidebar-nav a::before,
+    .sidebar-nav .app-sub-sidebar li::before {
+      content: none !important;
+    }
+
+    .sidebar-nav > ul > li > ul {
+      padding-left: 10px !important;
+      margin-left: 6px !important;
+      margin-bottom: 10px !important;
     }
 
     .sidebar-nav li a {
       color: var(--sidebar-text) !important;
-      transition: color 0.2s ease;
-      line-height: 1.5 !important;
-      padding: 4px 6px !important;
-      font-size: 0.88em !important;
+      transition: color 0.2s ease, background-color 0.2s ease;
+      line-height: 1.6 !important;
+      padding: 4px 8px !important;
+      font-size: 0.9em !important;
       font-weight: 400;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: block;
+      border-radius: 4px;
+    }
+
+    .sidebar-nav li a:hover,
+    .sidebar-nav li.active > a,
+    .sidebar-nav li a.active {
+      color: var(--sidebar-active) !important;
+      font-weight: 600 !important;
+    }
+
+    /* Subsecciones del Documento Activo (TOC) - 100% PLANAS sobre una sola línea vertical */
+    .sidebar-nav .app-sub-sidebar {
+      display: block !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+      padding-left: 10px !important;
+      margin-left: 8px !important;
+      margin-top: 4px !important;
+      margin-bottom: 8px !important;
+      border-left: 2px solid var(--accent-color) !important;
+    }
+
+    .sidebar-nav .app-sub-sidebar ul,
+    .sidebar-nav .app-sub-sidebar ol,
+    .sidebar-nav .app-sub-sidebar li {
+      padding-left: 0 !important;
+      margin-left: 0 !important;
+      border-left: none !important;
+      list-style: none !important;
+    }
+
+    .sidebar-nav .app-sub-sidebar li a {
+      font-size: 0.85em !important;
+      font-weight: 400 !important;
+      padding: 3px 6px !important;
+      color: var(--text-secondary) !important;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
       display: block;
     }
 
-    .sidebar-nav li a:hover,
-    .sidebar-nav li.active > a {
-      color: var(--sidebar-active) !important;
-      font-weight: 600;
-    }
-
-    /* Custom Flechas de Desplegable del Plugin */
-    .sidebar-nav li.collapse > a::after,
-    .sidebar-nav li.open > a::after,
-    .sidebar-nav .folder > a::after {
-      border-left-color: var(--text-secondary) !important;
-      right: 6px !important;
-    }
-
-    .sidebar-nav li.active > a::after {
-      border-left-color: var(--accent-color) !important;
+    .sidebar-nav .app-sub-sidebar li.active a,
+    .sidebar-nav .app-sub-sidebar li a:hover {
+      color: var(--accent-color) !important;
+      font-weight: 600 !important;
     }
 
     /* Content Area Styling */
@@ -397,7 +453,6 @@
       loadSidebar: true,
       auto2top: true,
       subMaxLevel: 2,
-      sidebarDisplayLevel: 1,
       themeColor: '#512BD4',
       homepage: 'README.md',
       
@@ -432,6 +487,32 @@
           hook.doneEach(function() {
             const lang = isEnglishRoute(vm.route.path) ? 'en' : 'es';
             updateLanguageUI(lang);
+
+            // Identificar categorías padres (elementos con ul hijo que NO contengan enlace directo propio)
+            document.querySelectorAll('.sidebar-nav > ul > li').forEach(function(li) {
+              var hasSubUl = li.querySelector('ul:not(.app-sub-sidebar)');
+              var targetHeader = li.querySelector('strong') || (li.querySelector('p') && !li.querySelector('p > a'));
+              
+              if (hasSubUl && targetHeader) {
+                li.classList.add('category-item');
+                targetHeader.onclick = function(e) {
+                  e.stopPropagation();
+                  li.classList.toggle('closed');
+                };
+              }
+            });
+
+            // Resaltar activamente la sección de Inicio / Home en la portada
+            var path = vm.route.path || '';
+            var hash = window.location.hash || '#/';
+            if (path === '/' || path === '/README' || path === '/README.en' || path === '/README.md' || path === '/README.en.md' || hash === '#/' || hash === '' || hash === '#/README' || hash === '#/README.en') {
+              var firstLi = document.querySelector('.sidebar-nav > ul > li:first-child');
+              if (firstLi) {
+                firstLi.classList.add('active');
+                var a = firstLi.querySelector('a');
+                if (a) a.classList.add('active');
+              }
+            }
           });
         }
       ]
@@ -447,9 +528,6 @@
   <!-- Docsify Core -->
   <script src="//cdn.jsdelivr.net/npm/docsify@4"></script>
   
-  <!-- Docsify Sidebar Collapse Plugin JS -->
-  <script src="//cdn.jsdelivr.net/npm/docsify-sidebar-collapse/dist/docsify-sidebar-collapse.min.js"></script>
-
   <!-- Search Plugin -->
   <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/search.min.js"></script>
   
