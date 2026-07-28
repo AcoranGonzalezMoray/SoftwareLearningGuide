@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Software Learning Guide</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+  <meta name="description" content="Proyecto educativo para aprender y practicar conceptos modernos de desarrollo en .NET 10">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+  
+  <!-- Docsify Theme -->
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css">
+  
+  <style>
+    :root {
+      --bg-primary: #fcfcfd;
+      --bg-secondary: #f4f4f5;
+      --text-primary: #18181b;
+      --text-secondary: #52525b;
+      --sidebar-bg: #f9f9fb;
+      --sidebar-text: #3f3f46;
+      --sidebar-active: #512BD4;
+      --border-color: #e4e4e7;
+      --code-bg: #f4f4f5;
+      --code-color: #18181b;
+      --accent-color: #512BD4;
+      --accent-hover: #4020a6;
+      --nav-bg: rgba(252, 252, 253, 0.92);
+      --card-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+    }
+
+    /* Modern Dark Mode - Sophisticated Purple Tint */
+    body.dark {
+      --bg-primary: #0f0f14;
+      --bg-secondary: #16161d;
+      --text-primary: #e4e4e7;
+      --text-secondary: #a1a1aa;
+      --sidebar-bg: #121218;
+      --sidebar-text: #d4d4d8;
+      --sidebar-active: #a78bfa;
+      --border-color: #2a2a32;
+      --code-bg: #1c1c24;
+      --code-color: #e4e4e7;
+      --accent-color: #a78bfa;
+      --accent-hover: #c4b5fd;
+      --nav-bg: rgba(15, 15, 20, 0.92);
+      --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    }
+
+    body {
+      background-color: var(--bg-primary) !important;
+      color: var(--text-primary) !important;
+      transition: background-color 0.3s ease, color 0.3s ease;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* Top Control Bar */
+    .top-controls {
+      position: fixed;
+      top: 12px;
+      right: 20px;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--nav-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      padding: 6px 14px;
+      border-radius: 30px;
+      border: 1px solid var(--border-color);
+      box-shadow: var(--card-shadow);
+      transition: all 0.3s ease;
+    }
+
+    .top-controls:hover {
+      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.1);
+    }
+
+    body.dark .top-controls:hover {
+      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.4);
+    }
+
+    .lang-switcher {
+      display: flex;
+      background: var(--bg-secondary);
+      border-radius: 20px;
+      padding: 2px;
+      border: 1px solid var(--border-color);
+    }
+
+    .lang-btn {
+      padding: 5px 12px;
+      border-radius: 16px;
+      border: none;
+      background: transparent;
+      color: var(--text-secondary);
+      font-size: 0.8em;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .lang-btn:hover {
+      color: var(--text-primary);
+    }
+
+    .lang-btn.active {
+      background: var(--accent-color);
+      color: #ffffff;
+      box-shadow: 0 2px 6px rgba(81, 43, 212, 0.3);
+    }
+
+    body.dark .lang-btn.active {
+      box-shadow: 0 2px 8px rgba(167, 139, 250, 0.25);
+    }
+
+    .theme-toggle-btn {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: all 0.25s ease;
+    }
+
+    .theme-toggle-btn:hover {
+      transform: scale(1.1) rotate(15deg);
+      border-color: var(--accent-color);
+      background: var(--bg-primary);
+    }
+
+    .theme-toggle-btn:active {
+      transform: scale(0.95) rotate(15deg);
+    }
+
+    /* Sidebar Base Styling */
+    .sidebar {
+      background-color: var(--sidebar-bg) !important;
+      border-right: 1px solid var(--border-color) !important;
+      color: var(--sidebar-text) !important;
+      padding-top: 20px;
+      width: 290px;
+      transition: background-color 0.3s ease;
+    }
+
+    .sidebar h1 {
+      font-size: 1.15em;
+      padding: 10px 20px;
+      color: var(--accent-color) !important;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .sidebar-nav {
+      padding: 0 14px !important;
+    }
+
+    /* Categorías Principales (Padres) con Flechas Visibles (▼ / ▶) */
+    .sidebar-nav li.category-item > p,
+    .sidebar-nav li.category-item > strong {
+      cursor: pointer !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      padding: 8px 10px !important;
+      margin: 6px 0 2px 0 !important;
+      color: var(--text-primary) !important;
+      font-weight: 700 !important;
+      font-size: 0.93em !important;
+      user-select: none !important;
+      border-radius: 8px !important;
+      transition: background-color 0.2s ease, transform 0.1s ease !important;
+    }
+
+    .sidebar-nav li.category-item > p:hover,
+    .sidebar-nav li.category-item > strong:hover {
+      background-color: var(--bg-secondary) !important;
+    }
+
+    .sidebar-nav li.category-item > p:active,
+    .sidebar-nav li.category-item > strong:active {
+      transform: scale(0.98) !important;
+    }
+
+    .sidebar-nav li.category-item > p::after,
+    .sidebar-nav li.category-item > strong::after {
+      content: '▼' !important;
+      display: inline-block !important;
+      font-size: 0.7em !important;
+      color: var(--accent-color) !important;
+      transition: transform 0.25s ease !important;
+    }
+
+    .sidebar-nav li.category-item.closed > p::after,
+    .sidebar-nav li.category-item.closed > strong::after {
+      transform: rotate(-90deg) !important;
+    }
+
+    .sidebar-nav li.category-item.closed > ul:not(.app-sub-sidebar) {
+      display: none !important;
+    }
+
+    /* Limpieza general de listas y viñetas */
+    .sidebar-nav ul,
+    .sidebar-nav ol,
+    .sidebar-nav li {
+      margin-left: 0 !important;
+      padding-left: 0 !important;
+      list-style: none !important;
+    }
+
+    /* Eliminar cualquier guión '-' o viñeta pseudo-elemento */
+    .sidebar-nav li::before,
+    .sidebar-nav a::before,
+    .sidebar-nav .app-sub-sidebar li::before {
+      content: none !important;
+    }
+
+    .sidebar-nav > ul > li > ul {
+      padding-left: 10px !important;
+      margin-left: 6px !important;
+      margin-bottom: 10px !important;
+    }
+
+    .sidebar-nav li a {
+      color: var(--sidebar-text) !important;
+      transition: color 0.2s ease, background-color 0.2s ease, transform 0.1s ease;
+      line-height: 1.6 !important;
+      padding: 5px 8px !important;
+      font-size: 0.9em !important;
+      font-weight: 400;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: block;
+      border-radius: 6px;
+    }
+
+    .sidebar-nav li a:hover,
+    .sidebar-nav li.active > a,
+    .sidebar-nav li a.active {
+      color: var(--sidebar-active) !important;
+      font-weight: 600 !important;
+      background-color: rgba(81, 43, 212, 0.08) !important;
+    }
+
+    .sidebar-nav li a:active {
+      transform: scale(0.98) !important;
+    }
+
+    /* Subsecciones del Documento Activo (TOC) - 100% PLANAS sobre una sola línea vertical */
+    .sidebar-nav .app-sub-sidebar {
+      display: block !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+      padding-left: 10px !important;
+      margin-left: 8px !important;
+      margin-top: 4px !important;
+      margin-bottom: 8px !important;
+      border-left: 2px solid var(--accent-color) !important;
+    }
+
+    .sidebar-nav .app-sub-sidebar ul,
+    .sidebar-nav .app-sub-sidebar ol,
+    .sidebar-nav .app-sub-sidebar li {
+      padding-left: 0 !important;
+      margin-left: 0 !important;
+      border-left: none !important;
+      list-style: none !important;
+    }
+
+    .sidebar-nav .app-sub-sidebar li a {
+      font-size: 0.85em !important;
+      font-weight: 400 !important;
+      padding: 4px 8px !important;
+      color: var(--text-secondary) !important;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: block;
+      border-radius: 5px !important;
+      transition: color 0.2s ease, background-color 0.2s ease !important;
+    }
+
+    .sidebar-nav .app-sub-sidebar li.active a,
+    .sidebar-nav .app-sub-sidebar li a:hover {
+      color: var(--accent-color) !important;
+      font-weight: 600 !important;
+      background-color: rgba(81, 43, 212, 0.06) !important;
+    }
+
+    /* Content Area Styling */
+    .markdown-section {
+      color: var(--text-primary) !important;
+      max-width: 900px;
+      line-height: 1.7;
+      padding: 0 20px;
+    }
+
+    .markdown-section h1, 
+    .markdown-section h2, 
+    .markdown-section h3, 
+    .markdown-section h4 {
+      color: var(--text-primary) !important;
+      border-bottom-color: var(--border-color) !important;
+      margin-top: 1.8em;
+      margin-bottom: 0.8em;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+
+    .markdown-section h1 {
+      font-size: 2em;
+      margin-top: 0;
+    }
+
+    .markdown-section h2 {
+      font-size: 1.5em;
+      padding-bottom: 0.3em;
+    }
+
+    .markdown-section h3 {
+      font-size: 1.25em;
+    }
+
+    .markdown-section p {
+      margin-bottom: 1.2em;
+    }
+
+    .markdown-section a {
+      color: var(--accent-color) !important;
+      font-weight: 500;
+      text-decoration: none;
+      transition: color 0.2s ease, opacity 0.2s ease;
+    }
+
+    .markdown-section a:hover {
+      text-decoration: underline;
+      opacity: 0.85;
+    }
+
+    .markdown-section code {
+      background-color: var(--code-bg) !important;
+      color: var(--code-color) !important;
+      border-radius: 5px;
+      padding: 3px 7px;
+      font-family: "Fira Code", "Cascadia Code", Consolas, Monaco, monospace;
+      font-size: 0.88em;
+      font-weight: 500;
+    }
+
+    .markdown-section pre {
+      background-color: var(--code-bg) !important;
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 16px 20px;
+      overflow-x: auto;
+      margin: 1.5em 0;
+    }
+
+    .markdown-section pre code {
+      background-color: transparent !important;
+      padding: 0;
+      font-size: 0.9em;
+      line-height: 1.6;
+    }
+
+    .markdown-section table {
+      display: table;
+      width: 100%;
+      border-collapse: collapse;
+      border-color: var(--border-color) !important;
+      margin: 1.5em 0;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .markdown-section tr {
+      border-top-color: var(--border-color) !important;
+      background-color: var(--bg-primary) !important;
+      transition: background-color 0.2s ease;
+    }
+
+    .markdown-section tr:hover {
+      background-color: var(--bg-secondary) !important;
+    }
+
+    .markdown-section tr:nth-child(2n) {
+      background-color: var(--bg-secondary) !important;
+    }
+
+    .markdown-section th, 
+    .markdown-section td {
+      border-color: var(--border-color) !important;
+      padding: 12px 16px;
+    }
+
+    .markdown-section th {
+      font-weight: 600;
+      background-color: var(--bg-secondary) !important;
+    }
+
+    .markdown-section blockquote {
+      border-left: 4px solid var(--accent-color);
+      background-color: var(--bg-secondary);
+      color: var(--text-secondary);
+      padding: 16px 24px;
+      border-radius: 0 10px 10px 0;
+      margin: 1.5em 0;
+      font-style: italic;
+    }
+
+    .markdown-section ul, .markdown-section ol {
+      margin: 1em 0;
+      padding-left: 1.5em;
+    }
+
+    .markdown-section li {
+      margin-bottom: 0.4em;
+    }
+
+    .markdown-section hr {
+      border: none;
+      height: 1px;
+      background: var(--border-color);
+      margin: 2em 0;
+    }
+
+    /* Search Box */
+    .search input {
+      background-color: var(--bg-secondary) !important;
+      color: var(--text-primary) !important;
+      border: 1px solid var(--border-color) !important;
+      border-radius: 10px !important;
+      padding: 10px 14px !important;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+    }
+
+    .search input:focus {
+      border-color: var(--accent-color) !important;
+      box-shadow: 0 0 0 3px rgba(81, 43, 212, 0.15) !important;
+      outline: none !important;
+    }
+
+    body.dark .search input:focus {
+      box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.15) !important;
+    }
+
+    .search .results-panel {
+      background-color: var(--bg-primary) !important;
+      border: 1px solid var(--border-color) !important;
+      color: var(--text-primary) !important;
+      border-radius: 10px !important;
+      box-shadow: var(--card-shadow) !important;
+    }
+
+    .search .matching-post {
+      border-bottom-color: var(--border-color) !important;
+      transition: background-color 0.2s ease !important;
+    }
+
+    .search .matching-post:hover {
+      background-color: var(--bg-secondary) !important;
+    }
+
+    /* Sidebar toggle button for mobile */
+    .sidebar-toggle {
+      background-color: var(--nav-bg) !important;
+      transition: all 0.2s ease !important;
+    }
+
+    .sidebar-toggle:hover {
+      background-color: var(--bg-secondary) !important;
+    }
+
+    /* Scrollbar Styling */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--bg-secondary);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--border-color);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--text-secondary);
+    }
+
+    /* Selection Styling */
+    ::selection {
+      background-color: rgba(81, 43, 212, 0.2);
+      color: var(--text-primary);
+    }
+
+    body.dark ::selection {
+      background-color: rgba(167, 139, 250, 0.25);
+    }
+
+    /* Focus Visible for Accessibility */
+    *:focus-visible {
+      outline: 2px solid var(--accent-color);
+      outline-offset: 2px;
+    }
+
+    /* Smooth page transitions */
+    .markdown-section {
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Dark mode specific enhancements */
+    body.dark .markdown-section pre {
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    body.dark .markdown-section blockquote {
+      border-left-color: var(--accent-color);
+      background-color: rgba(167, 139, 250, 0.08);
+    }
+
+    body.dark .sidebar {
+      box-shadow: 2px 0 12px rgba(0, 0, 0, 0.2);
+    }
+  </style>
+</head>
+<body>
+  <!-- Floating Top Controls -->
+  <div class="top-controls">
+    <div class="lang-switcher">
+      <button class="lang-btn" id="btn-es" onclick="switchLanguage('es')">ES 🇪🇸</button>
+      <button class="lang-btn" id="btn-en" onclick="switchLanguage('en')">EN 🇬🇧</button>
+    </div>
+    <button class="theme-toggle-btn" id="theme-toggle-btn" onclick="toggleTheme()" title="Cambiar tema">
+      🌙
+    </button>
+  </div>
+
+  <div id="app"></div>
+
+  <script>
+    // Theme Management (Pure Black Dark Mode)
+    function getStoredTheme() {
+      return localStorage.getItem('docs_theme') || 
+        (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    }
+
+    function applyTheme(theme) {
+      if (theme === 'dark') {
+        document.body.classList.add('dark');
+        document.getElementById('theme-toggle-btn').textContent = '☀️';
+      } else {
+        document.body.classList.remove('dark');
+        document.getElementById('theme-toggle-btn').textContent = '🌙';
+      }
+      localStorage.setItem('docs_theme', theme);
+    }
+
+    function toggleTheme() {
+      const currentTheme = document.body.classList.contains('dark') ? 'dark' : 'light';
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      applyTheme(newTheme);
+    }
+
+    // Initialize Theme immediately
+    applyTheme(getStoredTheme());
+
+    // Language Helper Functions
+    function isEnglishRoute(path) {
+      const hash = window.location.hash || '#/';
+      const routePath = path || '';
+      return hash.includes('.en') || routePath.includes('.en') || localStorage.getItem('docs_lang') === 'en';
+    }
+
+    function getCurrentLanguage() {
+      return localStorage.getItem('docs_lang') || (isEnglishRoute() ? 'en' : 'es');
+    }
+
+    function updateLanguageUI(lang) {
+      document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
+      const activeBtn = document.getElementById(lang === 'en' ? 'btn-en' : 'btn-es');
+      if (activeBtn) activeBtn.classList.add('active');
+    }
+
+    function switchLanguage(targetLang) {
+      localStorage.setItem('docs_lang', targetLang);
+      updateLanguageUI(targetLang);
+
+      let hash = window.location.hash || '#/';
+      if (!hash.startsWith('#/')) hash = '#/';
+
+      let newHash = hash;
+      if (targetLang === 'en') {
+        if (!hash.includes('.en')) {
+          if (hash === '#/' || hash === '#/README' || hash === '#/README.md' || hash === '') {
+            newHash = '#/README.en';
+          } else if (hash.endsWith('.md')) {
+            newHash = hash.replace(/\.md$/, '.en.md');
+          } else {
+            newHash = hash + '.en';
+          }
+        }
+      } else {
+        if (hash.includes('.en')) {
+          newHash = hash.replace(/\.en\.md$/, '.md').replace(/\.en$/, '');
+          if (newHash === '#/README') newHash = '#/';
+        }
+      }
+
+      window.location.hash = newHash;
+      window.location.reload();
+    }
+
+    // Docsify Configuration
+    window.$docsify = {
+      name: 'Software Learning Guide',
+      repo: '',
+      loadSidebar: true,
+      auto2top: true,
+      subMaxLevel: 2,
+      themeColor: '#512BD4',
+      coverpage: false,
+      onlyCover: false,
+      autoReload: false,
+      executeScript: true,
+      mergeNavbar: true,
+      maxLevel: 3,
+      subMaxLevel: 3,
+      homepage: 'README.md',
+      
+      alias: {
+        '/.*/_sidebar.md': function() {
+          const lang = getCurrentLanguage();
+          return lang === 'en' ? '/_sidebar.en.md' : '/_sidebar.md';
+        }
+      },
+
+      search: {
+        maxDepth: 3,
+        paths: 'auto',
+        placeholder: {
+          '/': 'Buscar documentación...',
+          '/README.en': 'Search documentation...'
+        },
+        noData: {
+          '/': 'Sin resultados',
+          '/README.en': 'No results found'
+        },
+        depth: 2
+      },
+
+      plugins: [
+        function(hook, vm) {
+          hook.beforeEach(function(html) {
+            const lang = isEnglishRoute(vm.route.path) ? 'en' : 'es';
+            updateLanguageUI(lang);
+          });
+
+          hook.doneEach(function() {
+            const lang = isEnglishRoute(vm.route.path) ? 'en' : 'es';
+            updateLanguageUI(lang);
+
+            // Identificar categorías padres (elementos con ul hijo que NO contengan enlace directo propio)
+            document.querySelectorAll('.sidebar-nav > ul > li').forEach(function(li) {
+              var hasSubUl = li.querySelector('ul:not(.app-sub-sidebar)');
+              var targetHeader = li.querySelector('strong') || (li.querySelector('p') && !li.querySelector('p > a'));
+              
+              if (hasSubUl && targetHeader) {
+                li.classList.add('category-item');
+                targetHeader.onclick = function(e) {
+                  e.stopPropagation();
+                  li.classList.toggle('closed');
+                };
+              }
+            });
+
+            // Resaltar activamente la sección de Inicio / Home en la portada
+            var path = vm.route.path || '';
+            var hash = window.location.hash || '#/';
+            if (path === '/' || path === '/README' || path === '/README.en' || path === '/README.md' || path === '/README.en.md' || hash === '#/' || hash === '' || hash === '#/README' || hash === '#/README.en') {
+              var firstLi = document.querySelector('.sidebar-nav > ul > li:first-child');
+              if (firstLi) {
+                firstLi.classList.add('active');
+                var a = firstLi.querySelector('a');
+                if (a) a.classList.add('active');
+              }
+            }
+          });
+        }
+      ]
+    };
+
+    // Listen for hash changes to sync UI state
+    window.addEventListener('hashchange', function() {
+      const lang = getCurrentLanguage();
+      updateLanguageUI(lang);
+    });
+  </script>
+
+  <!-- Docsify Core -->
+  <script src="//cdn.jsdelivr.net/npm/docsify@4"></script>
+  
+  <!-- Search Plugin -->
+  <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/search.min.js"></script>
+  
+  <!-- Copy Code Plugin -->
+  <script src="//cdn.jsdelivr.net/npm/docsify-copy-code/dist/docsify-copy-code.min.js"></script>
+
+  <!-- Prism Syntax Highlighting -->
+  <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-csharp.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-json.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-bash.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-docker.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-sql.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-yaml.min.js"></script>
+</body>
+</html>
