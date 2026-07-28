@@ -12,11 +12,11 @@
   
   <style>
     :root {
-      --bg-primary: #ffffff;
-      --bg-secondary: #f8f9fa;
+      --bg-primary: #fcfcfd;
+      --bg-secondary: #f4f4f5;
       --text-primary: #18181b;
       --text-secondary: #52525b;
-      --sidebar-bg: #fafafa;
+      --sidebar-bg: #f9f9fb;
       --sidebar-text: #3f3f46;
       --sidebar-active: #512BD4;
       --border-color: #e4e4e7;
@@ -24,33 +24,36 @@
       --code-color: #18181b;
       --accent-color: #512BD4;
       --accent-hover: #4020a6;
-      --nav-bg: rgba(255, 255, 255, 0.9);
-      --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      --nav-bg: rgba(252, 252, 253, 0.92);
+      --card-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
     }
 
-    /* True Pure Black Dark Mode (Negro Puro) */
+    /* Modern Dark Mode - Sophisticated Purple Tint */
     body.dark {
-      --bg-primary: #000000;
-      --bg-secondary: #121212;
-      --text-primary: #ffffff;
+      --bg-primary: #0f0f14;
+      --bg-secondary: #16161d;
+      --text-primary: #e4e4e7;
       --text-secondary: #a1a1aa;
-      --sidebar-bg: #0a0a0a;
+      --sidebar-bg: #121218;
       --sidebar-text: #d4d4d8;
       --sidebar-active: #a78bfa;
-      --border-color: #27272a;
-      --code-bg: #18181b;
-      --code-color: #f4f4f5;
+      --border-color: #2a2a32;
+      --code-bg: #1c1c24;
+      --code-color: #e4e4e7;
       --accent-color: #a78bfa;
       --accent-hover: #c4b5fd;
-      --nav-bg: rgba(0, 0, 0, 0.9);
-      --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+      --nav-bg: rgba(15, 15, 20, 0.92);
+      --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
     }
 
     body {
       background-color: var(--bg-primary) !important;
       color: var(--text-primary) !important;
-      transition: background-color 0.25s ease, color 0.25s ease;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      transition: background-color 0.3s ease, color 0.3s ease;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }
 
     /* Top Control Bar */
@@ -63,13 +66,21 @@
       align-items: center;
       gap: 10px;
       background: var(--nav-bg);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      padding: 6px 12px;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      padding: 6px 14px;
       border-radius: 30px;
       border: 1px solid var(--border-color);
       box-shadow: var(--card-shadow);
       transition: all 0.3s ease;
+    }
+
+    .top-controls:hover {
+      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.1);
+    }
+
+    body.dark .top-controls:hover {
+      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.4);
     }
 
     .lang-switcher {
@@ -81,7 +92,7 @@
     }
 
     .lang-btn {
-      padding: 4px 10px;
+      padding: 5px 12px;
       border-radius: 16px;
       border: none;
       background: transparent;
@@ -92,30 +103,43 @@
       transition: all 0.2s ease;
     }
 
+    .lang-btn:hover {
+      color: var(--text-primary);
+    }
+
     .lang-btn.active {
       background: var(--accent-color);
       color: #ffffff;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 2px 6px rgba(81, 43, 212, 0.3);
+    }
+
+    body.dark .lang-btn.active {
+      box-shadow: 0 2px 8px rgba(167, 139, 250, 0.25);
     }
 
     .theme-toggle-btn {
       background: var(--bg-secondary);
       border: 1px solid var(--border-color);
       color: var(--text-primary);
-      width: 32px;
-      height: 32px;
+      width: 34px;
+      height: 34px;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
       font-size: 1rem;
-      transition: all 0.2s ease;
+      transition: all 0.25s ease;
     }
 
     .theme-toggle-btn:hover {
-      transform: scale(1.08);
+      transform: scale(1.1) rotate(15deg);
       border-color: var(--accent-color);
+      background: var(--bg-primary);
+    }
+
+    .theme-toggle-btn:active {
+      transform: scale(0.95) rotate(15deg);
     }
 
     /* Sidebar Base Styling */
@@ -125,6 +149,7 @@
       color: var(--sidebar-text) !important;
       padding-top: 20px;
       width: 290px;
+      transition: background-color 0.3s ease;
     }
 
     .sidebar h1 {
@@ -132,6 +157,7 @@
       padding: 10px 20px;
       color: var(--accent-color) !important;
       font-weight: 700;
+      letter-spacing: -0.02em;
     }
 
     .sidebar-nav {
@@ -151,13 +177,18 @@
       font-weight: 700 !important;
       font-size: 0.93em !important;
       user-select: none !important;
-      border-radius: 6px !important;
-      transition: background-color 0.2s ease !important;
+      border-radius: 8px !important;
+      transition: background-color 0.2s ease, transform 0.1s ease !important;
     }
 
     .sidebar-nav li.category-item > p:hover,
     .sidebar-nav li.category-item > strong:hover {
       background-color: var(--bg-secondary) !important;
+    }
+
+    .sidebar-nav li.category-item > p:active,
+    .sidebar-nav li.category-item > strong:active {
+      transform: scale(0.98) !important;
     }
 
     .sidebar-nav li.category-item > p::after,
@@ -166,7 +197,7 @@
       display: inline-block !important;
       font-size: 0.7em !important;
       color: var(--accent-color) !important;
-      transition: transform 0.2s ease !important;
+      transition: transform 0.25s ease !important;
     }
 
     .sidebar-nav li.category-item.closed > p::after,
@@ -202,16 +233,16 @@
 
     .sidebar-nav li a {
       color: var(--sidebar-text) !important;
-      transition: color 0.2s ease, background-color 0.2s ease;
+      transition: color 0.2s ease, background-color 0.2s ease, transform 0.1s ease;
       line-height: 1.6 !important;
-      padding: 4px 8px !important;
+      padding: 5px 8px !important;
       font-size: 0.9em !important;
       font-weight: 400;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
       display: block;
-      border-radius: 4px;
+      border-radius: 6px;
     }
 
     .sidebar-nav li a:hover,
@@ -219,6 +250,11 @@
     .sidebar-nav li a.active {
       color: var(--sidebar-active) !important;
       font-weight: 600 !important;
+      background-color: rgba(81, 43, 212, 0.08) !important;
+    }
+
+    .sidebar-nav li a:active {
+      transform: scale(0.98) !important;
     }
 
     /* Subsecciones del Documento Activo (TOC) - 100% PLANAS sobre una sola línea vertical */
@@ -245,24 +281,29 @@
     .sidebar-nav .app-sub-sidebar li a {
       font-size: 0.85em !important;
       font-weight: 400 !important;
-      padding: 3px 6px !important;
+      padding: 4px 8px !important;
       color: var(--text-secondary) !important;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
       display: block;
+      border-radius: 5px !important;
+      transition: color 0.2s ease, background-color 0.2s ease !important;
     }
 
     .sidebar-nav .app-sub-sidebar li.active a,
     .sidebar-nav .app-sub-sidebar li a:hover {
       color: var(--accent-color) !important;
       font-weight: 600 !important;
+      background-color: rgba(81, 43, 212, 0.06) !important;
     }
 
     /* Content Area Styling */
     .markdown-section {
       color: var(--text-primary) !important;
       max-width: 900px;
+      line-height: 1.7;
+      padding: 0 20px;
     }
 
     .markdown-section h1, 
@@ -271,35 +312,66 @@
     .markdown-section h4 {
       color: var(--text-primary) !important;
       border-bottom-color: var(--border-color) !important;
+      margin-top: 1.8em;
+      margin-bottom: 0.8em;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+
+    .markdown-section h1 {
+      font-size: 2em;
+      margin-top: 0;
+    }
+
+    .markdown-section h2 {
+      font-size: 1.5em;
+      padding-bottom: 0.3em;
+    }
+
+    .markdown-section h3 {
+      font-size: 1.25em;
+    }
+
+    .markdown-section p {
+      margin-bottom: 1.2em;
     }
 
     .markdown-section a {
       color: var(--accent-color) !important;
       font-weight: 500;
       text-decoration: none;
+      transition: color 0.2s ease, opacity 0.2s ease;
     }
 
     .markdown-section a:hover {
       text-decoration: underline;
+      opacity: 0.85;
     }
 
     .markdown-section code {
       background-color: var(--code-bg) !important;
       color: var(--code-color) !important;
-      border-radius: 4px;
-      padding: 2px 6px;
-      font-family: "Fira Code", Consolas, Monaco, monospace;
-      font-size: 0.9em;
+      border-radius: 5px;
+      padding: 3px 7px;
+      font-family: "Fira Code", "Cascadia Code", Consolas, Monaco, monospace;
+      font-size: 0.88em;
+      font-weight: 500;
     }
 
     .markdown-section pre {
       background-color: var(--code-bg) !important;
       border: 1px solid var(--border-color);
-      border-radius: 8px;
+      border-radius: 10px;
+      padding: 16px 20px;
+      overflow-x: auto;
+      margin: 1.5em 0;
     }
 
     .markdown-section pre code {
       background-color: transparent !important;
+      padding: 0;
+      font-size: 0.9em;
+      line-height: 1.6;
     }
 
     .markdown-section table {
@@ -308,11 +380,18 @@
       border-collapse: collapse;
       border-color: var(--border-color) !important;
       margin: 1.5em 0;
+      border-radius: 8px;
+      overflow: hidden;
     }
 
     .markdown-section tr {
       border-top-color: var(--border-color) !important;
       background-color: var(--bg-primary) !important;
+      transition: background-color 0.2s ease;
+    }
+
+    .markdown-section tr:hover {
+      background-color: var(--bg-secondary) !important;
     }
 
     .markdown-section tr:nth-child(2n) {
@@ -322,16 +401,38 @@
     .markdown-section th, 
     .markdown-section td {
       border-color: var(--border-color) !important;
-      padding: 10px 14px;
+      padding: 12px 16px;
+    }
+
+    .markdown-section th {
+      font-weight: 600;
+      background-color: var(--bg-secondary) !important;
     }
 
     .markdown-section blockquote {
       border-left: 4px solid var(--accent-color);
       background-color: var(--bg-secondary);
       color: var(--text-secondary);
-      padding: 12px 20px;
-      border-radius: 0 8px 8px 0;
+      padding: 16px 24px;
+      border-radius: 0 10px 10px 0;
       margin: 1.5em 0;
+      font-style: italic;
+    }
+
+    .markdown-section ul, .markdown-section ol {
+      margin: 1em 0;
+      padding-left: 1.5em;
+    }
+
+    .markdown-section li {
+      margin-bottom: 0.4em;
+    }
+
+    .markdown-section hr {
+      border: none;
+      height: 1px;
+      background: var(--border-color);
+      margin: 2em 0;
     }
 
     /* Search Box */
@@ -339,23 +440,105 @@
       background-color: var(--bg-secondary) !important;
       color: var(--text-primary) !important;
       border: 1px solid var(--border-color) !important;
-      border-radius: 8px !important;
-      padding: 8px 12px !important;
+      border-radius: 10px !important;
+      padding: 10px 14px !important;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+    }
+
+    .search input:focus {
+      border-color: var(--accent-color) !important;
+      box-shadow: 0 0 0 3px rgba(81, 43, 212, 0.15) !important;
+      outline: none !important;
+    }
+
+    body.dark .search input:focus {
+      box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.15) !important;
     }
 
     .search .results-panel {
       background-color: var(--bg-primary) !important;
       border: 1px solid var(--border-color) !important;
       color: var(--text-primary) !important;
+      border-radius: 10px !important;
+      box-shadow: var(--card-shadow) !important;
     }
 
     .search .matching-post {
       border-bottom-color: var(--border-color) !important;
+      transition: background-color 0.2s ease !important;
+    }
+
+    .search .matching-post:hover {
+      background-color: var(--bg-secondary) !important;
     }
 
     /* Sidebar toggle button for mobile */
     .sidebar-toggle {
       background-color: var(--nav-bg) !important;
+      transition: all 0.2s ease !important;
+    }
+
+    .sidebar-toggle:hover {
+      background-color: var(--bg-secondary) !important;
+    }
+
+    /* Scrollbar Styling */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--bg-secondary);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--border-color);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--text-secondary);
+    }
+
+    /* Selection Styling */
+    ::selection {
+      background-color: rgba(81, 43, 212, 0.2);
+      color: var(--text-primary);
+    }
+
+    body.dark ::selection {
+      background-color: rgba(167, 139, 250, 0.25);
+    }
+
+    /* Focus Visible for Accessibility */
+    *:focus-visible {
+      outline: 2px solid var(--accent-color);
+      outline-offset: 2px;
+    }
+
+    /* Smooth page transitions */
+    .markdown-section {
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Dark mode specific enhancements */
+    body.dark .markdown-section pre {
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    body.dark .markdown-section blockquote {
+      border-left-color: var(--accent-color);
+      background-color: rgba(167, 139, 250, 0.08);
+    }
+
+    body.dark .sidebar {
+      box-shadow: 2px 0 12px rgba(0, 0, 0, 0.2);
     }
   </style>
 </head>
@@ -454,6 +637,13 @@
       auto2top: true,
       subMaxLevel: 2,
       themeColor: '#512BD4',
+      coverpage: false,
+      onlyCover: false,
+      autoReload: false,
+      executeScript: true,
+      mergeNavbar: true,
+      maxLevel: 3,
+      subMaxLevel: 3,
       homepage: 'README.md',
       
       alias: {
