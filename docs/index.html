@@ -102,20 +102,22 @@
     /* ── Top Controls ── */
     .top-controls {
       position: fixed;
-      top: 12px;
-      right: 20px;
+      bottom: 28px;
+      right: 28px;
       z-index: 1000;
       display: flex;
+      flex-direction: column;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
+      width: 42px;
       background: var(--nav-bg);
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
-      padding: 6px 14px;
-      border-radius: 30px;
+      padding: 8px 0;
+      border-radius: 24px;
       border: 1px solid var(--border-color);
       box-shadow: var(--card-shadow);
-      transition: all 0.3s ease;
+      transition: bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
     }
 
     .top-controls:hover { box-shadow: 0 6px 24px rgba(0, 0, 0, 0.1); }
@@ -123,22 +125,26 @@
 
     .lang-switcher {
       display: flex;
+      flex-direction: column;
       background: var(--bg-secondary);
-      border-radius: 20px;
+      border-radius: 16px;
       padding: 2px;
       border: 1px solid var(--border-color);
+      width: 32px;
     }
 
     .lang-btn {
-      padding: 5px 12px;
-      border-radius: 16px;
+      padding: 4px 0;
+      border-radius: 14px;
       border: none;
       background: transparent;
       color: var(--text-secondary);
-      font-size: 0.8em;
-      font-weight: 600;
+      font-size: 0.65em;
+      font-weight: 700;
       cursor: pointer;
       transition: all 0.2s ease;
+      width: 100%;
+      text-align: center;
     }
 
     .lang-btn:hover { color: var(--text-primary); }
@@ -155,15 +161,16 @@
       background: var(--bg-secondary);
       border: 1px solid var(--border-color);
       color: var(--text-primary);
-      width: 34px;
-      height: 34px;
+      width: 32px;
+      height: 32px;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      font-size: 1rem;
+      font-size: 0.85rem;
       transition: all 0.25s ease;
+      flex-shrink: 0;
     }
 
     .theme-toggle-btn:hover {
@@ -683,11 +690,73 @@
     .search .matching-post:hover { background-color: var(--bg-secondary) !important; }
 
     .sidebar-toggle {
-      background-color: var(--nav-bg) !important;
-      transition: all 0.2s ease !important;
+      position: fixed;
+      top: 12px;
+      left: 12px;
+      z-index: 1001;
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: var(--sidebar-bg);
+      border: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      font-size: 1.1rem;
+      color: var(--text-primary);
     }
 
-    .sidebar-toggle:hover { background-color: var(--bg-secondary) !important; }
+    .sidebar-toggle:hover {
+      background: var(--bg-secondary);
+      border-color: var(--accent-color);
+      transform: scale(1.05);
+    }
+
+    .sidebar-toggle:active {
+      transform: scale(0.95);
+    }
+
+    /* When sidebar is open, integrate toggle with sidebar */
+    body:not(.close) .sidebar-toggle {
+      left: 262px;
+      background: var(--bg-primary);
+      border-left: none;
+      border-radius: 0 10px 10px 0;
+      box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
+    }
+
+    /* When sidebar is closed, keep toggle at edge */
+    body.close .sidebar-toggle {
+      left: 12px;
+      background: var(--nav-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      box-shadow: var(--card-shadow);
+    }
+
+    /* ── Mobile Responsive ── */
+    @media (max-width: 768px) {
+      .top-controls {
+        bottom: 28px;
+        right: 12px;
+      }
+
+      #back-to-top {
+        bottom: 12px;
+        right: 12px;
+      }
+
+      .sidebar-toggle {
+        top: 8px;
+        left: 8px;
+      }
+
+      body:not(.close) .sidebar-toggle {
+        left: 8px;
+      }
+    }
 
     ::-webkit-scrollbar { width: 8px; height: 8px; }
     ::-webkit-scrollbar-track { background: var(--bg-secondary); }
@@ -721,6 +790,184 @@
       background-color: rgba(167, 139, 250, 0.08);
     }
     body.dark .sidebar { box-shadow: 2px 0 12px rgba(0, 0, 0, 0.2); }
+
+    /* ── Cover Page ── */
+    .cover-main {
+      max-width: 680px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .cover-title {
+      font-size: 3em;
+      font-weight: 800;
+      background: linear-gradient(135deg, #512BD4 0%, #8B5CF6 50%, #a78bfa 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 0.3em;
+      letter-spacing: -0.03em;
+    }
+
+    .cover-subtitle {
+      font-size: 1.15em;
+      color: var(--text-secondary);
+      margin-bottom: 1.5em;
+      line-height: 1.6;
+    }
+
+    .cover-badges {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 2em;
+    }
+
+    .cover-badges img {
+      height: 28px;
+    }
+
+    .cover-features {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 2.5em;
+      padding: 20px;
+      background: var(--bg-secondary);
+      border-radius: 16px;
+      border: 1px solid var(--border-color);
+    }
+
+    .feature {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      padding: 12px;
+      border-radius: 10px;
+      transition: background-color 0.2s ease;
+    }
+
+    .feature:hover {
+      background: var(--bg-primary);
+    }
+
+    .feature-icon {
+      font-size: 1.8em;
+    }
+
+    .feature-text {
+      font-size: 0.85em;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .cover-main .action-btn {
+      display: inline-block;
+      padding: 12px 32px;
+      margin: 0 8px;
+      border-radius: 30px;
+      font-weight: 600;
+      font-size: 1em;
+      text-decoration: none !important;
+      transition: all 0.2s ease;
+    }
+
+    .cover-main .action-btn:first-child {
+      background: linear-gradient(135deg, #512BD4 0%, #8B5CF6 100%);
+      color: #fff;
+      box-shadow: 0 4px 16px rgba(81, 43, 212, 0.3);
+    }
+
+    .cover-main .action-btn:first-child:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 24px rgba(81, 43, 212, 0.4);
+    }
+
+    .cover-main .action-btn:last-child {
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+    }
+
+    .cover-main .action-btn:last-child:hover {
+      border-color: var(--accent-color);
+      background: var(--bg-primary);
+    }
+
+    /* ── Word Count ── */
+    .word-count {
+      font-size: 0.78em;
+      color: var(--text-secondary);
+      text-align: center;
+      margin-top: 0.5em;
+      padding: 8px 16px;
+      background: var(--bg-secondary);
+      border-radius: 20px;
+      display: inline-block;
+    }
+
+    @media (max-width: 640px) {
+      .cover-features {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .cover-title {
+        font-size: 2.2em;
+      }
+    }
+
+    /* ── Tabs Plugin ── */
+    .markdown-section .tabs {
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      overflow: hidden;
+      margin: 1.5em 0;
+    }
+
+    .markdown-section .tabs-header {
+      display: flex;
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border-color);
+      padding: 0;
+      margin: 0;
+    }
+
+    .markdown-section .tabs-header li {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    .markdown-section .tabs-header li a {
+      display: block;
+      padding: 10px 20px;
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 0.9em;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s ease;
+    }
+
+    .markdown-section .tabs-header li.active a {
+      color: var(--accent-color);
+      border-bottom-color: var(--accent-color);
+      background: var(--bg-primary);
+    }
+
+    .markdown-section .tabs-header li a:hover {
+      color: var(--text-primary);
+      background: var(--bg-primary);
+    }
+
+    .markdown-section .tab-content {
+      padding: 16px 20px;
+    }
+
+    .markdown-section .tab-content[hidden] {
+      display: none;
+    }
 
     /* ── Mermaid Diagrams ── */
     .mermaid {
@@ -874,12 +1121,12 @@
 
     window.$docsify = {
       name: 'Software Learning Guide',
-      repo: '',
+      repo: 'https://github.com/AcoranGonzalezMoray/SoftwareLearningGuide',
       loadSidebar: true,
+      coverpage: true,
       auto2top: true,
       subMaxLevel: 2,
       themeColor: '#512BD4',
-      coverpage: false,
       onlyCover: false,
       autoReload: false,
       executeScript: true,
@@ -899,6 +1146,11 @@
         placeholder: { '/': 'Buscar documentación...', '/README.en': 'Search documentation...' },
         noData: { '/': 'Sin resultados', '/README.en': 'No results found' },
         depth: 2
+      },
+
+      countable: {
+        countFrom: 0,
+        locale: 'auto'
       },
 
       plugins: [
@@ -1088,6 +1340,18 @@
             var leftSpan = document.createElement('span');
             leftSpan.textContent = 'Software Learning Guide';
 
+            // Word count
+            var markdownSection = document.querySelector('.markdown-section');
+            if (markdownSection) {
+              var text = markdownSection.textContent || '';
+              var words = text.trim().split(/\s+/).length;
+              var wordCount = document.createElement('span');
+              wordCount.className = 'word-count';
+              wordCount.textContent = (lang === 'en' ? '~' + words + ' words' : '~' + words + ' palabras');
+              leftSpan.appendChild(document.createTextNode(' · '));
+              leftSpan.appendChild(wordCount);
+            }
+
             var rightSpan = document.createElement('span');
             var editLink = document.createElement('a');
             var currentPath = vm.route.path;
@@ -1123,8 +1387,14 @@
       if (bar) bar.style.width = progress + '%';
 
       var btn = document.getElementById('back-to-top');
+      var controls = document.querySelector('.top-controls');
       if (btn) {
-        btn.classList.toggle('visible', scrollTop > 300);
+        var isVisible = scrollTop > 300;
+        btn.classList.toggle('visible', isVisible);
+        // Move controls up when back-to-top is visible
+        if (controls) {
+          controls.style.bottom = isVisible ? '80px' : '28px';
+        }
       }
     }
 
@@ -1137,29 +1407,63 @@
 
     // ── Keyboard shortcuts ──
     document.addEventListener('keydown', function(e) {
+      // Escape: close lightbox
       if (e.key === 'Escape') {
         var lb = document.getElementById('lightbox-overlay');
         if (lb && lb.classList.contains('open')) lb.classList.remove('open');
       }
+      // Ctrl/Cmd + B: toggle sidebar
+      if ((e.ctrlKey || e.metaKey) && e.key === 'b') {
+        e.preventDefault();
+        document.body.classList.toggle('close');
+      }
     });
+
+    // ── Sidebar toggle animation ──
+    function enhanceSidebarToggle() {
+      var toggle = document.querySelector('.sidebar-toggle');
+      if (toggle && !toggle.dataset.enhanced) {
+        toggle.dataset.enhanced = 'true';
+        toggle.innerHTML = '☰';
+        toggle.title = 'Toggle sidebar (Ctrl+B)';
+      }
+    }
+
+    // Run on load and on route change
+    enhanceSidebarToggle();
+    var originalDoneEach = window.$docsify && window.$docsify.plugins;
+    if (originalDoneEach) {
+      var hook = originalDoneEach[0];
+      if (hook && typeof hook === 'function') {
+        var originalHook = hook;
+        window.$docsify.plugins[0] = function(hook, vm) {
+          originalHook(hook, vm);
+          hook.doneEach(function() {
+            enhanceSidebarToggle();
+          });
+        };
+      }
+    }
   </script>
 
   <script src="//cdn.jsdelivr.net/npm/docsify@4"></script>
   <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/search.min.js"></script>
   <script src="//cdn.jsdelivr.net/npm/docsify-copy-code/dist/docsify-copy-code.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/docsify-countable/dist/countable.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/docsify-tabs@1/dist/docsify-tabs.min.js"></script>
   <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-csharp.min.js"></script>
   <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-json.min.js"></script>
   <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-bash.min.js"></script>
   <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-docker.min.js"></script>
   <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-sql.min.js"></script>
   <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-yaml.min.js"></script>
+  <script src="//unpkg.com/docsify-mermaid@2.0.1/dist/docsify-mermaid.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
   <script type="module">
      import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs";
      mermaid.initialize({ startOnLoad: true });
      window.mermaid = mermaid;
   </script>
-  <script src="//unpkg.com/docsify-mermaid@2.0.1/dist/docsify-mermaid.js"></script>
   <script>
     mermaid.initialize({
       startOnLoad: false,
