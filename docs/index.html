@@ -736,6 +736,45 @@
       max-width: 100%;
       height: auto;
     }
+
+    /* ── Copy Code Button ── */
+    .markdown-section pre > .docsify-copy-code-button {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      padding: 6px 12px;
+      font-size: 0.75em;
+      font-weight: 600;
+      font-family: "Inter", sans-serif;
+      color: var(--text-secondary);
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      opacity: 0;
+      z-index: 10;
+    }
+
+    .markdown-section pre:hover > .docsify-copy-code-button {
+      opacity: 1;
+    }
+
+    .markdown-section pre > .docsify-copy-code-button:hover {
+      color: var(--accent-color);
+      border-color: var(--accent-color);
+      background: var(--bg-primary);
+    }
+
+    .markdown-section pre > .docsify-copy-code-button.copied {
+      color: #22c55e;
+      border-color: #22c55e;
+    }
+
+    body.dark .markdown-section pre > .docsify-copy-code-button:hover {
+      color: var(--accent-color);
+      background: var(--code-bg);
+    }
   </style>
 </head>
 <body>

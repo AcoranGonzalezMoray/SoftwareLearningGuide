@@ -32,7 +32,12 @@
   <a href="README.md">
     <img src="https://img.shields.io/badge/Español-ES-blue?style=for-the-badge&labelColor=FFD700&color=0066CC" alt="Español">
   </a>
+  <a href="https://acorangonzalezmoray.github.io/SoftwareLearningGuide/#/README.en">
+    <img src="https://img.shields.io/badge/Documentation-Web-4ECDC4?style=for-the-badge&logo=gitbook&logoColor=white" alt="Web Documentation">
+  </a>
 </p>
+
+> **📖 For a better reading experience, check the [interactive web documentation](https://acorangonzalezmoray.github.io/SoftwareLearningGuide/#/README.en) with Mermaid diagrams, search, and improved navigation.**
 
 ---
 
@@ -62,41 +67,41 @@
 
 | Topic | Location | Description |
 |-------|----------|-------------|
-| **Domain-Driven Design (DDD)** | [`README.DDD.en.md`](SoftwareLearningGuide.Core.Business/README.DDD.en.md) | Value Objects, Entities, Aggregates, practical examples |
-| **Domain Events** | [`README.EventSourcing.en.md`](SoftwareLearningGuide.Core.Business/README.EventSourcing.en.md) | Domain events, MediatR, Notification Handlers, Integration Events |
-| **Transactional Outbox** | [`README.OutboxPattern.en.md`](SoftwareLearningGuide.OutboxProcessor/README.OutboxPattern.en.md) | Outbox Pattern with MassTransit + RabbitMQ, atomicity, Workers |
-| **Resilience** | [`README.Resilience.en.md`](SoftwareLearningGuide.OutboxProcessor/README.Resilience.en.md) | Retry, Circuit Breaker, Timeout in the MassTransit pipeline |
-| **Result\<T\> Pattern** | [`README.ResultPattern.en.md`](SoftwareLearningGuide.Core.Business/README.ResultPattern.en.md) | Functional error handling, composition, best practices |
-| **DomainErrors** | [`README.Errors.en.md`](SoftwareLearningGuide.Core.Business/README.Errors.en.md) | Centralized error catalog with entity context and ID |
-| **CQRS with MediatR** | [`README.CQRS.en.md`](SoftwareLearningGuide.Application/README.CQRS.en.md) | Commands, Queries, Handlers, Mediator pattern |
-| **Unit of Work** | [`README.UnitOfWork.en.md`](SoftwareLearningGuide.Infraestructure/README.UnitOfWork.en.md) | Transactionality, atomicity, Unit of Work pattern |
-| **Entity Framework Core** | [`README.EntityFramework.en.md`](SoftwareLearningGuide.Infraestructure.Data/README.EntityFramework.en.md) | DbContext, configurations, Value Objects, Owned Types |
-| **Dapper** | [`README.Dapper.en.md`](SoftwareLearningGuide.Application.Query/README.Dapper.en.md) | Direct SQL, CommandDefinition, result mapping |
-| **Middleware** | [`README.Middleware.en.md`](SoftwareLearningGuide.Api/README.Middleware.en.md) | Global Exception Handling, logging scopes, HTTP pipeline |
-| **Building APIs** | [`README.Api.en.md`](SoftwareLearningGuide.Api/README.Api.en.md) | REST API concepts, versioning, OpenAPI |
-| **Observability** | [`README.Observability.en.md`](SoftwareLearningGuide.Api/README.Observability.en.md) | The 3 pillars: traces, metrics, logs, scopes, exporters |
-| **Feature Management** | [`README.FeatureManagement.en.md`](SoftwareLearningGuide.Api/README.FeatureManagement.en.md) | Feature Toggles, Feature Flags, Microsoft.FeatureManagement, Flagsmith |
-| **Vertical Slicing** | [`README.VerticalSlicing.en.md`](SoftwareLearningGuide.Application/README.VerticalSlicing.en.md) | Organization by features, autonomous slices, Open/Closed in practice |
-| **Clean Architecture** | [`README.CleanArchitecture.en.md`](SoftwareLearningGuide.Api/README.CleanArchitecture.en.md) | Layers, dependency rule, Ports & Adapters, technology independence |
+| **Domain-Driven Design (DDD)** | [`README.DDD.en.md`](docs/SoftwareLearningGuide.Core.Business/README.DDD.en.md) | Value Objects, Entities, Aggregates, practical examples |
+| **Domain Events** | [`README.EventSourcing.en.md`](docs/SoftwareLearningGuide.Core.Business/README.EventSourcing.en.md) | Domain events, MediatR, Notification Handlers, Integration Events |
+| **Transactional Outbox** | [`README.OutboxPattern.en.md`](docs/SoftwareLearningGuide.OutboxProcessor/README.OutboxPattern.en.md) | Outbox Pattern with MassTransit + RabbitMQ, atomicity, Workers |
+| **Resilience** | [`README.Resilience.en.md`](docs/SoftwareLearningGuide.OutboxProcessor/README.Resilience.en.md) | Retry, Circuit Breaker, Timeout in the MassTransit pipeline |
+| **Result\<T\> Pattern** | [`README.ResultPattern.en.md`](docs/SoftwareLearningGuide.Core.Business/README.ResultPattern.en.md) | Functional error handling, composition, best practices |
+| **DomainErrors** | [`README.Errors.en.md`](docs/SoftwareLearningGuide.Core.Business/README.Errors.en.md) | Centralized error catalog with entity context and ID |
+| **CQRS with MediatR** | [`README.CQRS.en.md`](docs/SoftwareLearningGuide.Application/README.CQRS.en.md) | Commands, Queries, Handlers, Mediator pattern |
+| **Unit of Work** | [`README.UnitOfWork.en.md`](docs/SoftwareLearningGuide.Infraestructure/README.UnitOfWork.en.md) | Transactionality, atomicity, Unit of Work pattern |
+| **Entity Framework Core** | [`README.EntityFramework.en.md`](docs/SoftwareLearningGuide.Infraestructure.Data/README.EntityFramework.en.md) | DbContext, configurations, Value Objects, Owned Types |
+| **Dapper** | [`README.Dapper.en.md`](docs/SoftwareLearningGuide.Application.Query/README.Dapper.en.md) | Direct SQL, CommandDefinition, result mapping |
+| **Middleware** | [`README.Middleware.en.md`](docs/SoftwareLearningGuide.Api/README.Middleware.en.md) | Global Exception Handling, logging scopes, HTTP pipeline |
+| **Building APIs** | [`README.Api.en.md`](docs/SoftwareLearningGuide.Api/README.Api.en.md) | REST API concepts, versioning, OpenAPI |
+| **Observability** | [`README.Observability.en.md`](docs/SoftwareLearningGuide.Api/README.Observability.en.md) | The 3 pillars: traces, metrics, logs, scopes, exporters |
+| **Feature Management** | [`README.FeatureManagement.en.md`](docs/SoftwareLearningGuide.Api/README.FeatureManagement.en.md) | Feature Toggles, Feature Flags, Microsoft.FeatureManagement, Flagsmith |
+| **Vertical Slicing** | [`README.VerticalSlicing.en.md`](docs/SoftwareLearningGuide.Application/README.VerticalSlicing.en.md) | Organization by features, autonomous slices, Open/Closed in practice |
+| **Clean Architecture** | [`README.CleanArchitecture.en.md`](docs/SoftwareLearningGuide.Api/README.CleanArchitecture.en.md) | Layers, dependency rule, Ports & Adapters, technology independence |
 
 #### Design Patterns
 
 | Pattern | Location | Description |
 |---------|----------|-------------|
-| **SOLID** | [`README.Pattern.SOLID.en.md`](SoftwareLearningGuide.Application/README.Pattern.SOLID.en.md) | The 5 SOLID principles with concrete project examples |
-| **Factory** | [`README.Pattern.Factory.en.md`](SoftwareLearningGuide.Application/README.Pattern.Factory.en.md) | Static Factory Method in Value Objects and Aggregates |
-| **Builder** | [`README.Pattern.Builder.en.md`](SoftwareLearningGuide.Application/README.Pattern.Builder.en.md) | Fluent Builder for tests, complex Commands, and records with `with` |
-| **Repository** | [`README.Pattern.Repository.en.md`](SoftwareLearningGuide.Application/README.Pattern.Repository.en.md) | Data access abstraction, write vs read repositories |
-| **Mediator** | [`README.Pattern.Mediator.en.md`](SoftwareLearningGuide.Application/README.Pattern.Mediator.en.md) | MediatR: Send vs Publish, Pipeline Behaviors, automatic discovery |
+| **SOLID** | [`README.Pattern.SOLID.en.md`](docs/SoftwareLearningGuide.Application/README.Pattern.SOLID.en.md) | The 5 SOLID principles with concrete project examples |
+| **Factory** | [`README.Pattern.Factory.en.md`](docs/SoftwareLearningGuide.Application/README.Pattern.Factory.en.md) | Static Factory Method in Value Objects and Aggregates |
+| **Builder** | [`README.Pattern.Builder.en.md`](docs/SoftwareLearningGuide.Application/README.Pattern.Builder.en.md) | Fluent Builder for tests, complex Commands, and records with `with` |
+| **Repository** | [`README.Pattern.Repository.en.md`](docs/SoftwareLearningGuide.Application/README.Pattern.Repository.en.md) | Data access abstraction, write vs read repositories |
+| **Mediator** | [`README.Pattern.Mediator.en.md`](docs/SoftwareLearningGuide.Application/README.Pattern.Mediator.en.md) | MediatR: Send vs Publish, Pipeline Behaviors, automatic discovery |
 
 #### Testing References
 
 | Concept | Location | Description |
 |---------|----------|-------------|
-| **TDD** | [`README.TDD.en.md`](tests/README.TDD.en.md) | Red-Green-Refactor cycle, testing best practices |
-| **TestContainers** | [`README.TestContainer.en.md`](tests/README.TestContainer.en.md) | Disposable Docker containers for integration tests |
-| **Respawn** | [`README.Respawn.en.md`](tests/README.Respawn.en.md) | Automatic database reset between tests |
-| **Response Fixture** | [`README.ResponseFixture.en.md`](tests/README.ResponseFixture.en.md) | JSON files with expected responses for assertions |
+| **TDD** | [`README.TDD.en.md`](docs/tests/README.TDD.en.md) | Red-Green-Refactor cycle, testing best practices |
+| **TestContainers** | [`README.TestContainer.en.md`](docs/tests/README.TestContainer.en.md) | Disposable Docker containers for integration tests |
+| **Respawn** | [`README.Respawn.en.md`](docs/tests/README.Respawn.en.md) | Automatic database reset between tests |
+| **Response Fixture** | [`README.ResponseFixture.en.md`](docs/tests/README.ResponseFixture.en.md) | JSON files with expected responses for assertions |
 
 ---
 
@@ -519,11 +524,11 @@ Consumer (listens to RabbitMQ)
 
 To dive deeper into each artifact, check the dedicated READMEs:
 
-- [`README.DDD.en.md`](SoftwareLearningGuide.Core.Business/README.DDD.en.md) - Product entity and its ProduceEvents inheritance
-- [`README.EventSourcing.en.md`](SoftwareLearningGuide.Core.Business/README.EventSourcing.en.md) - Domain Events and their lifecycle
-- [`README.UnitOfWork.en.md`](SoftwareLearningGuide.Infraestructure/README.UnitOfWork.en.md) - How UnitOfWork dispatches events and persists
-- [`README.OutboxPattern.en.md`](SoftwareLearningGuide.OutboxProcessor/README.OutboxPattern.en.md) - Transactional Outbox with MassTransit
-- [`README.CQRS.en.md`](SoftwareLearningGuide.Application/README.CQRS.en.md) - Command/Query separation with MediatR
+- [`README.DDD.en.md`](docs/SoftwareLearningGuide.Core.Business/README.DDD.en.md) - Product entity and its ProduceEvents inheritance
+- [`README.EventSourcing.en.md`](docs/SoftwareLearningGuide.Core.Business/README.EventSourcing.en.md) - Domain Events and their lifecycle
+- [`README.UnitOfWork.en.md`](docs/SoftwareLearningGuide.Infraestructure/README.UnitOfWork.en.md) - How UnitOfWork dispatches events and persists
+- [`README.OutboxPattern.en.md`](docs/SoftwareLearningGuide.OutboxProcessor/README.OutboxPattern.en.md) - Transactional Outbox with MassTransit
+- [`README.CQRS.en.md`](docs/SoftwareLearningGuide.Application/README.CQRS.en.md) - Command/Query separation with MediatR
 
 ---
 
