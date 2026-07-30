@@ -1,10 +1,10 @@
-# Result<T> Pattern - Functional Error Handling
+﻿# Result<T> Pattern - Functional Error Handling
 
 This document explains the **Result<T>** pattern implemented in `SoftwareLearningGuide.Core.Business` and how it's used to handle errors explicitly and predictably.
 
 ![Result Pattern](https://img.shields.io/badge/Pattern-Result%3CT%3E-green)
 
-## Table of Contents
+#### Table of Contents
 
 1. [What is Result<T>?](#what-is-resultt)
 2. [Advantages over Exceptions](#advantages-over-exceptions)

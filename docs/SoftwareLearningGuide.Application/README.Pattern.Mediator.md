@@ -1,4 +1,4 @@
-# Patrón Mediator
+﻿# Patrón Mediator
 
 ![Pattern](https://img.shields.io/badge/Pattern-Mediator-purple)
 ![GoF](https://img.shields.io/badge/Clasificación-Comportamiento-lightgrey)
@@ -8,7 +8,7 @@ El **Patrón Mediator** define un objeto que encapsula cómo un conjunto de obje
 
 ---
 
-## Tabla de Contenidos
+#### Tabla de Contenidos
 
 1. [¿Qué es el Patrón Mediator?](#qué-es-el-patrón-mediator)
 2. [MediatR como implementación del Mediator](#mediatr-como-implementación-del-mediator)
@@ -27,23 +27,31 @@ El **Patrón Mediator** define un objeto que encapsula cómo un conjunto de obje
 
 **Sin Mediator:**
 
-```
-Controller → OrderCreateService
-Controller → OrderValidationService
-Controller → OrderRepository
-Controller → EventBus
-Controller → MetricsService
-// El Controller conoce y depende de 5 servicios distintos
-// Un cambio en cualquiera de ellos puede romper el Controller
+```mermaid
+graph TD
+    C[Controller] --> S1[OrderCreateService]
+    C --> S2[OrderValidationService]
+    C --> S3[OrderRepository]
+    C --> S4[EventBus]
+    C --> S5[MetricsService]
+    style C fill:#e1f5fe
+    style S1 fill:#fff3e0
+    style S2 fill:#fff3e0
+    style S3 fill:#fff3e0
+    style S4 fill:#fff3e0
+    style S5 fill:#fff3e0
 ```
 
 **Con Mediator:**
 
-```
-Controller → IMediator.Send(CreateOrderCommand)
-               └─► MediatR resuelve automáticamente → CreateOrderCommandHandler
-// El Controller solo conoce IMediator y el Command
-// El Handler puede cambiar sin tocar el Controller
+```mermaid
+graph LR
+    C[Controller] --> M[IMediator.Send]
+    M --> H[CreateOrderCommandHandler]
+    M -.-> |"MediatR resuelve"| H
+    style C fill:#e1f5fe
+    style M fill:#f3e5f5
+    style H fill:#e8f5e8
 ```
 
 ---
@@ -322,36 +330,34 @@ services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblies(
 
 ## Diagrama del Patrón
 
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│  Emisores (desconocen los handlers)                                 │
-│                                                                     │
-│  OrderController         UnitOfWork                                 │
-│  _mediator.Send(cmd)     _mediator.Publish(domainEvent)             │
-└────────────────────────────────┬────────────────────────────────────┘
-                                 │
-                                 ▼
-┌────────────────────────────────────────────────────────────────────┐
-│  IMediator (Mediator)                                              │
-│  Resuelve y despacha al/los handler(s) correspondiente(s)          │
-│                                                                    │
-│  .Send()    → 1 handler (IRequestHandler)                          │
-│  .Publish() → N handlers (INotificationHandler)                    │
-└───────┬───────────────────────┬────────────────────────────────────┘
-        │                       │
-        ▼                       ▼
-┌──────────────────┐  ┌─────────────────────────────────────────┐
-│  IRequestHandler │  │  INotificationHandler (todos invocan)   │
-│                  │  │                                         │
-│ CreateOrderCmd   │  │  OrderCreatedNotificationHandler        │
-│   Handler        │  │  → escribe al Outbox                    │
-│                  │  │                                         │
-│ GetOrderQuery    │  │  OrderCreatedMetricsHandler             │
-│   Handler        │  │  → registra métricas                    │
-│                  │  │                                         │
-│ CancelOrderCmd   │  │  OrderCreatedAuditHandler               │
-│   Handler        │  │  → log de auditoría                     │
-└──────────────────┘  └─────────────────────────────────────────┘
+```mermaid
+graph TD
+    subgraph Emisores ["Emisores (desconocen los handlers)"]
+        OC["OrderController<br>_mediator.Send(cmd)"]
+        UoW["UnitOfWork<br>_mediator.Publish(domainEvent)"]
+    end
+    subgraph Mediator ["IMediator (Mediator)"]
+        M["Resuelve y despacha al/los handler(s) correspondiente(s)<br>.Send() → 1 handler<br>.Publish() → N handlers"]
+    end
+    subgraph HandlersI ["IRequestHandler"]
+        COH["CreateOrderCmd Handler"]
+        GOH["GetOrderQuery Handler"]
+        CAH["CancelOrderCmd Handler"]
+    end
+    subgraph HandlersN ["INotificationHandler (todos invocan)"]
+        ONH["OrderCreatedNotificationHandler<br>→ escribe al Outbox"]
+        OMH["OrderCreatedMetricsHandler<br>→ registra métricas"]
+        OAH["OrderCreatedAuditHandler<br>→ log de auditoría"]
+    end
+    OC --> M
+    UoW --> M
+    M --> |".Send()"| HandlersI
+    M --> |".Publish()"| HandlersN
+    style OC fill:#e1f5fe
+    style UoW fill:#e1f5fe
+    style M fill:#f3e5f5
+    style HandlersI fill:#e8f5e8
+    style HandlersN fill:#e8f5e8
 ```
 
 ---

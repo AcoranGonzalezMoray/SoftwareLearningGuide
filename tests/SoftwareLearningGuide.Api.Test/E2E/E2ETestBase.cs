@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.TestHost;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -45,7 +46,7 @@ public abstract class E2ETestBase : IDisposable {
                     });
                 });
 
-                builder.ConfigureServices(services => {
+                builder.ConfigureTestServices(services => {
                     services.AddScoped<IDbConnection>(_ => new SqlConnection(ConnectionString));
                     services.AddDbContext<ApplicationDbContext>(options =>
                         options.UseSqlServer(ConnectionString));

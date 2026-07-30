@@ -1,4 +1,4 @@
-# Patrón Factory (Fábrica)
+﻿# Patrón Factory (Fábrica)
 
 ![Pattern](https://img.shields.io/badge/Pattern-Factory-yellow)
 ![GoF](https://img.shields.io/badge/Clasificación-Creacional-lightgrey)
@@ -7,7 +7,7 @@ El **Patrón Factory** centraliza la creación de objetos en un método especial
 
 ---
 
-## Tabla de Contenidos
+#### Tabla de Contenidos
 
 1. [¿Qué es el Patrón Factory?](#qué-es-el-patrón-factory)
 2. [Tipos de Factory](#tipos-de-factory)
@@ -300,31 +300,20 @@ if (!orderIdResult.IsSuccess)
 
 ## Diagrama del Patrón
 
-```
-Cliente (Handler)
-     │
-     │  var result = Money.Create(100.0m, "USD")
-     │
-     ▼
-┌──────────────────────────────────────────────────────┐
-│  Money                          ← Clase con Factory  │
-│                                                      │
-│  private Money(decimal, string) ← Constructor oculto │
-│                                                      │
-│  + static Create(amount, currency)                   │
-│    ├── Validar amount >= 0                           │
-│    ├── Validar currency no vacía                     │
-│    ├── Validar currency == 3 chars                   │
-│    └── return Result<Money>.Success(new Money(...))  │
-└──────────────────────────────────────────────────────┘
-     │
-     ▼
-Result<Money>
-  IsSuccess = true
-  Value = Money { Amount=100, Currency="USD" }
-    — O —
-  IsSuccess = false
-  Error = DomainErrors.Money.NegativeAmount
+```mermaid
+graph TD
+    A["Cliente (Handler)"] -->|"Money.Create(100.0m, 'USD')"| B["Money"]
+    subgraph B
+        B1["private Money(decimal, string) — Constructor oculto"]
+        B2["+ static Create(amount, currency)"]
+        B2 --> B3["Validar amount >= 0"]
+        B2 --> B4["Validar currency no vacía"]
+        B2 --> B5["Validar currency == 3 chars"]
+        B2 --> B6["return Result&lt;Money&gt;.Success(new Money(...))"]
+    end
+    B --> C{"¿Éxito?"}
+    C -->|IsSuccess = true| D["Result&lt;Money&gt;\nValue = Money { Amount=100, Currency='USD' }"]
+    C -->|IsSuccess = false| E["Result&lt;Money&gt;\nError = DomainErrors.Money.NegativeAmount"]
 ```
 
 ---

@@ -1,4 +1,4 @@
-# SOLID Principles
+﻿# SOLID Principles
 
 ![Pattern](https://img.shields.io/badge/Principios-SOLID-blueviolet)
 ![.NET](https://img.shields.io/badge/.NET-10-blue)
@@ -7,7 +7,7 @@ The **SOLID principles** are five object-oriented design rules that, when applie
 
 ---
 
-## Table of Contents
+#### Table of Contents
 
 1. [S — Single Responsibility Principle](#s--single-responsibility-principle)
 2. [O — Open/Closed Principle](#o--openclosed-principle)
@@ -301,25 +301,35 @@ public static IServiceCollection AddInfraestructure(this IServiceCollection serv
 
 Let's see how the 5 principles collaborate in a `POST /api/v1/order` request:
 
-```
-POST /api/v1/order
-      │
-      ▼
-OrderController.Create()                    ← SRP: only dispatches HTTP
-      │ _mediator.Send(CreateOrderCommand)
-      ▼
-CreateOrderCommandHandler.Handle()          ← SRP: only orchestrates the use case
-      │ new Order(...) — pure domain        ← DIP: doesn't know EF Core
-      │ _repository.AddAsync(order)         ← DIP: depends on interface
-      │ _unitOfWork.SaveChangesAsync()      ← DIP: depends on interface
-      ▼
-UnitOfWork.SaveChangesAsync()               ← SRP: only manages transaction
-      │ DispatchDomainEvents()
-      │   IMediator.Publish(OrderCreated)   ← OCP: new handlers without modifying UoW
-      │   NotificationHandler1.Handle()     ← ISP: small, specific handler
-      │   NotificationHandler2.Handle()     ← ISP: small, specific handler
-      ▼
-ApplicationDbContext.SaveChangesAsync()     ← LSP: can be replaced by InMemoryDb in tests
+```mermaid
+graph TD
+    A["POST /api/v1/order"] --> B["OrderController.Create()"]
+    B -->|"_mediator.Send(CreateOrderCommand)"| C["CreateOrderCommandHandler.Handle()"]
+    C --> D["UnitOfWork.SaveChangesAsync()"]
+    D --> E["ApplicationDbContext.SaveChangesAsync()"]
+    C -->|"_repository.AddAsync(order)"| C
+    C -->|"_unitOfWork.SaveChangesAsync()"| C
+    D -->|"DispatchDomainEvents()"| F["IMediator.Publish(OrderCreated)"]
+    F --> G["NotificationHandler1.Handle()"]
+    F --> H["NotificationHandler2.Handle()"]
+
+    B -.- B_NOTE["SRP: only dispatches HTTP"]
+    C -.- C_NOTE["SRP: only orchestrates the use case"]
+    C -.- DIP_NOTE["DIP: depends on interface / doesn't know EF Core"]
+    D -.- D_NOTE["SRP: only manages transaction"]
+    F -.- OCP_NOTE["OCP: new handlers without modifying UoW"]
+    G -.- ISP_NOTE["ISP: small, specific handler"]
+    H -.- ISP_NOTE2["ISP: small, specific handler"]
+    E -.- LSP_NOTE["LSP: can be replaced by InMemoryDb in tests"]
+
+    style B_NOTE fill:#f9f,stroke:#333,stroke-width:1px,color:#333
+    style C_NOTE fill:#f9f,stroke:#333,stroke-width:1px,color:#333
+    style DIP_NOTE fill:#f9f,stroke:#333,stroke-width:1px,color:#333
+    style D_NOTE fill:#f9f,stroke:#333,stroke-width:1px,color:#333
+    style OCP_NOTE fill:#f9f,stroke:#333,stroke-width:1px,color:#333
+    style ISP_NOTE fill:#f9f,stroke:#333,stroke-width:1px,color:#333
+    style ISP_NOTE2 fill:#f9f,stroke:#333,stroke-width:1px,color:#333
+    style LSP_NOTE fill:#f9f,stroke:#333,stroke-width:1px,color:#333
 ```
 
 ---

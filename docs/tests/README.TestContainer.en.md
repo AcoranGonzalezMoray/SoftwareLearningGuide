@@ -90,27 +90,20 @@ public abstract class E2ETestBase
 
 ## Anatomy
 
-```
-┌─────────────────────────────────────────────────────────┐
-│  TestSqlServerTestContainerFixture (NUnit SetUpFixture) │
-│  [OneTimeSetUp]  →  SqlServerTestContainer.Start()      │
-│  [OneTimeTearDown] → SqlServerTestContainer.Stop()      │
-└─────────────────────────────────────────────────────────┘
-         │
-         ▼
-┌─────────────────────────────────────────────────────────┐
-│  SqlServerTestContainer                                 │
-│  - MsSqlBuilder: mcr.microsoft.com/mssql/server:2022    │
-│  - ConnectionString shared statically                   │
-│  - Singleton container for entire test session          │
-└─────────────────────────────────────────────────────────┘
-         │
-         ▼
-┌─────────────────────────────────────────────────────────┐
-│  Consumers:                                             │
-│  - E2ETestBase (Api.Test) → HttpClient + TestContainers │
-│  - EFDatabase<T> (Helper.Test) → DbContext + Respawn    │
-└─────────────────────────────────────────────────────────┘
+```mermaid
+graph TD
+    A["TestSqlServerTestContainerFixture (NUnit SetUpFixture)
+    [OneTimeSetUp] → SqlServerTestContainer.Start()
+    [OneTimeTearDown] → SqlServerTestContainer.Stop()"]
+    B["SqlServerTestContainer
+    - MsSqlBuilder: mcr.microsoft.com/mssql/server:2022
+    - ConnectionString shared statically
+    - Singleton container for entire test session"]
+    C["Consumers
+    - E2ETestBase (Api.Test) → HttpClient + TestContainers
+    - EFDatabase<T> (Helper.Test) → DbContext + Respawn"]
+
+    A --> B --> C
 ```
 
 ---

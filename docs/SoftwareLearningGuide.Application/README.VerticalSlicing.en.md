@@ -1,4 +1,4 @@
-# Vertical Slicing Architecture
+﻿# Vertical Slicing Architecture
 
 ![Pattern](https://img.shields.io/badge/Architecture-Vertical%20Slicing-blue)
 ![MediatR](https://img.shields.io/badge/Library-MediatR-purple)
@@ -8,7 +8,7 @@
 
 ---
 
-## Table of Contents
+#### Table of Contents
 
 1. [What is Vertical Slicing?](#what-is-vertical-slicing)
 2. [Horizontal vs Vertical](#horizontal-vs-vertical)
@@ -322,49 +322,21 @@ public async Task<IActionResult> Cancel(Guid id, [FromBody] string reason, Cance
 
 ## Architecture Diagram
 
-```
-HTTP Request
-     │
-     ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│  SoftwareLearningGuide.Api (Controller)                             │
-│  Only dispatches: _mediator.Send(new CreateOrderCommand { ... })    │
-└───────────────────────────────┬─────────────────────────────────────┘
-                                │
-                                ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│  MediatR (Dispatcher)                                               │
-│  Resolves the correct handler by request type                       │
-└───────────────────────────────┬─────────────────────────────────────┘
-                                │
-        ┌───────────────────────┼───────────────────────┐
-        │                       │                       │
-        ▼                       ▼                       ▼
-┌──────────────┐    ┌───────────────────┐    ┌──────────────────┐
-│  GetOrder/   │    │   CreateOrder/    │    │  CreateProduct/  │
-│              │    │                   │    │                  │
-│  Query.cs    │    │  Command.cs       │    │  Command.cs      │
-│  Handler.cs  │    │  Handler.cs       │    │  Handler.cs      │
-│  Response.cs │    │  Response.cs      │    │  Response.cs     │
-│              │    │                   │    │                  │
-│  ← Slice 1 → │    │   ← Slice 2 →     │    │  ← Slice 3 →     │
-└──────┬───────┘    └────────┬──────────┘    └───────┬──────────┘
-       │                     │                       │
-       ▼                     ▼                       ▼
-┌──────────────┐    ┌───────────────────┐    ┌──────────────────┐
-│   Dapper     │    │     EF Core       │    │    EF Core       │
-│  (read)      │    │  + UnitOfWork     │    │  + UnitOfWork    │
-│  Direct SQL  │    │  (write)          │    │  (write)         │
-└──────────────┘    └───────────────────┘    └──────────────────┘
-                             │
-                             ▼
-                    ┌────────────────┐
-                    │   Ports/       │
-                    │  Interfaces    │
-                    │  shared        │
-                    │ (IUnitOfWork,  │
-                    │  IRepository)  │
-                    └────────────────┘
+```mermaid
+graph TD
+    HTTP["HTTP Request"] --> API["SoftwareLearningGuide.Api<br/>(Controller)<br/>Only dispatches: _mediator.Send(...)"]
+    API --> MediatR["MediatR<br/>(Dispatcher)<br/>Resolves the correct handler by request type"]
+    
+    MediatR --> GetOrder["GetOrder/<br/>Query.cs<br/>Handler.cs<br/>Response.cs"]
+    MediatR --> CreateOrder["CreateOrder/<br/>Command.cs<br/>Handler.cs<br/>Response.cs"]
+    MediatR --> CreateProduct["CreateProduct/<br/>Command.cs<br/>Handler.cs<br/>Response.cs"]
+    
+    GetOrder --> Dapper["Dapper<br/>(read)<br/>Direct SQL"]
+    CreateOrder --> EFCore["EF Core<br/>+ UnitOfWork<br/>(write)"]
+    CreateProduct --> EFCore2["EF Core<br/>+ UnitOfWork<br/>(write)"]
+    
+    EFCore --> Ports["Ports/<br/>Shared Interfaces<br/>(IUnitOfWork, IRepository)"]
+    EFCore2 --> Ports
 ```
 
 ---

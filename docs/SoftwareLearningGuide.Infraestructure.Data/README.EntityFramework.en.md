@@ -1,4 +1,4 @@
-# Entity Framework Core - Command Side
+﻿# Entity Framework Core - Command Side
 
 ![EF Core](https://img.shields.io/badge/ORM-Entity_Framework_Core-blue)
 ![CQRS](https://img.shields.io/badge/Pattern-Command_Side-green)
@@ -9,7 +9,7 @@ In this project, EF Core is used exclusively for the command (write) side. This 
 
 ---
 
-## Table of Contents
+#### Table of Contents
 
 1. [Why EF Core Only for Commands?](#why-ef-core-only-for-commands)
 2. [DbContext - ApplicationDbContext](#dbcontext---applicationdbcontext)
@@ -388,23 +388,34 @@ builder.HasMany<OrderLine>("_lines") // Maps the private field
 
 **Result in the DB:**
 
-```
-Orders                          OrderLines
-┌─────────────────────┐        ┌─────────────────────────────┐
-│ Id (PK)             │        │ Id (PK)                     │
-│ CustomerId          │◄───────│ OrderId (FK)                │
-│ Status              │        │ ProductId                   │
-│ ShippingStreet      │        │ ProductName                 │
-│ ShippingCity        │        │ UnitPrice (decimal)         │
-│ ShippingState       │        │ Currency                    │
-│ ShippingPostalCode  │        │ Quantity                    │
-│ ShippingCountry     │        │ CreatedAt                   │
-│ CreatedAt           │        └─────────────────────────────┘
-│ ConfirmedAt         │
-│ ShippedAt           │
-│ DeliveredAt         │
-│ CancelledAt         │
-└─────────────────────┘
+```mermaid
+erDiagram
+    ORDERS {
+        Guid Id PK
+        Guid CustomerId FK
+        string Status
+        string ShippingStreet
+        string ShippingCity
+        string ShippingState
+        string ShippingPostalCode
+        string ShippingCountry
+        datetime CreatedAt
+        datetime ConfirmedAt
+        datetime ShippedAt
+        datetime DeliveredAt
+        datetime CancelledAt
+    }
+    ORDERLINES {
+        Guid Id PK
+        Guid OrderId FK
+        Guid ProductId
+        string ProductName
+        decimal UnitPrice
+        string Currency
+        int Quantity
+        datetime CreatedAt
+    }
+    ORDERS ||--o{ ORDERLINES : "has"
 ```
 
 ---

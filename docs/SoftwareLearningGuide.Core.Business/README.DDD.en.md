@@ -1,4 +1,4 @@
-<div align="center">
+﻿<div align="center">
 
 # Domain-Driven Design (DDD)
 
@@ -13,7 +13,7 @@
 
 ---
 
-## Table of Contents
+#### Table of Contents
 
 - [What is DDD?](#what-is-ddd)
 - [Project Structure](#project-structure)
@@ -52,16 +52,25 @@
 
 ## Project Structure
 
-```
-SoftwareLearningGuide.Core.Business/
-├── Entities/              # Entities: Product, Customer, OrderLine
-├── Aggregates/            # Aggregate Roots: Order
-├── ValueObjects/          # Value Objects: Money, Email, Address, etc.
-├── Enums/                 # OrderStatus, PaymentMethod, etc.
-├── Errors/                # DomainErrors: centralized error catalog
-├── Exceptions/            # DomainException for invariant violations
-├── DomainEvents/          # ProduceEvents base + event interfaces
-└── Helpers/               # Financial rounding helper
+```mermaid
+graph TD
+    A["SoftwareLearningGuide.Core.Business/"] --> B["Entities/"]
+    A --> C["Aggregates/"]
+    A --> D["ValueObjects/"]
+    A --> E["Enums/"]
+    A --> F["Errors/"]
+    A --> G["Exceptions/"]
+    A --> H["DomainEvents/"]
+    A --> I["Helpers/"]
+
+    B --> B1["Product, Customer, OrderLine"]
+    C --> C1["Order (Aggregate Root)"]
+    D --> D1["Money, Email, Address, etc."]
+    E --> E1["OrderStatus, PaymentMethod, etc."]
+    F --> F1["DomainErrors: centralized error catalog"]
+    G --> G1["DomainException for invariant violations"]
+    H --> H1["ProduceEvents base + event interfaces"]
+    I --> I1["Financial rounding helper"]
 ```
 
 ---

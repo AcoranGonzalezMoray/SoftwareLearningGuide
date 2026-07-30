@@ -1,4 +1,4 @@
-# Principios SOLID
+﻿# Principios SOLID
 
 ![Pattern](https://img.shields.io/badge/Principios-SOLID-blueviolet)
 ![.NET](https://img.shields.io/badge/.NET-10-blue)
@@ -7,7 +7,7 @@ Los **principios SOLID** son cinco reglas de diseño orientado a objetos que, ap
 
 ---
 
-## Tabla de Contenidos
+#### Tabla de Contenidos
 
 1. [S — Single Responsibility Principle](#s--single-responsibility-principle)
 2. [O — Open/Closed Principle](#o--openclosed-principle)
@@ -301,25 +301,35 @@ public static IServiceCollection AddInfraestructure(this IServiceCollection serv
 
 Veamos cómo los 5 principios colaboran en una request `POST /api/v1/order`:
 
-```
-POST /api/v1/order
-      │
-      ▼
-OrderController.Create()                    ← SRP: solo despacha HTTP
-      │ _mediator.Send(CreateOrderCommand)
-      ▼
-CreateOrderCommandHandler.Handle()          ← SRP: solo orquesta el caso de uso
-      │ new Order(...) — dominio puro        ← DIP: no conoce EF Core
-      │ _repository.AddAsync(order)          ← DIP: depende de interfaz
-      │ _unitOfWork.SaveChangesAsync()       ← DIP: depende de interfaz
-      ▼
-UnitOfWork.SaveChangesAsync()               ← SRP: solo gestiona transacción
-      │ DispatchDomainEvents()
-      │   IMediator.Publish(OrderCreated)   ← OCP: nuevos handlers sin modificar UoW
-      │   NotificationHandler1.Handle()     ← ISP: handler pequeño y específico
-      │   NotificationHandler2.Handle()     ← ISP: handler pequeño y específico
-      ▼
-ApplicationDbContext.SaveChangesAsync()     ← LSP: puede sustituirse por InMemoryDb en tests
+```mermaid
+graph TD
+    A["POST /api/v1/order"] --> B["OrderController.Create()"]
+    B -->|"_mediator.Send(CreateOrderCommand)"| C["CreateOrderCommandHandler.Handle()"]
+    C --> D["UnitOfWork.SaveChangesAsync()"]
+    D --> E["ApplicationDbContext.SaveChangesAsync()"]
+    C -->|"_repository.AddAsync(order)"| C
+    C -->|"_unitOfWork.SaveChangesAsync()"| C
+    D -->|"DispatchDomainEvents()"| F["IMediator.Publish(OrderCreated)"]
+    F --> G["NotificationHandler1.Handle()"]
+    F --> H["NotificationHandler2.Handle()"]
+
+    B -.- B_NOTE["SRP: solo despacha HTTP"]
+    C -.- C_NOTE["SRP: solo orquesta el caso de uso"]
+    C -.- DIP_NOTE["DIP: depende de interfaz / no conoce EF Core"]
+    D -.- D_NOTE["SRP: solo gestiona transacción"]
+    F -.- OCP_NOTE["OCP: nuevos handlers sin modificar UoW"]
+    G -.- ISP_NOTE["ISP: handler pequeño y específico"]
+    H -.- ISP_NOTE2["ISP: handler pequeño y específico"]
+    E -.- LSP_NOTE["LSP: puede sustituirse por InMemoryDb en tests"]
+
+    style B_NOTE fill:#f9f,stroke:#333,stroke-width:1px,color:#333
+    style C_NOTE fill:#f9f,stroke:#333,stroke-width:1px,color:#333
+    style DIP_NOTE fill:#f9f,stroke:#333,stroke-width:1px,color:#333
+    style D_NOTE fill:#f9f,stroke:#333,stroke-width:1px,color:#333
+    style OCP_NOTE fill:#f9f,stroke:#333,stroke-width:1px,color:#333
+    style ISP_NOTE fill:#f9f,stroke:#333,stroke-width:1px,color:#333
+    style ISP_NOTE2 fill:#f9f,stroke:#333,stroke-width:1px,color:#333
+    style LSP_NOTE fill:#f9f,stroke:#333,stroke-width:1px,color:#333
 ```
 
 ---

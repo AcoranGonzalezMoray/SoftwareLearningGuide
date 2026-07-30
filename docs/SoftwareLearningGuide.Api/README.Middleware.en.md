@@ -1,4 +1,4 @@
-# Middleware - Global Exception Handling
+﻿# Middleware - Global Exception Handling
 
 ![Middleware](https://img.shields.io/badge/Pattern-Global_Exception_Handling-red)
 ![ASP.NET Core](https://img.shields.io/badge/ASP.NET_Core-Pipeline-orange)
@@ -7,7 +7,7 @@ A **global middleware** captures any unhandled exception that rises in the HTTP 
 
 ---
 
-## Table of Contents
+#### Table of Contents
 
 1. [What is a Middleware?](#what-is-a-middleware)
 2. [GlobalExceptionMiddleware](#globalexceptionmiddleware)
@@ -29,28 +29,27 @@ A **middleware** is a class that processes each HTTP request before or after it 
 - **Short-circuit** the pipeline (not call the next one)
 - Handle errors
 
-```
-Request → [Middleware 1] → [Middleware 2] → [Controller] → Response
+```mermaid
+graph LR
+    Request --> M1[Middleware 1]
+    M1 --> M2[Middleware 2]
+    M2 --> C[Controller]
+    C --> Response
 ```
 
 ### Analogy
 
 Think of middleware as a **safety net** in a factory:
 
-```
-Material input
-    │
-    ▼
-[Quality inspection]  ← middleware
-    │
-    ▼
-[Processing]          ← controller
-    │
-    ▼
-[Packaging]           ← another middleware
-    │
-    ▼
-Product output
+```mermaid
+graph TD
+    A[Material input] --> B[Quality inspection]:::middleware
+    B --> C[Processing]:::controller
+    C --> D[Packaging]:::middleware
+    D --> E[Product output]
+
+    classDef middleware fill:#f9f,stroke:#333,stroke-width:2px
+    classDef controller fill:#bbf,stroke:#333,stroke-width:2px
 ```
 
 If something fails at any step, the safety net catches it and reports the problem without stopping the entire factory.
@@ -207,40 +206,43 @@ using (_logger.BeginScope(new Dictionary<string, object>
 
 ### Visual Hierarchy
 
-```
-Request: POST /api/v1/order
-│
-├── [Middleware Scope] CorrelationId=abc, Method=POST, Path=/api/v1/order, IP=127.0.0.1
-│   │
-│   ├── [Controller Scope] CustomerId=550e8400, LineCount=3
-│   │   │
-│   │   ├── Log: "Starting creation..."
-│   │   │   → CorrelationId=abc, Method=POST, Path=/api/v1/order, IP=127.0.0.1,
-│   │   │     CustomerId=550e8400, LineCount=3
-│   │   │
-│   │   └── EXCEPTION → Controller scope disposed (using block ends)
-│   │
-│   └── catch: _logger.LogError(ex, "Exception...")
-│       → CorrelationId=abc, Method=POST, Path=/api/v1/order, IP=127.0.0.1
-│       (controller scope NO LONGER EXISTS, but middleware scope DOES)
+```mermaid
+graph TD
+    R[Request: POST /api/v1/order] --> MS[Middleware Scope<br/>CorrelationId=abc<br/>Method=POST<br/>Path=/api/v1/order<br/>IP=127.0.0.1]
+    MS --> CS[Controller Scope<br/>CustomerId=550e8400<br/>LineCount=3]
+    CS --> L1["Log: 'Starting creation...'"]
+    L1 --> C1[CorrelationId=abc<br/>Method=POST<br/>Path=/api/v1/order<br/>IP=127.0.0.1<br/>CustomerId=550e8400<br/>LineCount=3]
+    CS --> EX[EXCEPTION → Controller scope disposed]
+    EX --> CATCH["catch: _logger.LogError(ex)"]
+    CATCH --> C2[CorrelationId=abc<br/>Method=POST<br/>Path=/api/v1/order<br/>IP=127.0.0.1]
+    C2 --> NOTE["Controller scope NO LONGER EXISTS<br/>but middleware scope DOES"]
+
+    style MS fill:#e1f5fe
+    style CS fill:#f3e5f5
+    style EX fill:#ffebee
+    style CATCH fill:#fff3e0
 ```
 
 ### Why is the Middleware Scope Critical for Exceptions?
 
 When an exception occurs inside the controller's `using` block:
 
-```
-Controller: using (BeginScope({CustomerId, LineCount})) {
-    _mediator.Send(command);  ← EXCEPTION!
-}
-// Dispose() is called here during stack unwinding
-// Controller scope NO LONGER EXISTS
-
-Middleware: catch (Exception ex) {
-    // Controller scope was disposed
-    // BUT middleware scope IS STILL ACTIVE
-    _logger.LogError(ex, "...");  // ← DOES have CorrelationId, Method, Path
-}
+```mermaid
+sequenceDiagram
+    participant C as Controller
+    participant M as Middleware
+    
+    Note over C: using (BeginScope({CustomerId, LineCount}))
+    C->>C: _mediator.Send(command)
+    Note over C: EXCEPTION!
+    Note over C: Dispose() called during stack unwinding
+    Note over C: Controller scope NO LONGER EXISTS
+    
+    Note over M: catch (Exception ex)
+    Note over M: Controller scope was disposed
+    Note over M: BUT middleware scope IS STILL ACTIVE
+    M->>M: _logger.LogError(ex, "...")
+    Note over M: ✓ HAS CorrelationId, Method, Path
 ```
 
 **That's why the middleware creates its own scope**: it's the **only** one that guarantees context data is available when logging the exception.
@@ -269,15 +271,14 @@ The client receives a **500** response with JSON:
 
 ### Error Flow
 
-```
-Client sends request → Middleware catches exception
-                              │
-                    ┌─────────┴─────────┐
-                    ▼                   ▼
-            Complete log         JSON response
-            (with stack trace,   (generic, no
-            correlationId,       internal details)
-            context)
+```mermaid
+graph TD
+    C[Client sends request] --> M[Middleware catches exception]
+    M --> L[Complete log<br/>with stack trace<br/>correlationId<br/>context]
+    M --> R[JSON response<br/>generic, no<br/>internal details]
+
+    style L fill:#e8f5e9
+    style R fill:#fff3e0
 ```
 
 ---
@@ -303,65 +304,48 @@ app.Run();
 
 ### Pipeline Flow
 
-```
-Incoming request
-    │
-    ▼
-┌─────────────────────────────────┐
-│  GlobalExceptionMiddleware      │
-│  ┌───────────────────────────┐  │
-│  │  BeginScope(request)      │  │
-│  │  ┌─────────────────────┐  │  │
-│  │  │  try {              │  │  │
-│  │  │    await _next(ctx) │──┼──┼──→ UseHttpsRedirection
-│  │  │  }                  │  │  │         │
-│  │  │  catch (Exception) {│  │  │         ▼
-│  │  │    LogError(ex)     │  │  │     UseAuthorization
-│  │  │    Return 500 JSON  │  │  │         │
-│  │  │  }                  │  │  │         ▼
-│  │  └─────────────────────┘  │  │     MapControllers
-│  │  EndScope                 │  │         │
-│  └───────────────────────────┘  │         ▼
-└─────────────────────────────────┘     Controller action
-                                            │
-                                            ▼
-                                        Response
+```mermaid
+graph TD
+    I[Incoming request] --> GEM[GlobalExceptionMiddleware]
+    GEM --> BS[BeginScope request]
+    BS --> TRY[try: await _next ctx]
+    TRY --> UHR[UseHttpsRedirection]
+    UHR --> UA[UseAuthorization]
+    UA --> MC[MapControllers]
+    MC --> CA[Controller action]
+    CA --> RESP[Response]
+    
+    TRY -->|Exception| CATCH[catch Exception]
+    CATCH --> LE[LogError ex]
+    LE --> R500[Return 500 JSON]
+    
+    style GEM fill:#e3f2fd
+    style TRY fill:#e8f5e9
+    style CATCH fill:#ffebee
+    style LE fill:#fff3e0
+    style R500 fill:#ffebee
 ```
 
 ---
 
 ## Exception Flow
 
-```
-1. Controller throws an exception (e.g., InsufficientStockException)
-         │
-         ▼
-2. The controller's using block disposes the controller scope
-   (controller scope disappears from logging context)
-         │
-         ▼
-3. Exception propagates to GlobalExceptionMiddleware
-         │
-         ▼
-4. Middleware enters the catch block:
-   a. Reads HttpContext.Items["LogProperties"] (additional controller properties)
-   b. Creates a nested scope with those properties (if they exist)
-   c. Logs the error WITH the middleware scope active:
-      - CorrelationId: 0HN1H87G5NL2F:00000001
-      - RequestMethod: POST
-      - RequestPath: /api/v1/order
-      - RemoteIpAddress: 127.0.0.1
-      - Complete exception (stack trace)
-         │
-         ▼
-5. Returns 500 JSON response to client:
-   {"error":"An unexpected error occurred.","traceId":"0HN1H87G5NL2F:00000001"}
-         │
-         ▼
-6. Middleware scope is disposed (using block ends)
-         │
-         ▼
-7. Team uses traceId to find the error in OpenTelemetry/Grafana/Aspire
+```mermaid
+graph TD
+    S1["1. Controller throws exception<br/>(e.g., InsufficientStockException)"] --> S2["2. Controller's using block disposes scope<br/>(scope disappears from logging context)"]
+    S2 --> S3["3. Exception propagates to<br/>GlobalExceptionMiddleware"]
+    S3 --> S4["4. Middleware enters catch block:<br/>a. Reads HttpContext.Items['LogProperties']<br/>b. Creates nested scope with properties<br/>c. Logs error WITH middleware scope active"]
+    S4 --> S5["5. Returns 500 JSON response to client<br/>{'error':'An unexpected error occurred.',<br/>'traceId':'0HN1H87G5NL2F:00000001'}"]
+    S5 --> S6["6. Middleware scope is disposed<br/>(using block ends)"]
+    S6 --> S7["7. Team uses traceId to find error<br/>in OpenTelemetry/Grafana/Aspire"]
+
+    style S1 fill:#e3f2fd
+    style S2 fill:#fff3e0
+    style S3 fill:#e8f5e9
+    style S4 fill:#fce4ec
+    style S5 fill:#e1f5fe
+    style S6 fill:#f3e5f5
+    style S7 fill:#e8f5e9
 ```
 
 ---
@@ -372,34 +356,36 @@ Incoming request
 
 Before using scopes in the middleware, the problem was:
 
-```
-Controller creates scope({ CorrelationId, CustomerId, ... })
-    │
-    ▼
-Exception → using block disposes scope
-    │
-    ▼
-Middleware catch → LogError WITHOUT scope → Log does NOT have CorrelationId
-    │
-    ▼
-Result: You can't correlate the error with the request
+```mermaid
+graph TD
+    A[Controller creates scope<br/>CorrelationId, CustomerId, ...] --> B[Exception → using block disposes scope]
+    B --> C[Middleware catch → LogError WITHOUT scope]
+    C --> D[Log does NOT have CorrelationId]
+    D --> E[Result: You can't correlate<br/>the error with the request]
+
+    style A fill:#e3f2fd
+    style B fill:#ffebee
+    style C fill:#fff3e0
+    style D fill:#ffebee
+    style E fill:#ffcdd2
 ```
 
 ### The Solution
 
 The middleware creates its **own scope** that lives for the entire request:
 
-```
-Middleware creates scope({ CorrelationId, Method, Path, IP })
-    │
-    ▼
-Controller creates additional scope({ CustomerId, LineCount })
-    │
-    ▼
-Exception → controller scope disposed, but middleware scope STILL EXISTS
-    │
-    ▼
-Middleware catch → LogError WITH middleware scope → DOES have CorrelationId
+```mermaid
+graph TD
+    A[Middleware creates scope<br/>CorrelationId, Method, Path, IP] --> B[Controller creates additional scope<br/>CustomerId, LineCount]
+    B --> C[Exception → controller scope disposed<br/>but middleware scope STILL EXISTS]
+    C --> D[Middleware catch → LogError WITH middleware scope]
+    D --> E[DOES have CorrelationId]
+
+    style A fill:#e3f2fd
+    style B fill:#e8f5e9
+    style C fill:#fff3e0
+    style D fill:#e8f5e9
+    style E fill:#c8e6c9
 ```
 
 ### HttpContext.Items as a Bridge

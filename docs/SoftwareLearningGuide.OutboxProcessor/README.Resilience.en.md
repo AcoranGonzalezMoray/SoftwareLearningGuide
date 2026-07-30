@@ -1,4 +1,4 @@
-# Resilience in RabbitMQ Communication
+﻿# Resilience in RabbitMQ Communication
 
 ![Resilience](https://img.shields.io/badge/Pattern-Resilience-blue)
 ![MassTransit](https://img.shields.io/badge/Messaging-MassTransit-green)
@@ -9,7 +9,7 @@
 
 ---
 
-## Table of Contents
+#### Table of Contents
 
 1. [The Problem It Solves](#the-problem-it-solves)
 2. [The Three Resilience Patterns](#the-three-resilience-patterns)
@@ -78,33 +78,19 @@ The **Circuit Breaker** pattern monitors failures and, when they reach a thresho
 
 #### Circuit Breaker States
 
-```
-                    ┌─────────────────┐
-                    │                 │
-    OK ────────────►│   CLOSED        │───── Works normally
-    │               │   (Normal)      │
-    │               └────────┬────────┘
-    │                        │
-    │                        │ Failures >= TripThreshold
-    │                        ▼
-    │               ┌─────────────────┐
-    │               │                 │
-    │               │   OPEN          │───── Rejects calls immediately
-    │               │   (Protection)  │      (fast exception)
-    │               └────────┬────────┘
-    │                        │
-    │                        │ ResetInterval expires
-    │                        ▼
-    │               ┌─────────────────┐
-    │               │                 │
-    │               │   HALF-OPEN     │───── Tests with one call
-    │               │   (Test)        │
-    │               └────────┬────────┘
-    │                        │
-    │                        ├── OK → CLOSED (back to normal)
-    │                        └── FAILURE → OPEN (continues protecting)
-    │
-    └────────────────────────┘
+```mermaid
+stateDiagram-v2
+    [*] --> CLOSED
+
+    CLOSED --> OPEN : Failures >= TripThreshold
+    OPEN --> HALF_OPEN : ResetInterval expires
+    HALF_OPEN --> CLOSED : OK (back to normal)
+    HALF_OPEN --> OPEN : FAILURE (continues protecting)
+    CLOSED --> CLOSED : OK (works normally)
+
+    CLOSED : CLOSED (Normal)\nWorks normally
+    OPEN : OPEN (Protection)\nRejects calls immediately\n(fast exception)
+    HALF_OPEN : HALF-OPEN (Test)\nTests with one call
 ```
 
 #### Configurable Properties
@@ -134,36 +120,17 @@ The **Timeout** pattern limits the maximum time an operation can take. If the op
 
 The three patterns are applied as **middleware** in the MassTransit pipeline, in the correct order to maximize protection:
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                     MassTransit Pipeline                        │
-│                                                                 │
-│  ┌───────────────────────────────────────────────────────────┐  │
-│  │  1. Timeout                                               │  │
-│  │     Limits the maximum operation time                     │  │
-│  │     If exceeded → Cancels and throws TimeoutException     │  │
-│  └──────────────────────────┬────────────────────────────────┘  │
-│                              │                                  │
-│                              ▼                                  │
-│  ┌───────────────────────────────────────────────────────────┐  │
-│  │  2. Circuit Breaker                                       │  │
-│  │     Monitors failures in time window                      │  │
-│  │     If threshold → Opens circuit, rejects calls           │  │
-│  └──────────────────────────┬────────────────────────────────┘  │
-│                              │                                  │
-│                              ▼                                  │
-│  ┌───────────────────────────────────────────────────────────┐  │
-│  │  3. Retry (Exponential Backoff)                           │  │
-│  │     Retries with exponential backoff                      │  │
-│  │     If MaxRetryCount fails → Propagates exception         │  │
-│  └──────────────────────────┬────────────────────────────────┘  │
-│                              │                                  │
-│                              ▼                                  │
-│  ┌───────────────────────────────────────────────────────────┐  │
-│  │  4. Publish to RabbitMQ                                   │  │
-│  │     Actual message send to broker                         │  │
-│  └───────────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TD
+    A["1. Timeout\nLimits the maximum operation time"] -->|"If exceeded → Cancels and throws TimeoutException"| B
+    B["2. Circuit Breaker\nMonitors failures in time window"] -->|"If threshold → Opens circuit, rejects calls"| C
+    C["3. Retry (Exponential Backoff)\nRetries with exponential backoff"] -->|"If MaxRetryCount fails → Propagates exception"| D
+    D["4. Publish to RabbitMQ\nActual message send to broker"]
+
+    style A fill:#fff3cd,stroke:#ffc107
+    style B fill:#f8d7da,stroke:#dc3545
+    style C fill:#d1ecf1,stroke:#17a2b8
+    style D fill:#d4edda,stroke:#28a745
 ```
 
 > **Why this order?** The timeout goes first because it's the most basic protection: don't wait indefinitely. The circuit breaker goes after the timeout because it needs to count failures that already include timeouts. The retry goes last (before actual sending) because it's the last resort before failing. This order ensures each layer protects the next.

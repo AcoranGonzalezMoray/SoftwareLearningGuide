@@ -1,4 +1,4 @@
-# Patrón Builder (Constructor)
+﻿# Patrón Builder (Constructor)
 
 ![Pattern](https://img.shields.io/badge/Pattern-Builder-orange)
 ![GoF](https://img.shields.io/badge/Clasificación-Creacional-lightgrey)
@@ -7,7 +7,7 @@ El **Patrón Builder** construye objetos complejos **paso a paso**. Separa la co
 
 ---
 
-## Tabla de Contenidos
+#### Tabla de Contenidos
 
 1. [¿Qué es el Patrón Builder?](#qué-es-el-patrón-builder)
 2. [Builder vs Factory](#builder-vs-factory)
@@ -286,58 +286,38 @@ public async Task CreateProduct_WithDifferentCurrencies_ShouldSucceed(string cur
 
 ## Diagrama del Patrón
 
-```
-Director (Test / Controller)
-     │
-     │  new OrderBuilder()
-     │     .WithCustomerId(...)
-     │     .WithShippingAddress(...)
-     │     .WithProduct(...)
-     │     .Build()
-     │
-     ▼
-┌──────────────────────────────────────────────────────┐
-│  OrderBuilder                                        │
-│                                                      │
-│  _id = OrderId.Create()          ← valores default   │
-│  _customerId = CustomerId.Create()                   │
-│  _address = ...valid address...                      │
-│  _lines = []                                         │
-│                                                      │
-│  + WithId(Guid)           → return this              │
-│  + WithCustomerId(Guid)   → return this              │
-│  + WithShippingAddress()  → return this              │
-│  + WithProduct(p, qty)    → return this              │
-│  + Build()                → Order (objeto final)     │
-└──────────────────────────────────────────────────────┘
-     │
-     ▼ Build()
-┌──────────────────────────────────────────────────────┐
-│  Order — Objeto construido paso a paso               │
-│  Id, CustomerId, ShippingAddress, Lines, Status      │
-└──────────────────────────────────────────────────────┘
+```mermaid
+graph TD
+    A["Director (Test / Controller)"] -->|"new OrderBuilder().With...().Build()"| B
+
+    B["OrderBuilder<br/>─────────────────────<br/>_id = OrderId.Create()  ← valores default<br/>_customerId = CustomerId.Create()<br/>_address = ...valid address...<br/>_lines = []<br/>─────────────────────<br/>+ WithId(Guid) → return this<br/>+ WithCustomerId(Guid) → return this<br/>+ WithShippingAddress() → return this<br/>+ WithProduct(p, qty) → return this<br/>+ Build() → Order"]
+
+    B -->|"Build()"| C
+
+    C["Order — Objeto construido paso a paso<br/>─────────────────────<br/>Id, CustomerId, ShippingAddress,<br/>Lines, Status"]
 ```
 
 ---
 
 ## Cuándo usar Builder vs Factory
 
-```
-¿El objeto tiene muchos campos opcionales?
-└── SÍ → Builder (más legible, más flexible)
-└── NO → Factory (más directo)
+```mermaid
+graph TD
+    Q1{"¿El objeto tiene muchos<br/>campos opcionales?"}
+    Q1 -->|"SÍ"| B1["Builder<br/>(más legible, más flexible)"]
+    Q1 -->|"NO"| F1["Factory<br/>(más directo)"]
 
-¿Necesitas crear variantes del mismo objeto en tests?
-└── SÍ → Builder con valores por defecto
-└── NO → Factory estático
+    Q2{"¿Necesitas crear variantes<br/>del mismo objeto en tests?"}
+    Q2 -->|"SÍ"| B2["Builder con valores por defecto"]
+    Q2 -->|"NO"| F2["Factory estático"]
 
-¿Los parámetros tienen un orden específico de construcción?
-└── SÍ → Builder con métodos en orden
-└── NO → Factory estático
+    Q3{"¿Los parámetros tienen un<br/>orden específico de construcción?"}
+    Q3 -->|"SÍ"| B3["Builder con métodos en orden"]
+    Q3 -->|"NO"| F3["Factory estático"]
 
-¿El objeto es un record inmutable con init properties?
-└── SÍ → record with {} (Builder ligero nativo de C#)
-└── NO → Builder clásico
+    Q4{"¿El objeto es un record inmutable<br/>con init properties?"}
+    Q4 -->|"SÍ"| B4["record with {}<br/>(Builder ligero nativo de C#)"]
+    Q4 -->|"NO"| F4["Builder clásico"]
 ```
 
 ---
