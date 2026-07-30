@@ -111,8 +111,6 @@
       gap: 8px;
       width: 42px;
       background: var(--nav-bg);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
       padding: 8px 0;
       border-radius: 24px;
       border: 1px solid var(--border-color);
@@ -188,7 +186,12 @@
       color: var(--sidebar-text) !important;
       padding-top: 20px;
       width: 290px;
-      transition: background-color 0.3s ease;
+      transition: background-color 0.3s ease, transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 1000;
+    }
+
+    body.close .sidebar {
+      transform: translateX(-100%);
     }
 
     .sidebar h1 {
@@ -321,6 +324,7 @@
       left: 0 !important;
       margin-left: 0 !important;
       padding-left: 320px !important;
+      transition: padding-left 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     body.close .content {
@@ -635,7 +639,6 @@
       visibility: hidden;
       transition: opacity 0.3s ease, visibility 0.3s ease;
       cursor: zoom-out;
-      backdrop-filter: blur(4px);
     }
 
     #lightbox-overlay.open {
@@ -689,73 +692,120 @@
 
     .search .matching-post:hover { background-color: var(--bg-secondary) !important; }
 
+    /* ── Sidebar Toggle ── */
     .sidebar-toggle {
       position: fixed;
       top: 12px;
       left: 12px;
       z-index: 1001;
-      width: 36px;
-      height: 36px;
-      border-radius: 10px;
-      background: var(--sidebar-bg);
-      border: 1px solid var(--border-color);
       display: flex;
       align-items: center;
       justify-content: center;
+      width: 36px;
+      height: 36px;
+      padding: 0;
+      border: none;
+      border-radius: 6px;
+      background: transparent;
+      color: var(--text-secondary);
       cursor: pointer;
-      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-      font-size: 1.1rem;
-      color: var(--text-primary);
+      transition: left 0.35s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.15s ease, color 0.15s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body:not(.close) .sidebar-toggle {
+      left: 242px;
     }
 
     .sidebar-toggle:hover {
-      background: var(--bg-secondary);
-      border-color: var(--accent-color);
-      transform: scale(1.05);
+      background: rgba(0, 0, 0, 0.06);
+      color: var(--text-primary);
+    }
+
+    body.dark .sidebar-toggle:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-primary);
     }
 
     .sidebar-toggle:active {
-      transform: scale(0.95);
+      background: rgba(0, 0, 0, 0.1);
     }
 
-    /* When sidebar is open, integrate toggle with sidebar */
-    body:not(.close) .sidebar-toggle {
-      left: 262px;
-      background: var(--bg-primary);
-      border-left: none;
-      border-radius: 0 10px 10px 0;
-      box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
+    body.dark .sidebar-toggle:active {
+      background: rgba(255, 255, 255, 0.12);
     }
 
-    /* When sidebar is closed, keep toggle at edge */
-    body.close .sidebar-toggle {
-      left: 12px;
-      background: var(--nav-bg);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      box-shadow: var(--card-shadow);
+    .sidebar-toggle:focus-visible {
+      outline: 2px solid var(--accent-color);
+      outline-offset: 2px;
     }
 
-    /* ── Mobile Responsive ── */
+    .sidebar-toggle svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .sidebar-toggle .ham-line {
+      transition: transform 0.2s ease, opacity 0.2s ease;
+      transform-origin: center;
+    }
+
+    body.close .sidebar-toggle .ham-line.top {
+      transform: translateY(6px) rotate(45deg);
+    }
+
+    body.close .sidebar-toggle .ham-line.mid {
+      opacity: 0;
+    }
+
+    body.close .sidebar-toggle .ham-line.bot {
+      transform: translateY(-6px) rotate(-45deg);
+    }
+
+    /* ── Mobile Sidebar & Responsive ── */
     @media (max-width: 768px) {
-      .top-controls {
-        bottom: 28px;
-        right: 12px;
+      .sidebar {
+        left: 0 !important;
+        position: fixed !important;
+        top: 0;
+        bottom: 0;
+        transform: translateX(-100%);
       }
 
-      #back-to-top {
-        bottom: 12px;
-        right: 12px;
+      body.close .sidebar {
+        transform: translateX(0) !important;
+        box-shadow: 4px 0 32px rgba(0, 0, 0, 0.2);
+      }
+
+      body:not(.close) .sidebar {
+        transform: translateX(-100%) !important;
       }
 
       .sidebar-toggle {
-        top: 8px;
-        left: 8px;
+        width: 28px;
+        height: 28px;
       }
-
+      .sidebar-toggle svg {
+        width: 16px;
+        height: 16px;
+      }
+      body.close .sidebar-toggle {
+        left: 246px !important;
+        width: 0; !important
+      }
       body:not(.close) .sidebar-toggle {
-        left: 8px;
+        left: 10px !important;
       }
+      .content { padding-left: 0 !important; }
+      body:not(.close) .content { padding-left: 0 !important; margin-left: 0 !important; }
+      .top-controls { bottom: 28px; right: 12px; }
+      #back-to-top { bottom: 12px; right: 12px; }
+      .markdown-section { padding: 0 12px !important; max-width: 100% !important; }
+      .cover-main { max-width: 95% !important; padding: 0 10px; }
+      .cover-features { grid-template-columns: 1fr !important; gap: 10px !important; }
+      .cover-title { font-size: 1.8em !important; }
+      .cover-subtitle { font-size: 0.95em !important; }
+      .cover-main .action-btn { display: block !important; margin: 8px 0 !important; }
     }
 
     ::-webkit-scrollbar { width: 8px; height: 8px; }
@@ -796,6 +846,7 @@
       max-width: 680px;
       margin: 0 auto;
       text-align: center;
+      padding: 0 20px;
     }
 
     .cover-title {
@@ -910,10 +961,13 @@
 
     @media (max-width: 640px) {
       .cover-features {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: 1fr !important;
       }
       .cover-title {
-        font-size: 2.2em;
+        font-size: 1.6em !important;
+      }
+      .markdown-section {
+        padding: 0 10px !important;
       }
     }
 
@@ -1123,7 +1177,7 @@
       name: 'Software Learning Guide',
       repo: 'https://github.com/AcoranGonzalezMoray/SoftwareLearningGuide',
       loadSidebar: true,
-      coverpage: true,
+      coverpage: false,
       auto2top: true,
       subMaxLevel: 2,
       themeColor: '#512BD4',
@@ -1163,6 +1217,25 @@
           hook.doneEach(function() {
             var lang = isEnglishRoute(vm.route.path) ? 'en' : 'es';
             updateLanguageUI(lang);
+
+            // ── Sidebar toggle button ──
+            if (!document.querySelector('.sidebar-toggle')) {
+              var toggleBtn = document.createElement('button');
+              toggleBtn.className = 'sidebar-toggle';
+              toggleBtn.title = 'Toggle sidebar (Ctrl+B)';
+              toggleBtn.setAttribute('aria-label', 'Toggle sidebar');
+              toggleBtn.innerHTML =
+                '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">' +
+                  '<line x1="4" y1="6" x2="20" y2="6" class="ham-line top"/>' +
+                  '<line x1="4" y1="12" x2="20" y2="12" class="ham-line mid"/>' +
+                  '<line x1="4" y1="18" x2="20" y2="18" class="ham-line bot"/>' +
+                '</svg>';
+              document.body.appendChild(toggleBtn);
+              toggleBtn.addEventListener('click', function() {
+                var isClosed = document.body.classList.toggle('close');
+                toggleBtn.title = isClosed ? 'Open sidebar (Ctrl+B)' : 'Close sidebar (Ctrl+B)';
+              });
+            }
 
             // ── Category collapse ──
             document.querySelectorAll('.sidebar-nav > ul > li').forEach(function(li) {
@@ -1419,31 +1492,7 @@
       }
     });
 
-    // ── Sidebar toggle animation ──
-    function enhanceSidebarToggle() {
-      var toggle = document.querySelector('.sidebar-toggle');
-      if (toggle && !toggle.dataset.enhanced) {
-        toggle.dataset.enhanced = 'true';
-        toggle.innerHTML = '☰';
-        toggle.title = 'Toggle sidebar (Ctrl+B)';
-      }
-    }
-
-    // Run on load and on route change
-    enhanceSidebarToggle();
-    var originalDoneEach = window.$docsify && window.$docsify.plugins;
-    if (originalDoneEach) {
-      var hook = originalDoneEach[0];
-      if (hook && typeof hook === 'function') {
-        var originalHook = hook;
-        window.$docsify.plugins[0] = function(hook, vm) {
-          originalHook(hook, vm);
-          hook.doneEach(function() {
-            enhanceSidebarToggle();
-          });
-        };
-      }
-    }
+    // Sidebar toggle is handled inside the docsify plugin doneEach hook below
   </script>
 
   <script src="//cdn.jsdelivr.net/npm/docsify@4"></script>
