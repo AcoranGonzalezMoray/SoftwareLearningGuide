@@ -1,4 +1,4 @@
-# Domain Events in SoftwareLearningGuide
+﻿# Domain Events in SoftwareLearningGuide
 
 ![Domain Events](https://img.shields.io/badge/Pattern-Domain_Events-purple)
 ![MediatR](https://img.shields.io/badge/Mediator-MediatR-blue)
@@ -8,7 +8,7 @@
 
 ---
 
-## Table of Contents
+#### Table of Contents
 
 1. [What is a Domain Event](#what-is-a-domain-event)
 2. [Domain Event vs Integration Event](#domain-event-vs-integration-event)

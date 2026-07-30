@@ -1,4 +1,4 @@
-# Patrón Mediator
+﻿# Patrón Mediator
 
 ![Pattern](https://img.shields.io/badge/Pattern-Mediator-purple)
 ![GoF](https://img.shields.io/badge/Clasificación-Comportamiento-lightgrey)
@@ -8,7 +8,7 @@ El **Patrón Mediator** define un objeto que encapsula cómo un conjunto de obje
 
 ---
 
-## Tabla de Contenidos
+#### Tabla de Contenidos
 
 1. [¿Qué es el Patrón Mediator?](#qué-es-el-patrón-mediator)
 2. [MediatR como implementación del Mediator](#mediatr-como-implementación-del-mediator)

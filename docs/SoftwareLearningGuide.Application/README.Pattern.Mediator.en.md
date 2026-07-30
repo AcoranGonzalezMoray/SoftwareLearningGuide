@@ -1,4 +1,4 @@
-# Mediator Pattern
+﻿# Mediator Pattern
 
 ![Pattern](https://img.shields.io/badge/Pattern-Mediator-purple)
 ![GoF](https://img.shields.io/badge/Classification-Behavioral-lightgrey)
@@ -8,7 +8,7 @@ The **Mediator Pattern** defines an object that encapsulates how a set of object
 
 ---
 
-## Table of Contents
+#### Table of Contents
 
 1. [What is the Mediator Pattern?](#what-is-the-mediator-pattern)
 2. [MediatR as Mediator Implementation](#mediatr-as-mediator-implementation)

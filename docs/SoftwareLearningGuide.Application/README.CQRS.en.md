@@ -1,4 +1,4 @@
-# CQRS - Command Query Responsibility Segregation
+﻿# CQRS - Command Query Responsibility Segregation
 
 ![CQRS](https://img.shields.io/badge/Pattern-CQRS-green)
 ![MediatR](https://img.shields.io/badge/Library-MediatR-purple)
@@ -7,7 +7,7 @@
 
 ---
 
-## Table of Contents
+#### Table of Contents
 
 1. [What is CQRS?](#what-is-cqrs)
 2. [Why MediatR](#why-mediatr)

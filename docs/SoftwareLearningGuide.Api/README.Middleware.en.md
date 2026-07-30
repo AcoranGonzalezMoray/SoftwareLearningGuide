@@ -1,4 +1,4 @@
-# Middleware - Global Exception Handling
+﻿# Middleware - Global Exception Handling
 
 ![Middleware](https://img.shields.io/badge/Pattern-Global_Exception_Handling-red)
 ![ASP.NET Core](https://img.shields.io/badge/ASP.NET_Core-Pipeline-orange)
@@ -7,7 +7,7 @@ A **global middleware** captures any unhandled exception that rises in the HTTP 
 
 ---
 
-## Table of Contents
+#### Table of Contents
 
 1. [What is a Middleware?](#what-is-a-middleware)
 2. [GlobalExceptionMiddleware](#globalexceptionmiddleware)

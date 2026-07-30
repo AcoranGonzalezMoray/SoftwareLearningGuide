@@ -1,4 +1,4 @@
-# Patrón Factory (Fábrica)
+﻿# Patrón Factory (Fábrica)
 
 ![Pattern](https://img.shields.io/badge/Pattern-Factory-yellow)
 ![GoF](https://img.shields.io/badge/Clasificación-Creacional-lightgrey)
@@ -7,7 +7,7 @@ El **Patrón Factory** centraliza la creación de objetos en un método especial
 
 ---
 
-## Tabla de Contenidos
+#### Tabla de Contenidos
 
 1. [¿Qué es el Patrón Factory?](#qué-es-el-patrón-factory)
 2. [Tipos de Factory](#tipos-de-factory)

@@ -1,4 +1,4 @@
-# ASP.NET Core Web API - Controladores, Versionado y OpenAPI
+﻿# ASP.NET Core Web API - Controladores, Versionado y OpenAPI
 
 ![ASP.NET Core](https://img.shields.io/badge/ASP.NET_Core-10.0-purple)
 ![API](https://img.shields.io/badge/Pattern-REST_API-blue)
@@ -7,7 +7,7 @@ API REST basada en controladores con **versionado**, **OpenAPI/Swagger** y **Sca
 
 ---
 
-## Tabla de Contenidos
+#### Tabla de Contenidos
 
 1. [Paquetes NuGet](#paquetes-nuget)
 2. [Regla Fundamental - Orden en Program.cs](#regla-fundamental---orden-en-programcs)

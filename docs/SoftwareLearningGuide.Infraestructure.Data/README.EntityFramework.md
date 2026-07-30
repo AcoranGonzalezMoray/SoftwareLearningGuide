@@ -1,4 +1,4 @@
-# Entity Framework Core - Command Side
+﻿# Entity Framework Core - Command Side
 
 ![EF Core](https://img.shields.io/badge/ORM-Entity_Framework_Core-blue)
 ![CQRS](https://img.shields.io/badge/Pattern-Command_Side-green)
@@ -9,7 +9,7 @@ En este proyecto, EF Core se usa exclusivamente para el lado de command (escritu
 
 ---
 
-## Tabla de Contenidos
+#### Tabla de Contenidos
 
 1. [¿Por qué EF Core solo para Commands?](#por-qué-ef-core-solo-para-commands)
 2. [DbContext - ApplicationDbContext](#dbcontext---applicationdbcontext)

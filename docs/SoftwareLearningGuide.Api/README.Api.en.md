@@ -1,4 +1,4 @@
-# ASP.NET Core Web API - Controllers, Versioning and OpenAPI
+﻿# ASP.NET Core Web API - Controllers, Versioning and OpenAPI
 
 ![ASP.NET Core](https://img.shields.io/badge/ASP.NET_Core-10.0-purple)
 ![API](https://img.shields.io/badge/Pattern-REST_API-blue)
@@ -7,7 +7,7 @@ Controller-based REST API with **versioning**, **OpenAPI/Swagger** and **Scalar*
 
 ---
 
-## Table of Contents
+#### Table of Contents
 
 1. [NuGet Packages](#nuget-packages)
 2. [Fundamental Rule - Order in Program.cs](#fundamental-rule---order-in-programcs)

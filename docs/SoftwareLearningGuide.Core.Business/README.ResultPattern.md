@@ -4,7 +4,7 @@ Este documento explica el patrón **Result<T>** implementado en `SoftwareLearnin
 
 ![Result Pattern](https://img.shields.io/badge/Pattern-Result%3CT%3E-green)
 
-## 📚 Tabla de Contenidos
+### 📚 Tabla de Contenidos
 
 1. [¿Qué es Result<T>?](#qué-es-result)
 2. [Ventajas sobre Excepciones](#ventajas-sobre-excepciones)

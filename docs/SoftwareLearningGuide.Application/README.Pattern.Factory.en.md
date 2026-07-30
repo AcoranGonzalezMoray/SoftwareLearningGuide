@@ -1,4 +1,4 @@
-# Factory Pattern
+﻿# Factory Pattern
 
 ![Pattern](https://img.shields.io/badge/Pattern-Factory-yellow)
 ![GoF](https://img.shields.io/badge/Classification-Creational-lightgrey)
@@ -7,7 +7,7 @@ The **Factory Pattern** centralizes object creation in a specialized method, hid
 
 ---
 
-## Table of Contents
+#### Table of Contents
 
 1. [What is the Factory Pattern?](#what-is-the-factory-pattern)
 2. [Types of Factory](#types-of-factory)

@@ -1,4 +1,4 @@
-# Feature Management - Feature Toggles y Feature Flags
+﻿# Feature Management - Feature Toggles y Feature Flags
 
 ![FeatureManagement](https://img.shields.io/badge/Library-Microsoft.FeatureManagement-blue)
 ![Flagsmith](https://img.shields.io/badge/Service-Flagsmith-green)
@@ -7,7 +7,7 @@
 
 ---
 
-## Tabla de Contenidos
+#### Tabla de Contenidos
 
 1. [Feature Toggle vs Feature Flag](#feature-toggle-vs-feature-flag)
 2. [Feature Gate - Control a Nivel de Atributo](#feature-gate---control-a-nivel-de-atributo)

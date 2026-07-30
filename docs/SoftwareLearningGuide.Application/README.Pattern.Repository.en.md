@@ -1,4 +1,4 @@
-# Repository Pattern
+﻿# Repository Pattern
 
 ![Pattern](https://img.shields.io/badge/Pattern-Repository-blue)
 ![GoF](https://img.shields.io/badge/Classification-Architectural-lightgrey)
@@ -8,7 +8,7 @@ The **Repository Pattern** abstracts data access behind a collection-oriented in
 
 ---
 
-## Table of Contents
+#### Table of Contents
 
 1. [What is the Repository Pattern?](#what-is-the-repository-pattern)
 2. [Repository in this Project](#repository-in-this-project)

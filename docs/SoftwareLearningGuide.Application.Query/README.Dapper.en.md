@@ -1,4 +1,4 @@
-# Dapper - Query Side
+﻿# Dapper - Query Side
 
 ![Dapper](https://img.shields.io/badge/Library-Dapper-green)
 ![CQRS](https://img.shields.io/badge/Pattern-Query_Side-blue)
@@ -7,7 +7,7 @@
 
 ---
 
-## Table of Contents
+#### Table of Contents
 
 1. [Why Dapper for Queries?](#why-dapper-for-queries)
 2. [IDbConnection and Configuration](#idbconnection-and-configuration)

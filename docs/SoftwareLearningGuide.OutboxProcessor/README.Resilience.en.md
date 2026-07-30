@@ -1,4 +1,4 @@
-# Resilience in RabbitMQ Communication
+﻿# Resilience in RabbitMQ Communication
 
 ![Resilience](https://img.shields.io/badge/Pattern-Resilience-blue)
 ![MassTransit](https://img.shields.io/badge/Messaging-MassTransit-green)
@@ -9,7 +9,7 @@
 
 ---
 
-## Table of Contents
+#### Table of Contents
 
 1. [The Problem It Solves](#the-problem-it-solves)
 2. [The Three Resilience Patterns](#the-three-resilience-patterns)

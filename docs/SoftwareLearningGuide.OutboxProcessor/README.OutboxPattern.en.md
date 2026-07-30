@@ -1,4 +1,4 @@
-# Outbox Pattern in SoftwareLearningGuide
+﻿# Outbox Pattern in SoftwareLearningGuide
 
 ![Outbox Pattern](https://img.shields.io/badge/Pattern-Transactional_Outbox-blue)
 ![MassTransit](https://img.shields.io/badge/Messaging-MassTransit-green)
@@ -9,7 +9,7 @@ The **Outbox Pattern** (Transactional Outbox) solves the **dual write** problem:
 
 ---
 
-## Table of Contents
+#### Table of Contents
 
 1. [The Problem It Solves](#the-problem-it-solves)
 2. [Solution: Transactional Outbox](#solution-transactional-outbox)

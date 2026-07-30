@@ -1,4 +1,4 @@
-# Builder Pattern
+﻿# Builder Pattern
 
 ![Pattern](https://img.shields.io/badge/Pattern-Builder-orange)
 ![GoF](https://img.shields.io/badge/Classification-Creational-lightgrey)
@@ -7,7 +7,7 @@ The **Builder Pattern** constructs complex objects **step by step**. It separate
 
 ---
 
-## Table of Contents
+#### Table of Contents
 
 1. [What is the Builder Pattern?](#what-is-the-builder-pattern)
 2. [Builder vs Factory](#builder-vs-factory)

@@ -1,4 +1,4 @@
-# Clean Architecture
+﻿# Clean Architecture
 
 ![Pattern](https://img.shields.io/badge/Architecture-Clean%20Architecture-orange)
 ![DDD](https://img.shields.io/badge/Pattern-DDD-red)
@@ -8,7 +8,7 @@
 
 ---
 
-## Tabla de Contenidos
+#### Tabla de Contenidos
 
 1. [¿Qué es Clean Architecture?](#qué-es-clean-architecture)
 2. [Las Reglas de Oro](#las-reglas-de-oro)

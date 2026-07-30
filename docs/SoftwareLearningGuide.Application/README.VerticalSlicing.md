@@ -1,4 +1,4 @@
-# Vertical Slicing Architecture
+﻿# Vertical Slicing Architecture
 
 ![Pattern](https://img.shields.io/badge/Architecture-Vertical%20Slicing-blue)
 ![MediatR](https://img.shields.io/badge/Library-MediatR-purple)
@@ -8,7 +8,7 @@
 
 ---
 
-## Tabla de Contenidos
+#### Tabla de Contenidos
 
 1. [¿Qué es Vertical Slicing?](#qué-es-vertical-slicing)
 2. [Horizontal vs Vertical](#horizontal-vs-vertical)

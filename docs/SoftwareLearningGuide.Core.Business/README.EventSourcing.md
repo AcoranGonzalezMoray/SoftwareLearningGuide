@@ -1,4 +1,4 @@
-# Domain Events (Eventos de Dominio) en SoftwareLearningGuide
+﻿# Domain Events (Eventos de Dominio) en SoftwareLearningGuide
 
 ![Domain Events](https://img.shields.io/badge/Pattern-Domain_Events-purple)
 ![MediatR](https://img.shields.io/badge/Mediator-MediatR-blue)
@@ -8,7 +8,7 @@ Los **Domain Events** son hechos que ocurren dentro del dominio del negocio y qu
 
 ---
 
-## Tabla de Contenidos
+#### Tabla de Contenidos
 
 1. [Que es un Domain Event](#que-es-un-domain-event)
 2. [Domain Event vs Integration Event](#domain-event-vs-integration-event)

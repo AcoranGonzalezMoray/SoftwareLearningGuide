@@ -1,4 +1,4 @@
-# Patrón Repository
+﻿# Patrón Repository
 
 ![Pattern](https://img.shields.io/badge/Pattern-Repository-blue)
 ![GoF](https://img.shields.io/badge/Clasificación-Arquitectural-lightgrey)
@@ -8,7 +8,7 @@ El **Patrón Repository** abstrae el acceso a datos detrás de una interfaz orie
 
 ---
 
-## Tabla de Contenidos
+#### Tabla de Contenidos
 
 1. [¿Qué es el Patrón Repository?](#qué-es-el-patrón-repository)
 2. [Repository en este Proyecto](#repository-en-este-proyecto)

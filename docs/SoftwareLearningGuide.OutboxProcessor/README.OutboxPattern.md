@@ -1,4 +1,4 @@
-# Outbox Pattern en SoftwareLearningGuide
+﻿# Outbox Pattern en SoftwareLearningGuide
 
 ![Outbox Pattern](https://img.shields.io/badge/Pattern-Transactional_Outbox-blue)
 ![MassTransit](https://img.shields.io/badge/Messaging-MassTransit-green)
@@ -9,7 +9,7 @@ El **Outbox Pattern** (Patron de Bandeja de Salida) resuelve el problema de **du
 
 ---
 
-## Tabla de Contenidos
+#### Tabla de Contenidos
 
 1. [El Problema que Resuelve](#el-problema-que-resuelve)
 2. [Solucion: Transactional Outbox](#solucion-transactional-outbox)

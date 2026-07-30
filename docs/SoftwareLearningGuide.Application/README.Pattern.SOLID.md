@@ -1,4 +1,4 @@
-# Principios SOLID
+﻿# Principios SOLID
 
 ![Pattern](https://img.shields.io/badge/Principios-SOLID-blueviolet)
 ![.NET](https://img.shields.io/badge/.NET-10-blue)
@@ -7,7 +7,7 @@ Los **principios SOLID** son cinco reglas de diseño orientado a objetos que, ap
 
 ---
 
-## Tabla de Contenidos
+#### Tabla de Contenidos
 
 1. [S — Single Responsibility Principle](#s--single-responsibility-principle)
 2. [O — Open/Closed Principle](#o--openclosed-principle)

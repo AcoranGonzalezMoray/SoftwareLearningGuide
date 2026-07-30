@@ -1,4 +1,4 @@
-# Clean Architecture
+﻿# Clean Architecture
 
 ![Pattern](https://img.shields.io/badge/Architecture-Clean%20Architecture-orange)
 ![DDD](https://img.shields.io/badge/Pattern-DDD-red)
@@ -8,7 +8,7 @@
 
 ---
 
-## Table of Contents
+#### Table of Contents
 
 1. [What is Clean Architecture?](#what-is-clean-architecture)
 2. [The Golden Rules](#the-golden-rules)

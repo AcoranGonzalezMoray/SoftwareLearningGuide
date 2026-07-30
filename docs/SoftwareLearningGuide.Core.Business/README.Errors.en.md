@@ -1,10 +1,10 @@
-# DomainErrors - Centralized Domain Error Catalog
+﻿# DomainErrors - Centralized Domain Error Catalog
 
 This document explains the `DomainErrors` class implemented in `SoftwareLearningGuide.Core.Business.Errors` and why it's fundamental for maintainability, debugging, and a good user experience.
 
 ![Domain Errors](https://img.shields.io/badge/Pattern-Domain%20Errors-orange)
 
-## Table of Contents
+#### Table of Contents
 
 1. [Problem: Generic Errors](#problem-generic-errors)
 2. [Solution: DomainErrors](#solution-domainerrors)

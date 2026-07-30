@@ -1,4 +1,4 @@
-# OpenTelemetry - Observabilidad en .NET 10
+﻿# OpenTelemetry - Observabilidad en .NET 10
 
 ![OpenTelemetry](https://img.shields.io/badge/OpenTelemetry-1.17.0-blue)
 ![Observability](https://img.shields.io/badge/Observability-Traces_Metrics_Logs-green)
@@ -9,7 +9,7 @@ Sin observabilidad, tu aplicación es una caja negra. Cuando algo falla en produ
 
 ---
 
-## Tabla de Contenidos
+#### Tabla de Contenidos
 
 1. [Los 3 Pilares de la Observabilidad](#los-3-pilares-de-la-observabilidad)
 2. [Paquetes NuGet](#paquetes-nugget)

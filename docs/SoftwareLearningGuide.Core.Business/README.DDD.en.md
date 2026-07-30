@@ -1,4 +1,4 @@
-<div align="center">
+﻿<div align="center">
 
 # Domain-Driven Design (DDD)
 
@@ -13,7 +13,7 @@
 
 ---
 
-## Table of Contents
+#### Table of Contents
 
 - [What is DDD?](#what-is-ddd)
 - [Project Structure](#project-structure)

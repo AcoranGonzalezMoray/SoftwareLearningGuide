@@ -1,4 +1,4 @@
-# Patrón Builder (Constructor)
+﻿# Patrón Builder (Constructor)
 
 ![Pattern](https://img.shields.io/badge/Pattern-Builder-orange)
 ![GoF](https://img.shields.io/badge/Clasificación-Creacional-lightgrey)
@@ -7,7 +7,7 @@ El **Patrón Builder** construye objetos complejos **paso a paso**. Separa la co
 
 ---
 
-## Tabla de Contenidos
+#### Tabla de Contenidos
 
 1. [¿Qué es el Patrón Builder?](#qué-es-el-patrón-builder)
 2. [Builder vs Factory](#builder-vs-factory)

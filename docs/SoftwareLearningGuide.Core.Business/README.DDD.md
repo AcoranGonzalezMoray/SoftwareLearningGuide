@@ -4,7 +4,7 @@ Este documento explica los conceptos fundamentales de **Domain-Driven Design** y
 
 ![DDD Architecture](https://img.shields.io/badge/Architecture-DDD-blue)
 
-## 📚 Tabla de Contenidos
+### 📚 Tabla de Contenidos
 
 1. [¿Qué es Domain-Driven Design?](#qué-es-domain-driven-design)
 2. [Value Objects](#value-objects)

@@ -1,4 +1,4 @@
-# Resiliencia en la Comunicacion con RabbitMQ
+﻿# Resiliencia en la Comunicacion con RabbitMQ
 
 ![Resilience](https://img.shields.io/badge/Pattern-Resilience-blue)
 ![MassTransit](https://img.shields.io/badge/Messaging-MassTransit-green)
@@ -9,7 +9,7 @@ La **resiliencia** es la capacidad de un sistema para recuperarse de fallos y se
 
 ---
 
-## Tabla de Contenidos
+#### Tabla de Contenidos
 
 1. [El Problema que Resuelve](#el-problema-que-resuelve)
 2. [Los Tres Patrones de Resiliencia](#los-tres-patrones-de-resiliencia)

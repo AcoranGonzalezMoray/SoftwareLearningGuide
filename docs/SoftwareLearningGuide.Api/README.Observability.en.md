@@ -1,4 +1,4 @@
-# OpenTelemetry - Observability in .NET 10
+﻿# OpenTelemetry - Observability in .NET 10
 
 ![OpenTelemetry](https://img.shields.io/badge/OpenTelemetry-1.17.0-blue)
 ![Observability](https://img.shields.io/badge/Observability-Traces_Metrics_Logs-green)
@@ -9,7 +9,7 @@ Without observability, your application is a black box. When something fails in 
 
 ---
 
-## Table of Contents
+#### Table of Contents
 
 1. [The 3 Pillars of Observability](#the-3-pillars-of-observability)
 2. [NuGet Packages](#nuget-packages)
