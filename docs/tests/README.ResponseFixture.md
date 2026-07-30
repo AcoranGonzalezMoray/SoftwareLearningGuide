@@ -80,27 +80,27 @@ public async Task CreateProduct_WithValidData_ShouldReturnExpectedResponse()
 
 ## Estructura de Fixtures
 
-```
-tests/SoftwareLearningGuide.Api.Test/
-└── E2E/
-    ├── Product/
-    │   └── ResponseFixtures/
-    │       ├── Create_success.json
-    │       ├── GetAll_with_products.json
-    │       ├── GetAll_empty.json
-    │       └── GetById_existing.json
-    ├── Customer/
-    │   └── ResponseFixtures/
-    │       ├── Create_success.json
-    │       ├── GetAll_with_customers.json
-    │       ├── GetAll_empty.json
-    │       ├── GetById_existing.json
-    │       └── GetById_with_address.json
-    └── Order/
-        └── ResponseFixtures/
-            ├── GetAll_with_orders.json
-            ├── GetAll_empty.json
-            └── GetById_with_lines.json
+```mermaid
+graph TD
+    Root["tests/SoftwareLearningGuide.Api.Test/"] --> E2E["E2E/"]
+    E2E --> Product["Product/"]
+    E2E --> Customer["Customer/"]
+    E2E --> Order["Order/"]
+    Product --> PRF["ResponseFixtures/"]
+    Customer --> CRF["ResponseFixtures/"]
+    Order --> ORF["ResponseFixtures/"]
+    PRF --> PS1["Create_success.json"]
+    PRF --> PS2["GetAll_with_products.json"]
+    PRF --> PS3["GetAll_empty.json"]
+    PRF --> PS4["GetById_existing.json"]
+    CRF --> CS1["Create_success.json"]
+    CRF --> CS2["GetAll_with_customers.json"]
+    CRF --> CS3["GetAll_empty.json"]
+    CRF --> CS4["GetById_existing.json"]
+    CRF --> CS5["GetById_with_address.json"]
+    ORF --> OS1["GetAll_with_orders.json"]
+    ORF --> OS2["GetAll_empty.json"]
+    ORF --> OS3["GetById_with_lines.json"]
 ```
 
 ---

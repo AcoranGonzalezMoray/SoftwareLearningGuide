@@ -53,18 +53,16 @@
 
 ## Flujo de una Request
 
-```
-Controller                          MediatR                         Handler
-     │                                  │                               │
-     │  new GetOrderQuery(orderId)      │                               │
-     │  ──────────────────────────────► │                               │
-     │                                  │  IRequestHandler<...>.Handle  │
-     │                                  │  ────────────────────────────►│
-     │                                  │                               │
-     │                                  │  Result<GetOrderQueryResponse>│
-     │                                  │  ◄────────────────────────────│
-     │  Result<GetOrderQueryResponse>   │                               │
-     │  ◄──────────────────────────────│                                │
+```mermaid
+sequenceDiagram
+    participant Controller
+    participant MediatR
+    participant Handler
+
+    Controller->>MediatR: new GetOrderQuery(orderId)
+    MediatR->>Handler: IRequestHandler<...>.Handle
+    Handler-->>MediatR: Result<GetOrderQueryResponse>
+    MediatR-->>Controller: Result<GetOrderQueryResponse>
 ```
 
 ---
@@ -516,45 +514,34 @@ services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 ## Diagrama de Arquitectura
 
-```
-┌─────────────────────────────────────────────────────────┐
-│                    SoftwareLearningGuide.Api            │
-│              OrderController (IMediator)                │
-│                       │                                 │
-│          ┌────────────┼────────────┐                    │
-│          ▼            ▼            ▼                    │
-│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐        │
-│  │   GET All   │ │  GET by ID  │ │  POST create│        │
-│  │   Query     │ │  Query      │ │  Command    │        │
-│  └──────┬──────┘ └──────┬──────┘ └──────┬──────┘        │
-│         │               │               │               │
-│         ▼               ▼               ▼               │
-│  ┌─────────────────────────────────────────────────┐    │
-│  │              MediatR (Mediator)                 │    │
-│  │   Resuelve automáticamente el handler           │    │
-│  └─────────────────────────────────────────────────┘    │
-│         │               │               │               │
-│         ▼               ▼               ▼               │
-│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐        │
-│  │ Dapper      │ │ EF Core     │ │ EF Core     │        │
-│  │ (Query)     │ │ (Command)   │ │ (Command)   │        │
-│  └─────────────┘ └─────────────┘ └─────────────┘        │
-│                                                    │    │
-│         ┌──────────────────────────────────────────┘    │
-│         ▼                                               │
-│  ┌─────────────────────────────────────────────────┐    │
-│  │            UnitOfWork + Outbox Pattern          │    │
-│  │  SaveChangesAsync() → DispatchDomainEvents()    │    │
-│  │  → INotificationHandler → IOutboxWriter         │    │
-│  │  → DomainOutboxMessages table                   │    │
-│  └─────────────────────────────────────────────────┘    │
-│         │               │               │               │
-│         ▼               ▼               ▼               │
-│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐        │ 
-│  │ OrderRepo   │ │ ProductRepo │ │ CustomerRepo│        │
-│  │ BaseRepo    │ │ BaseRepo    │ │ BaseRepo    │        │
-│  └─────────────┘ └─────────────┘ └─────────────┘        │
-└─────────────────────────────────────────────────────────┘
+```mermaid
+graph TD
+    subgraph "SoftwareLearningGuide.Api"
+        Controller["OrderController<br/>(IMediator)"]
+        Controller --> GETAll["GET All<br/>Query"]
+        Controller --> GETById["GET by ID<br/>Query"]
+        Controller --> POSTCreate["POST create<br/>Command"]
+
+        GETAll --> MediatR
+        GETById --> MediatR
+        POSTCreate --> MediatR
+
+        MediatR["MediatR (Mediator)<br/>Resuelve automáticamente el handler"]
+
+        MediatR --> Dapper["Dapper<br/>(Query)"]
+        MediatR --> EFCore1["EF Core<br/>(Command)"]
+        MediatR --> EFCore2["EF Core<br/>(Command)"]
+
+        Dapper --> Outbox
+        EFCore1 --> Outbox
+        EFCore2 --> Outbox
+
+        Outbox["UnitOfWork + Outbox Pattern<br/>SaveChangesAsync() → DispatchDomainEvents()<br/>→ INotificationHandler → IOutboxWriter<br/>→ DomainOutboxMessages table"]
+
+        Outbox --> OrderRepo["OrderRepo<br/>BaseRepo"]
+        Outbox --> ProductRepo["ProductRepo<br/>BaseRepo"]
+        Outbox --> CustomerRepo["CustomerRepo<br/>BaseRepo"]
+    end
 ```
 
 ---

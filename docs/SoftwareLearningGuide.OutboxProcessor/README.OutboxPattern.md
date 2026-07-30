@@ -76,51 +76,44 @@ Un servicio de procesamiento independiente (`OutboxProcessor`) lee periodicament
 
 ### Flujo General
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    API Principal (ASP.NET Core)             │
-│                                                             │
-│  CommandHandler                                             │
-│  ├── new Order(...)        → AddDomainEvent(...)            │
-│  ├── _repository.Add(order)                                 │
-│  └── _unitOfWork.SaveChangesAsync()                         │
-│      │                                                      │
-│      ▼                                                      │
-│  UnitOfWork.DispatchDomainEventsAsync()                     │
-│  ├── IMediator.Publish(domainEvent)                         │
-│  │   └── NotificationHandler → IOutboxWriter.WriteAsync()   │
-│  │       └── Guarda mensaje en DomainOutboxMessages         │
-│  └── _context.SaveChangesAsync()                            │
-│      │                                                      │
-│      ▼                                                      │
-│  SQL Server Transaction                                     │
-│  INSERT INTO Orders (…)                                     │
-│  INSERT INTO OrderLines (…)                                 │
-│  INSERT INTO DomainOutboxMessages (Content, Type, ...)      │
-│  COMMIT                                                     │
-└─────────────────────────────────────────────────────────────┘
-                          │
-                          ▼
-┌───────────────────────────────────────────────────────────────────────┐
-│              OutboxProcessor (Worker Service)                         │
-│                                                                       │
-│  CustomOutboxProcessorWorker                                          │
-│  ├── QueryDelay = 5 segundos                                          │
-│  ├── SELECT * FROM DomainOutboxMessages WHERE ProcessedOnUtc IS NULL  │
-│  ├── Deserializa y Publica a RabbitMQ via IPublishEndpoint            │
-│  └── UPDATE DomainOutboxMessages SET ProcessedOnUtc = ...             │
-└───────────────────────────────────────────────────────────────────────┘
-                          │
-                          ▼
-┌─────────────────────────────────────────────────────────────┐
-│                    RabbitMQ (Message Broker)                │
-│                                                             │
-│  Colas:                                                     │
-│  ├── order-created          ← OrderCreatedConsumer          │
-│  ├── order-cancelled        ← OrderCancelledConsumer        │
-│  ├── product-created        ← ProductCreatedConsumer        │
-│  └── product-stock-low      ← ProductStockLowConsumer       │ 
-└─────────────────────────────────────────────────────────────┘
+```mermaid
+graph TD
+    subgraph API["API Principal (ASP.NET Core)"]
+        CommandHandler["CommandHandler"]
+        CommandHandler -->|"new Order(...) → AddDomainEvent(...)"| Repository["_repository.Add(order)"]
+        Repository --> UoW["_unitOfWork.SaveChangesAsync()"]
+        UoW --> Dispatch["UnitOfWork.DispatchDomainEventsAsync()"]
+        Dispatch --> Mediator["IMediator.Publish(domainEvent)"]
+        Mediator --> NotificationHandler["NotificationHandler → IOutboxWriter.WriteAsync()"]
+        NotificationHandler -->|"Guarda mensaje"| OutboxMessages["DomainOutboxMessages"]
+        Dispatch --> Context["_context.SaveChangesAsync()"]
+        Context --> SQL["SQL Server Transaction"]
+        SQL --> Orders["INSERT INTO Orders (…)"]
+        SQL --> OrderLines["INSERT INTO OrderLines (…)"]
+        SQL --> OutboxInsert["INSERT INTO DomainOutboxMessages (Content, Type, ...)"]
+        SQL --> Commit["COMMIT"]
+    end
+
+    subgraph OutboxProcessor["OutboxProcessor (Worker Service)"]
+        Worker["CustomOutboxProcessorWorker"]
+        Worker -->|"QueryDelay = 5 segundos"| Select["SELECT * FROM DomainOutboxMessages WHERE ProcessedOnUtc IS NULL"]
+        Select --> Deserializar["Deserializa y Publica a RabbitMQ via IPublishEndpoint"]
+        Deserializar --> Update["UPDATE DomainOutboxMessages SET ProcessedOnUtc = ..."]
+    end
+
+    subgraph RabbitMQ["RabbitMQ (Message Broker)"]
+        ColaOC["order-created"]
+        ColaOD["order-cancelled"]
+        ColaPC["product-created"]
+        ColaPSL["product-stock-low"]
+        ColaOC --> ConsOC["OrderCreatedConsumer"]
+        ColaOD --> ConsOD["OrderCancelledConsumer"]
+        ColaPC --> ConsPC["ProductCreatedConsumer"]
+        ColaPSL --> ConsPSL["ProductStockLowConsumer"]
+    end
+
+    API -->|"Lee y publica mensajes"| OutboxProcessor
+    OutboxProcessor -->|"Publica eventos"| RabbitMQ
 ```
 
 ### Proyectos Involucrados
@@ -339,43 +332,46 @@ Los consumers están registrados en `SoftwareLearningGuide.Consumer\Program.cs` 
 
 ### Escenario: Crear una Order
 
-```
-1. POST /api/v1/order
-   └── CreateOrderCommandHandler.Handle()
-       ├── new Order(orderId, customerId, address)
-       │   └──► AddDomainEvent(OrderCreatedDomainEvent)  [en memoria]
-       ├── order.AddProduct(product, quantity)
-       ├── order.Confirm()
-       ├── _orderRepository.AddAsync(order)
-       └── _unitOfWork.SaveChangesAsync()
-           │
-           ▼
-2. UnitOfWork.DispatchDomainEventsAsync()
-   ├── Busca entidades ProduceEvents con eventos pendientes
-   ├── IMediator.Publish(domainEvent)
-   │   └── OrderCreatedNotificationHandler.Handle()
-   │       └── IOutboxWriter.WriteAsync(OrderCreatedEvent)  ← Guarda en DomainOutboxMessages
-   └── _context.SaveChangesAsync()
-       │
-       ▼
-3. SQL Transaction (atómica)
-   ├── INSERT INTO Orders (...)
-   ├── INSERT INTO OrderLines (...)
-   ├── INSERT INTO DomainOutboxMessages (Type='OrderCreatedEvent', Content=...)
-   └── COMMIT  ← ATOMICO
-       │
-       ▼
-4. OutboxProcessor (cada 5 segundos)
-   ├── Lee DomainOutboxMessages via Dapper WHERE ProcessedOnUtc IS NULL
-   ├── Deserializa el Content JSON al tipo conocido (OrderCreatedEvent)
-   ├── Publica OrderCreatedEvent a RabbitMQ via IPublishEndpoint
-   ├── UPDATE DomainOutboxMessages SET ProcessedOnUtc = GETUTCDATE()
-   └── Elimina el mensaje marcándolo como procesado
-       │
-       ▼
-5. OrderCreatedConsumer (en Consumer service)
-   └── Consume el mensaje de RabbitMQ de la cola order-created
-       └── Ejecuta lógica de negocio externa
+```mermaid
+sequenceDiagram
+    participant API as POST /api/v1/order
+    participant Handler as CreateOrderCommandHandler
+    participant Order as Order (entidad)
+    participant Repo as OrderRepository
+    participant UoW as UnitOfWork
+    participant Mediator as IMediator
+    participant NotificationHandler as OrderCreatedNotificationHandler
+    participant OutboxWriter as IOutboxWriter
+    participant DB as SQL Transaction (atómica)
+    participant Processor as OutboxProcessor (cada 5 s)
+    participant RabbitMQ as RabbitMQ
+    participant Consumer as OrderCreatedConsumer
+
+    API->>Handler: Handle(command)
+    Handler->>Order: new Order(orderId, customerId, address)
+    Order-->>Handler: AddDomainEvent(OrderCreatedDomainEvent) [en memoria]
+    Handler->>Order: order.AddProduct(product, quantity)
+    Handler->>Order: order.Confirm()
+    Handler->>Repo: AddAsync(order)
+    Handler->>UoW: SaveChangesAsync()
+    UoW->>UoW: DispatchDomainEventsAsync()
+    UoW->>Mediator: Publish(domainEvent)
+    Mediator->>NotificationHandler: Handle(OrderCreatedDomainEvent)
+    NotificationHandler->>OutboxWriter: WriteAsync(OrderCreatedEvent)
+    OutboxWriter-->>DB: INSERT INTO DomainOutboxMessages
+    UoW->>DB: INSERT INTO Orders / OrderLines / DomainOutboxMessages
+    DB-->>UoW: COMMIT (atómico)
+
+    loop Cada 5 segundos
+        Processor->>DB: SELECT * WHERE ProcessedOnUtc IS NULL
+        DB-->>Processor: OrderCreatedEvent (JSON)
+        Processor->>Processor: Deserializa Content JSON
+        Processor->>RabbitMQ: Publish(OrderCreatedEvent)
+        Processor->>DB: UPDATE ProcessedOnUtc = GETUTCDATE()
+    end
+
+    RabbitMQ->>Consumer: Consume (cola order-created)
+    Consumer-->>Consumer: Ejecuta lógica de negocio externa
 ```
 
 [`SoftwareLearningGuide.Infraestructure\Repositories\UnitOfWork.cs`](SoftwareLearningGuide.Infraestructure\Repositories\UnitOfWork.cs) | [`SoftwareLearningGuide.OutboxProcessor\Workers\CustomOutboxProcessorWorker.cs`](SoftwareLearningGuide.OutboxProcessor\Workers\CustomOutboxProcessorWorker.cs) | [`SoftwareLearningGuide.Application.Command\NotificationHandlers\OrderCreatedNotificationHandler.cs`](SoftwareLearningGuide.Application.Command\NotificationHandlers\OrderCreatedNotificationHandler.cs)

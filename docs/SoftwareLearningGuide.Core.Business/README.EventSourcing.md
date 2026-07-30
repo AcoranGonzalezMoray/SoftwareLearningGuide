@@ -59,29 +59,15 @@ Esta arquitectura distingue dos tipos de eventos:
 
 ### Flujo entre ambos
 
-```
-Dominio dispara Domain Event
-        │
-        ▼
-SaveChangesInterceptor extrae eventos
-        │
-        ▼
-IMediator.Publish(domainEvent)
-        │
-        ▼
-NotificationHandler ejecuta
-        │
-        ▼
-IPublishEndpoint.Publish(integrationEvent)
-        │
-        ▼
-MassTransit guarda en OutboxMessage (misma transaccion SQL)
-        │
-        ▼
-OutboxProcessor lee y publica a RabbitMQ
-        │
-        ▼
-Consumers en otros microservicios procesan
+```mermaid
+graph TD
+    A["Dominio dispara Domain Event"] --> B["SaveChangesInterceptor extrae eventos"]
+    B --> C["IMediator.Publish(domainEvent)"]
+    C --> D["NotificationHandler ejecuta"]
+    D --> E["IPublishEndpoint.Publish(integrationEvent)"]
+    E --> F["MassTransit guarda en OutboxMessage (misma transaccion SQL)"]
+    F --> G["OutboxProcessor lee y publica a RabbitMQ"]
+    G --> H["Consumers en otros microservicios procesan"]
 ```
 
 ---
@@ -90,41 +76,53 @@ Consumers en otros microservicios procesan
 
 ### Capa de Dominio (Core.Business)
 
-```
-DomainEvents/
-├── IDomainEvent.cs                         # Interfaz base
-├── AggregateRoot.cs                        # Clase base con soporte de eventos
-├── OrderCreatedDomainEvent.cs              # Evento: Order creada
-├── OrderCancelledDomainEvent.cs            # Evento: Order cancelada
-├── CustomerCreatedDomainEvent.cs           # Evento: Customer registrado
-├── ProductCreatedDomainEvent.cs            # Evento: Product creado
-└── ProductStockLowDomainEvent.cs           # Evento: Stock bajo
+```mermaid
+graph TD
+    subgraph DomainEvents
+        A1["IDomainEvent.cs — Interfaz base"]
+        A2["AggregateRoot.cs — Clase base con soporte de eventos"]
+        A3["OrderCreatedDomainEvent.cs — Evento: Order creada"]
+        A4["OrderCancelledDomainEvent.cs — Evento: Order cancelada"]
+        A5["CustomerCreatedDomainEvent.cs — Evento: Customer registrado"]
+        A6["ProductCreatedDomainEvent.cs — Evento: Product creado"]
+        A7["ProductStockLowDomainEvent.cs — Evento: Stock bajo"]
+    end
 ```
 
 ### Capa de Aplicacion (Application.Command)
 
-```
-NotificationHandlers/                       # Domain Event → Integration Event
-├── OrderCreatedNotificationHandler.cs
-├── OrderCancelledNotificationHandler.cs
-├── CustomerCreatedNotificationHandler.cs
-├── ProductCreatedNotificationHandler.cs
-└── ProductStockLowNotificationHandler.cs
-
-IntegrationEvents/                          # Eventos para mensajeria externa
-├── OrderCreatedIntegrationEvent.cs
-├── OrderCancelledIntegrationEvent.cs
-├── CustomerCreatedIntegrationEvent.cs
-├── ProductCreatedIntegrationEvent.cs
-└── ProductStockLowIntegrationEvent.cs
+```mermaid
+graph TD
+    subgraph NotificationHandlers
+        B1["OrderCreatedNotificationHandler.cs"]
+        B2["OrderCancelledNotificationHandler.cs"]
+        B3["CustomerCreatedNotificationHandler.cs"]
+        B4["ProductCreatedNotificationHandler.cs"]
+        B5["ProductStockLowNotificationHandler.cs"]
+    end
+    subgraph IntegrationEvents
+        C1["OrderCreatedIntegrationEvent.cs"]
+        C2["OrderCancelledIntegrationEvent.cs"]
+        C3["CustomerCreatedIntegrationEvent.cs"]
+        C4["ProductCreatedIntegrationEvent.cs"]
+        C5["ProductStockLowIntegrationEvent.cs"]
+    end
+    B1 --> C1
+    B2 --> C2
+    B3 --> C3
+    B4 --> C4
+    B5 --> C5
 ```
 
 ### Capa de Infraestructura
 
-```
-Infraestructure/
-└── Repositories/
-    └── UnitOfWork.cs                       # Despacha domain events + SaveChanges
+```mermaid
+graph TD
+    subgraph Infraestructure
+        D1["Repositories/"]
+        D2["UnitOfWork.cs — Despacha domain events + SaveChanges"]
+        D1 --> D2
+    end
 ```
 
 ### ¿Por qué 3 capas separadas?
@@ -339,69 +337,67 @@ No hay interceptor de EF Core. El UnitOfWork orquesta todo.
 
 ### Ejemplo: Crear una Order
 
-```csharp
-// 1. Command Handler crea la Order
-var order = new Order(orderId, customerId, shippingAddress);
-//    └─► OrderCreatedDomainEvent se agrega a _domainEvents (en memoria)
+```mermaid
+sequenceDiagram
+    participant CH as CreateOrderCommandHandler
+    participant Order as Order
+    participant UoW as UnitOfWork
+    participant Med as IMediator
+    participant NH as NotificationHandler
+    participant MT as MassTransit
+    participant SQL as SQL Server
 
-order.AddProduct(product, 2);
-order.Confirm();
+    CH->>Order: new Order(id, customerId, address)
+    Note right of Order: OrderCreatedDomainEvent agregado en memoria
+    CH->>Order: AddProduct(product, 2)
+    CH->>Order: Confirm()
+    CH->>CH: _orderRepository.AddAsync(order)
 
-// 2. Repository agrega al DbContext
-await _orderRepository.AddAsync(order, cancellationToken);
-
-// 3. UnitOfWork persiste
-await _unitOfWork.SaveChangesAsync(cancellationToken);
-//    │
-//    ├── DispatchDomainEventsAsync()
-//    │   ├── Busca entidades ProduceEvents con eventos pendientes
-//    │   ├── Limpia _domainEvents de cada entidad
-//    │   ├── IMediator.Publish(OrderCreatedDomainEvent)
-//    │   │   └── OrderCreatedNotificationHandler.Handle()
-//    │   │       └── IPublishEndpoint.Publish(OrderCreatedIntegrationEvent)
-//    │   │           └── MassTransit escribe en OutboxMessage (EN LA TRANSACCION)
-//    │   └── Ciclo while repite si hay nuevos eventos
-//    │
-//    └── SQL Server: Orders + OrderLines + OutboxMessage = ATOMICO
+    CH->>UoW: SaveChangesAsync()
+    UoW->>UoW: DispatchDomainEventsAsync()
+    UoW->>UoW: Busca entidades ProduceEvents con eventos pendientes
+    UoW->>UoW: Limpia _domainEvents de cada entidad
+    UoW->>Med: Publish(OrderCreatedDomainEvent)
+    Med->>NH: Handle()
+    NH->>MT: IPublishEndpoint.Publish(OrderCreatedIntegrationEvent)
+    MT-->>MT: Escribe en OutboxMessage (en la transaccion)
+    UoW->>UoW: Ciclo while si hay nuevos eventos
+    UoW->>SQL: INSERT Orders, OrderLines, OutboxMessage
+    Note right of SQL: ATOMICO — Todo o nada
 ```
 
 ### Diagrama de Flujo
 
-```
-┌──────────────────────────────────────────────────────────────┐
-│                    CreateOrderCommandHandler                  │
-│                                                              │
-│  1. new Order(id, customerId, address)                       │
-│     └──► AddDomainEvent(OrderCreatedDomainEvent)  [en memoria]│
-│                                                              │
-│  2. order.AddProduct(product, quantity)                       │
-│  3. order.Confirm()                                           │
-│  4. _orderRepository.AddAsync(order)                          │
-│  5. _unitOfWork.SaveChangesAsync()                            │
-│     │                                                        │
-│     ▼                                                        │
-│  ┌────────────────────────────────────────────────────────┐   │
-│  │         UnitOfWork.DispatchDomainEventsAsync           │   │
-│  │                                                        │   │
-│  │  1. ChangeTracker.Entries<ProduceEvents>()  ← Busca    │   │
-│  │  2. aggregate.ClearDomainEvents()           ← Limpia   │   │
-│  │  3. IMediator.Publish()                    ← Despacha  │   │
-│  │     └── NotificationHandler → IPublishEndpoint         │   │
-│  │         └── MassTransit → OutboxMessage (en memoria)  │   │
-│  │  4. while (hay nuevos eventos) repite el ciclo        │   │
-│  └────────────────────────────────────────────────────────┘   │
-│     │                                                        │
-│     ▼                                                        │
-│  ┌────────────────────────────────────────────────────────┐   │
-│  │              SQL Server Transaction                    │   │
-│  │                                                        │   │
-│  │  INSERT INTO Orders (...)                              │   │
-│  │  INSERT INTO OrderLines (...)                          │   │
-│  │  INSERT INTO OutboxMessage (...)  ← Integration Event  │   │
-│  │                                                        │   │
-│  │  COMMIT  ← ATOMICO (Todo o nada)                       │   │
-│  └────────────────────────────────────────────────────────┘   │
-└──────────────────────────────────────────────────────────────┘
+```mermaid
+graph TD
+    subgraph CreateOrderCommandHandler
+        H1["1. new Order(id, customerId, address)"]
+        H2["→ AddDomainEvent(OrderCreatedDomainEvent) [en memoria]"]
+        H3["2. order.AddProduct(product, quantity)"]
+        H4["3. order.Confirm()"]
+        H5["4. _orderRepository.AddAsync(order)"]
+        H6["5. _unitOfWork.SaveChangesAsync()"]
+
+        subgraph UnitOfWork.DispatchDomainEventsAsync
+            U1["1. ChangeTracker.Entries — Busca"]
+            U2["2. aggregate.ClearDomainEvents — Limpia"]
+            U3["3. IMediator.Publish — Despacha"]
+            U3a["NotificationHandler → IPublishEndpoint"]
+            U3b["MassTransit → OutboxMessage (en memoria)"]
+            U4["4. while (hay nuevos eventos) repite el ciclo"]
+        end
+
+        subgraph SQL Server Transaction
+            S1["INSERT INTO Orders (...)"]
+            S2["INSERT INTO OrderLines (...)"]
+            S3["INSERT INTO OutboxMessage (...) — Integration Event"]
+            S4["COMMIT — ATOMICO (Todo o nada)"]
+        end
+    end
+
+    H1 --> H2 --> H3 --> H4 --> H5 --> H6
+    H6 --> U1 --> U2 --> U3 --> U3a --> U3b --> U4
+    U4 --> S1 --> S2 --> S3 --> S4
 ```
 
 ---

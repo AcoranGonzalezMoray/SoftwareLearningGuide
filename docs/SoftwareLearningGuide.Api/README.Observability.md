@@ -30,36 +30,37 @@ Sin observabilidad, tu aplicación es una caja negra. Cuando algo falla en produ
 
 La observabilidad se sostiene sobre **3 pilares**. Cada uno responde una pregunta diferente:
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                   OBSERVABILIDAD                            │
-│                                                             │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐          │
-│  │   TRACES    │  │   METRICS   │  │    LOGS     │          │
-│  │             │  │             │  │             │          │
-│  │ "¿Qué       │  │ "¿Cómo      │  │ "¿Qué       │          │
-│  │  pasó?"     │  │  estamos?"  │  │  falló?"    │          │
-│  │             │  │             │  │             │          │
-│  │ Request     │  │ Contadores  │  │ Mensajes    │          │
-│  │ completa    │  │ Histogramas │  │ detallados  │          │
-│  │ distribuida │  │ Gauges      │  │ con contexto│          │
-│  └─────────────┘  └─────────────┘  └─────────────┘          │
-└─────────────────────────────────────────────────────────────┘
+```mermaid
+graph TD
+    OBS[OBSERVABILIDAD]
+    OBS --> T[TRACES]
+    OBS --> M[METRICS]
+    OBS --> L[LOGS]
+    T --> TQ["¿Qué pasó?"]
+    M --> MQ["¿Cómo estamos?"]
+    L --> LQ["¿Qué falló?"]
+    TQ --> TD["Request completa distribuida"]
+    MQ --> MD["Contadores, Histogramas, Gauges"]
+    LQ --> LD["Mensajes detallados con contexto"]
 ```
 
 ### Trazas (Traces) - "¿Qué pasó?"
 
 Una **traza** reconstruye el camino completo de una request a través de tu sistema. Cada operación dentro de la request es un **span** (tramo).
 
-```
-Request: POST /api/v1/order
-│
-├── [Span 1] HTTP Request (200ms)
-│   ├── [Span 2] ASP.NET Core (195ms)
-│   │   ├── [Span 3] OrderController.Create (190ms)
-│   │   │   ├── [Span 4] MediatR.Send (185ms)
-│   │   │   │   ├── [Span 5] EF Core: INSERT Order (80ms)
-│   │   │   │   └── [Span 6] EF Core: INSERT OrderLines (60ms)
+```mermaid
+graph TD
+    S1["HTTP Request POST /api/v1/order (200ms)"]
+    S2["ASP.NET Core (195ms)"]
+    S3["OrderController.Create (190ms)"]
+    S4["MediatR.Send (185ms)"]
+    S5["EF Core: INSERT Order (80ms)"]
+    S6["EF Core: INSERT OrderLines (60ms)"]
+    S1 --> S2
+    S2 --> S3
+    S3 --> S4
+    S4 --> S5
+    S4 --> S6
 ```
 
 **Cuándo usar trazas**: Para entender el flujo de una request, encontrar cuellos de botella en una cadena de servicios, o diagnosticar latencia en sistemas distribuidos.
@@ -124,9 +125,16 @@ OpenTelemetry está diseñado como un sistema modular:
 - **Instrumentation.*** = los "sensores" que automáticamente capturan datos (sin que escribas código)
 - **Exporter.*** = los "enviadores" que transportan los datos al backend
 
-```
-Tu App → [Instrumentation] → [SDK OTEL] → [Exporter] → Backend
-              (captura)         (procesa)     (envía)     (almacena)
+```mermaid
+graph LR
+    A[Tu App] --> B[Instrumentation]
+    B --> C[SDK OTEL]
+    C --> D[Exporter]
+    D --> E[Backend]
+    B -.- B1[(captura)]
+    C -.- C1[(procesa)]
+    D -.- D1[(envía)]
+    E -.- E1[(almacena)]
 ```
 
 ---
@@ -135,52 +143,23 @@ Tu App → [Instrumentation] → [SDK OTEL] → [Exporter] → Backend
 
 La configuración se organiza en **3 capas** separadas por responsabilidad:
 
-```
-┌─────────────────────────────────────────────────────────┐
-│  CAPA 1: Configuración (appsettings.json)               │
-│  Define QUÉ valores usar (endpoint, protocolo)          │
-│  ┌─────────────────────────────────────────────┐        │
-│  │ "OpenTelemetry": {                          │        │
-│  │   "Otlp": { "Endpoint": "", "Protocol": "" }│        │
-│  │ }                                           │        │
-│  └─────────────────────────────────────────────┘        │
-└──────────────────────┬──────────────────────────────────┘
-                       │ se carga en
-                       ▼
-┌─────────────────────────────────────────────────────────┐
-│  CAPA 2: Options POCO (OpenTelemetryOptions.cs)         │
-│  Mapea la config a un objeto tipado                     │
-│  ┌─────────────────────────────────────────────┐        │
-│  │ public class OpenTelemetryOptions {         │        │
-│  │   public OtlpOptions Otlp { get; set; }     │        │
-│  │ }                                           │        │
-│  └─────────────────────────────────────────────┘        │
-└──────────────────────┬──────────────────────────────────┘
-                       │ se usa en
-                       ▼
-┌─────────────────────────────────────────────────────────┐
-│  CAPA 3: Extensión de Servicios                         │
-│  (OpenTelemetryServiceCollectionExtensions.cs)          │
-│  Configura trazas, métricas y logging con OTEL          │
-│  ┌─────────────────────────────────────────────┐        │
-│  │ .WithTracing(...)  → instrumentación HTTP   │        │
-│  │ .WithMetrics(...)  → métricas automáticas   │        │
-│  │ logging.AddOpenTelemetry(...) → logs OTEL   │        │
-│  └─────────────────────────────────────────────┘        │
-└──────────────────────┬──────────────────────────────────┘
-                       │ se llama en
-                       ▼
-┌─────────────────────────────────────────────────────────┐
-│  CAPA 4: Program.cs                                     │
-│  Registra todo en el DI container                       │
-│  ┌─────────────────────────────────────────────┐        │
-│  │ var otelOptions = builder.Configuration     │        │
-│  │     .GetOpenTelemetryOptions();             │        │
-│  │ builder.Services.AddCustomOpenTelemetry(    │        │
-│  │   builder.Logging, builder.Configuration,   │        │
-│  │   otelOptions);                             │        │
-│  └─────────────────────────────────────────────┘        │
-└─────────────────────────────────────────────────────────┘
+```mermaid
+graph TD
+    L1["CAPA 1: Configuración (appsettings.json)<br/>Define QUÉ valores usar (endpoint, protocolo)"]
+    L1C["<pre>{'OpenTelemetry': {'Otlp': {'Endpoint': '', 'Protocol': ''}}}</pre>"]
+    L2["CAPA 2: Options POCO (OpenTelemetryOptions.cs)<br/>Mapea la config a un objeto tipado"]
+    L2C["<pre>public class OpenTelemetryOptions {<br/>  public OtlpOptions Otlp { get; set; }<br/>}</pre>"]
+    L3["CAPA 3: Extensión de Servicios<br/>(OpenTelemetryServiceCollectionExtensions.cs)<br/>Configura trazas, métricas y logging con OTEL"]
+    L3C["<pre>.WithTracing(...)  → instrumentación HTTP<br/>.WithMetrics(...)  → métricas automáticas<br/>logging.AddOpenTelemetry(...) → logs OTEL</pre>"]
+    L4["CAPA 4: Program.cs<br/>Registra todo en el DI container"]
+    L4C["<pre>var otelOptions = builder.Configuration<br/>    .GetOpenTelemetryOptions();<br/>builder.Services.AddCustomOpenTelemetry(<br/>  builder.Logging, builder.Configuration,<br/>  otelOptions);</pre>"]
+    L1 --> L1C
+    L1C -->|"se carga en"| L2
+    L2 --> L2C
+    L2C -->|"se usa en"| L3
+    L3 --> L3C
+    L3C -->|"se llama en"| L4
+    L4 --> L4C
 ```
 
 ### OpenTelemetryOptions.cs
@@ -260,13 +239,19 @@ Un **span** es una unidad de trabajo individual dentro de una traza. Cada span c
 
 Con `AddAspNetCoreInstrumentation()` y `AddHttpClientInstrumentation()`, OTEL **automáticamente** crea spans sin que escribas código:
 
-```
-[Span] GET /api/v1/order/{id}
-  ├── Tags: http.method=GET, http.url=/api/v1/order/abc, http.status_code=200
-  ├── Duration: 45ms
-  └── [Child Span] HttpClient: GET https://external-api.com/data
-        ├── Tags: http.method=GET, http.status_code=200
-        └── Duration: 12ms
+```mermaid
+graph TD
+    S1["GET /api/v1/order/{id}"]
+    T1["Tags: http.method=GET, http.url=/api/v1/order/abc, http.status_code=200"]
+    D1["Duration: 45ms"]
+    S2["HttpClient: GET https://external-api.com/data"]
+    T2["Tags: http.method=GET, http.status_code=200"]
+    D2["Duration: 12ms"]
+    S1 --> T1
+    S1 --> D1
+    S1 --> S2
+    S2 --> T2
+    S2 --> D2
 ```
 
 ### Configuración en el Proyecto
@@ -338,14 +323,19 @@ public static IServiceCollection AddCustomOpenTelemetry(
 
 ### Cómo se Ve en el Aspire Dashboard
 
-```
-Trace ID: 4e1ca0fa3a04c3ffe0c42e57b4c64af6
-│
-├── Span: GET /api/v1/order/{id}          [45ms] [200 OK]
-│   ├── Span: ASP.NET Core Pipeline       [44ms]
-│   │   ├── Span: OrderController.GetById [40ms]
-│   │   │   ├── Span: MediatR.Send        [38ms]
-│   │   │   │   └── Span: Dapper.Query    [15ms]
+```mermaid
+graph TD
+    T["Trace ID: 4e1ca0fa3a04c3ffe0c42e57b4c64af6"]
+    S1["GET /api/v1/order/{id} [45ms] [200 OK]"]
+    S2["ASP.NET Core Pipeline [44ms]"]
+    S3["OrderController.GetById [40ms]"]
+    S4["MediatR.Send [38ms]"]
+    S5["Dapper.Query [15ms]"]
+    T --> S1
+    S1 --> S2
+    S2 --> S3
+    S3 --> S4
+    S4 --> S5
 ```
 
 ¿Qué es un Span? Es una unidad de trabajo dentro de una traza. Cuando tu API recibe un request, eso es un Span padre. Dentro de ese Span, hay sub-Spans: la query a la base de datos, la llamada a un servicio externo, etc. OpenTelemetry conecta todos estos Spans en una traza completa que puedes visualizar en el Aspire Dashboard.
@@ -553,25 +543,19 @@ public async Task<IActionResult> Create([FromBody] CreateOrderCommand command, .
 
 ### Jerarquía de Scopes
 
-```
-Request entra
-    │
-    ▼
-[Middleware Scope] ─── CorrelationId, RequestMethod, RequestPath, IP
-    │
-    ▼
-try { await _next(context); }
-    │
-    ▼
-[Controller Scope] ─── CustomerId, LineCount (se SUMAN a los anteriores)
-    │
-    ▼
-_log.LogInformation("Iniciando creación...")
-    │
-    ▼
-Log generado con TODOS los campos:
-  CorrelationId=abc, RequestMethod=POST, RequestPath=/api/v1/order,
-  IP=127.0.0.1, CustomerId=550e8400, LineCount=3
+```mermaid
+graph TD
+    R["Request entra"]
+    MS["Middleware Scope<br/>CorrelationId, RequestMethod, RequestPath, IP"]
+    N["try { await _next(context); }"]
+    CS["Controller Scope<br/>CustomerId, LineCount (se SUMAN a los anteriores)"]
+    L["Log.LogInformation('Iniciando creación...')"]
+    LG["Log generado con TODOS los campos:<br/>CorrelationId=abc, RequestMethod=POST,<br/>RequestPath=/api/v1/order, IP=127.0.0.1,<br/>CustomerId=550e8400, LineCount=3"]
+    R --> MS
+    MS --> N
+    N --> CS
+    CS --> L
+    L --> LG
 ```
 
 ### ¿Por qué el Scope del Middleware es Importante para Excepciones?
@@ -755,13 +739,15 @@ Configura `appsettings.Production.json`:
 
 ### Flujo de Datos
 
-```
-Tu App → OTEL SDK → OTLP Exporter → OTEL Collector → Backend
-                                            │
-                                    ┌───────┼───────┐
-                                    ▼       ▼       ▼
-                                Jaeger  Grafana  Datadog
-                                (traces) (todo)  (todo)
+```mermaid
+graph TD
+    A["Tu App"] --> B["OTEL SDK"]
+    B --> C["OTLP Exporter"]
+    C --> D["OTEL Collector"]
+    D --> E["Backend"]
+    E --> F["Jaeger<br/>(traces)"]
+    E --> G["Grafana<br/>(todo)"]
+    E --> H["Datadog<br/>(todo)"]
 ```
 
 El flujo completo es: tu app genera telemetría → el OTEL Collector la recibe → la procesa y la envía a los backends (Aspire Dashboard para visualización, Prometheus para métricas). El Aspire Dashboard es como un centro de mando donde puedes ver trazas, métricas y logs de todas tus aplicaciones en un solo lugar.
@@ -781,72 +767,44 @@ El flujo completo es: tu app genera telemetría → el OTEL Collector la recibe 
 
 ### Flujo Completo de una Request
 
-```
-1. Request llega: POST /api/v1/order
-       │
-       ▼
-2. GlobalExceptionMiddleware crea scope:
-   { CorrelationId: "abc", Method: "POST", Path: "/api/v1/order", IP: "127.0.0.1" }
-       │
-       ▼
-3. OTEL ASP.NET Core Instrumentation crea un SPAN:
-   [Span] POST /api/v1/order → duration: 0ms (inicia)
-       │
-       ▼
-4. OrderController.Create ejecuta:
-   - BeginScope({ CustomerId: "550e8400", LineCount: 3 })
-   - _logger.LogInformation("Iniciando creación...")  ← LOG con scope
-       │
-       ▼
-5. MediatR dispatch → CreateOrderCommandHandler:
-   - EF Core INSERT → OTEL crea child span
-   - _logger.LogInformation("Orden creada...")  ← LOG con scope
-       │
-       ▼
-6. Controller retorna 201:
-   - _metrics.OrderCreated(orderId, customerId)  ← METRIC incrementada
-       │
-       ▼
-7. OTEL cierra el span:
-   [Span] POST /api/v1/order → duration: 150ms, status: 201
-       │
-       ▼
-8. Scope del controller se disposed (using block termina)
-       │
-       ▼
-9. Scope del middleware se disposed (using block termina)
-       │
-       ▼
-10. OTEL exporta todo al backend:
-    - Trace: span completo con父子 hierarchy
-    - Metric: orders.created +1
-    - Logs: todos los logs con CorrelationId, CustomerId, etc.
+```mermaid
+graph TD
+    S1["1. Request llega: POST /api/v1/order"]
+    S2["2. GlobalExceptionMiddleware crea scope:<br/>{CorrelationId: abc, Method: POST,<br/>Path: /api/v1/order, IP: 127.0.0.1}"]
+    S3["3. OTEL ASP.NET Core Instrumentation crea un SPAN:<br/>[Span] POST /api/v1/order → duration: 0ms (inicia)"]
+    S4["4. OrderController.Create ejecuta:<br/>- BeginScope({CustomerId: 550e8400, LineCount: 3})<br/>- _logger.LogInformation('Iniciando creación...')  ← LOG con scope"]
+    S5["5. MediatR dispatch → CreateOrderCommandHandler:<br/>- EF Core INSERT → OTEL crea child span<br/>- _logger.LogInformation('Orden creada...')  ← LOG con scope"]
+    S6["6. Controller retorna 201:<br/>- _metrics.OrderCreated(orderId, customerId)  ← METRIC incrementada"]
+    S7["7. OTEL cierra el span:<br/>[Span] POST /api/v1/order → duration: 150ms, status: 201"]
+    S8["8. Scope del controller se disposed (using block termina)"]
+    S9["9. Scope del middleware se disposed (using block termina)"]
+    S10["10. OTEL exporta todo al backend:<br/>- Trace: span completo con parent-child hierarchy<br/>- Metric: orders.created +1<br/>- Logs: todos los logs con CorrelationId, CustomerId, etc."]
+    S1 --> S2
+    S2 --> S3
+    S3 --> S4
+    S4 --> S5
+    S5 --> S6
+    S6 --> S7
+    S7 --> S8
+    S8 --> S9
+    S9 --> S10
 ```
 
 ### Si hay una Excepción
 
-```
-1-4: (igual que antes)
-       │
-       ▼
-5. MediatR dispatch → CreateOrderCommandHandler:
-   - EF Core lanza Exception
-       │
-       ▼
-6. Exception propaga al controller → using block hace Dispose() del scope del controller
-       │
-       ▼
-7. Exception propaga al middleware → catch (Exception ex)
-   - Scope del middleware SIGUE ACTIVO
-   - Lee HttpContext.Items["LogProperties"] si existe
-   - _logger.LogError(ex, "Excepción no controlada...")  ← LOG con scope del middleware
-       │
-       ▼
-8. OTEL cierra el span con status: ERROR
-   [Span] POST /api/v1/order → duration: 50ms, status: ERROR
-       │
-       ▼
-9. Retorna 500 JSON al cliente
+```mermaid
+graph TD
+    S1["1-4: (igual que antes)"]
+    S5["5. MediatR dispatch → CreateOrderCommandHandler:<br/>- EF Core lanza Exception"]
+    S6["6. Exception propaga al controller → using block hace Dispose() del scope del controller"]
+    S7["7. Exception propaga al middleware → catch (Exception ex)<br/>- Scope del middleware SIGUE ACTIVO<br/>- Lee HttpContext.Items['LogProperties'] si existe<br/>- _logger.LogError(ex, 'Excepción no controlada...')  ← LOG con scope del middleware"]
+    S8["8. OTEL cierra el span con status: ERROR<br/>[Span] POST /api/v1/order → duration: 50ms, status: ERROR"]
+    S9["9. Retorna 500 JSON al cliente"]
+    S1 --> S5
+    S5 --> S6
+    S6 --> S7
+    S7 --> S8
+    S8 --> S9
 ```
 
 ---

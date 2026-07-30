@@ -162,14 +162,15 @@ Core.Business   → (nothing: only .NET primitives)
 **Port:** Interface defined in Application specifying what it needs.
 **Adapter:** Concrete implementation in Infrastructure using the real technology.
 
-```
-Application defines:                 Infrastructure implements:
-┌──────────────────────────┐        ┌──────────────────────────────────┐
-│ interface IUnitOfWork    │        │ class UnitOfWork : IUnitOfWork   │
-│ {                        │ ◄────  │ {                                │
-│   Task SaveChangesAsync()│        │   Task SaveChangesAsync()        │
-│ }                        │        │   { await _context.SaveChanges } │
-└──────────────────────────┘        └──────────────────────────────────┘
+```mermaid
+graph LR
+    subgraph Application["Application defines:"]
+        Port["interface IUnitOfWork<br/>{<br/>  Task SaveChangesAsync()<br/>}"]
+    end
+    subgraph Infrastructure["Infrastructure implements:"]
+        Adapter["class UnitOfWork : IUnitOfWork<br/>{<br/>  Task SaveChangesAsync()<br/>  { await _context.SaveChanges }<br/>}"]
+    end
+    Adapter -->|"implements"| Port
 ```
 
 **Ports in this project:**
@@ -184,42 +185,24 @@ Application defines:                 Infrastructure implements:
 
 ## Layer Diagram
 
-```
-┌──────────────────────────────────────────────────────────┐
-│  LAYER 4: PRESENTATION                                    │
-│  SoftwareLearningGuide.Api                               │
-│                                                          │
-│  Controllers → _mediator.Send(command)                   │
-│  Middlewares, Extensions, FeatureToggles, Metrics, OTEL  │
-└──────────────────────┬───────────────────────────────────┘
-                       │ dispatches to
-┌──────────────────────▼───────────────────────────────────┐
-│  LAYER 2: APPLICATION                                      │
-│  Application.Command / Application.Query                 │
-│                                                          │
-│  CreateOrderCommandHandler  GetOrderQueryHandler         │
-│  IOrderWriteRepository ─────────────────────────────┐    │
-│  IUnitOfWork ──────────────────────────────────────┐│    │
-└──────────────────────┬─────────────────────────────┘─────┘
-                       │ uses entities from
-┌──────────────────────▼───────────────────────────────────┐
-│  LAYER 1: DOMAIN  (no external dependencies)            │
-│  SoftwareLearningGuide.Core.Business                     │
-│                                                          │
-│  Order, Product, Customer (Entities / Aggregates)        │
-│  Money, Email, Address (Value Objects)                   │
-│  Domain Events, DomainErrors, Result<T>                  │
-└──────────────────────────────────────────────────────────┘
-                       ▲ implements the ports
-┌──────────────────────┴───────────────────────────────────┐
-│  LAYER 3: INFRASTRUCTURE                                 │
-│  Infraestructure / Infraestructure.Data / .Repositories  │
-│                                                          │
-│  OrderWriteRepository ── implements IOrderWriteRepository│
-│  UnitOfWork ────────── implements IUnitOfWork            │
-│  OutboxWriter ─────── implements IOutboxWriter           │
-│  ApplicationDbContext (EF Core), SqlConnection (Dapper)  │
-└──────────────────────────────────────────────────────────┘
+```mermaid
+graph TD
+    subgraph L4["LAYER 4: PRESENTATION<br/>SoftwareLearningGuide.Api"]
+        Controllers["Controllers → _mediator.Send(command)<br/>Middlewares, Extensions, FeatureToggles, Metrics, OTEL"]
+    end
+    subgraph L2["LAYER 2: APPLICATION<br/>Application.Command / Application.Query"]
+        Handlers["CreateOrderCommandHandler  GetOrderQueryHandler<br/>IOrderWriteRepository<br/>IUnitOfWork"]
+    end
+    subgraph L1["LAYER 1: DOMAIN (no external dependencies)<br/>SoftwareLearningGuide.Core.Business"]
+        Domain["Order, Product, Customer (Entities / Aggregates)<br/>Money, Email, Address (Value Objects)<br/>Domain Events, DomainErrors, Result&lt;T&gt;"]
+    end
+    subgraph L3["LAYER 3: INFRASTRUCTURE<br/>Infraestructure / Infraestructure.Data / .Repositories"]
+        Infra["OrderWriteRepository → implements IOrderWriteRepository<br/>UnitOfWork → implements IUnitOfWork<br/>OutboxWriter → implements IOutboxWriter<br/>ApplicationDbContext (EF Core), SqlConnection (Dapper)"]
+    end
+
+    L4 -->|"dispatches to"| L2
+    L2 -->|"uses entities from"| L1
+    L3 -.->|"implements the ports"| L2
 ```
 
 ---

@@ -721,6 +721,21 @@
       background-color: rgba(167, 139, 250, 0.08);
     }
     body.dark .sidebar { box-shadow: 2px 0 12px rgba(0, 0, 0, 0.2); }
+
+    /* ── Mermaid Diagrams ── */
+    .mermaid {
+      background: var(--bg-primary);
+      border-radius: 10px;
+      padding: 20px;
+      margin: 1.5em 0;
+      text-align: center;
+      overflow-x: auto;
+    }
+
+    .mermaid svg {
+      max-width: 100%;
+      height: auto;
+    }
   </style>
 </head>
 <body>
@@ -946,6 +961,16 @@
               pre.appendChild(badge);
             });
 
+            // ── Mermaid diagram rendering ──
+            document.querySelectorAll('.markdown-section pre code.language-mermaid').forEach(function(code) {
+              var pre = code.parentNode;
+              var div = document.createElement('div');
+              div.className = 'mermaid';
+              div.textContent = code.textContent;
+              pre.parentNode.replaceChild(div, pre);
+              mermaid.init(undefined, div);
+            });
+
             // ── Lightbox for images ──
             document.querySelectorAll('.markdown-section img').forEach(function(img) {
               if (img.dataset.lightboxReady) return;
@@ -1089,5 +1114,27 @@
   <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-docker.min.js"></script>
   <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-sql.min.js"></script>
   <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-yaml.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+  <script type="module">
+     import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs";
+     mermaid.initialize({ startOnLoad: true });
+     window.mermaid = mermaid;
+  </script>
+  <script src="//unpkg.com/docsify-mermaid@2.0.1/dist/docsify-mermaid.js"></script>
+  <script>
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: 'default',
+      securityLevel: 'loose',
+      themeVariables: {
+        primaryColor: '#512BD4',
+        primaryTextColor: '#fff',
+        primaryBorderColor: '#4020a6',
+        lineColor: '#512BD4',
+        secondaryColor: '#f4f4f5',
+        tertiaryColor: '#fcfcfd'
+      }
+    });
+  </script>
 </body>
 </html>

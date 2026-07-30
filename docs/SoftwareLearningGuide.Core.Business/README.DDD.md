@@ -7,11 +7,37 @@ Este documento explica los conceptos fundamentales de **Domain-Driven Design** y
 ### 📚 Tabla de Contenidos
 
 1. [¿Qué es Domain-Driven Design?](#qué-es-domain-driven-design)
-2. [Value Objects](#value-objects)
-3. [Entidades](#entidades)
-4. [Agregados](#agregados)
-5. [Comparativas y Diferencias](#comparativas-y-diferencias)
-6. [Ejemplos del Proyecto](#ejemplos-del-proyecto)
+2. [Estructura del Proyecto](#estructura-del-proyecto)
+3. [Value Objects](#value-objects)
+4. [Entidades](#entidades)
+5. [Agregados](#agregados)
+6. [Comparativas y Diferencias](#comparativas-y-diferencias)
+7. [Ejemplos del Proyecto](#ejemplos-del-proyecto)
+
+---
+
+## Estructura del Proyecto
+
+```mermaid
+graph TD
+    A["SoftwareLearningGuide.Core.Business/"] --> B["Entities/"]
+    A --> C["Aggregates/"]
+    A --> D["ValueObjects/"]
+    A --> E["Enums/"]
+    A --> F["Errors/"]
+    A --> G["Exceptions/"]
+    A --> H["DomainEvents/"]
+    A --> I["Helpers/"]
+
+    B --> B1["Product, Customer, OrderLine"]
+    C --> C1["Order (Raíz del Agregado)"]
+    D --> D1["Money, Email, Address, etc."]
+    E --> E1["OrderStatus, PaymentMethod, etc."]
+    F --> F1["DomainErrors: catálogo centralizado de errores"]
+    G --> G1["DomainException para violaciones de invariantes"]
+    H --> H1["ProduceEvents base + interfaces de eventos"]
+    I --> I1["Helper de redondeo financiero"]
+```
 
 ---
 

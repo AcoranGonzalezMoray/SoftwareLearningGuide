@@ -162,14 +162,15 @@ Core.Business   → (nada: solo primitivos .NET)
 **Port (Puerto):** Interfaz definida en Application que especifica lo que necesita.
 **Adapter (Adaptador):** Implementación concreta en Infraestructura que usa la tecnología real.
 
-```
-Application define:                 Infraestructura implementa:
-┌──────────────────────────┐        ┌──────────────────────────────────┐
-│ interface IUnitOfWork    │        │ class UnitOfWork : IUnitOfWork   │
-│ {                        │ ◄────  │ {                                │
-│   Task SaveChangesAsync()│        │   Task SaveChangesAsync()        │
-│ }                        │        │   { await _context.SaveChanges } │
-└──────────────────────────┘        └──────────────────────────────────┘
+```mermaid
+graph LR
+    subgraph Application["Application define:"]
+        Port["interface IUnitOfWork<br/>{<br/>  Task SaveChangesAsync()<br/>}"]
+    end
+    subgraph Infraestructura["Infraestructura implementa:"]
+        Adapter["class UnitOfWork : IUnitOfWork<br/>{<br/>  Task SaveChangesAsync()<br/>  { await _context.SaveChanges }<br/>}"]
+    end
+    Adapter -->|"implementa"| Port
 ```
 
 **Puertos en este proyecto:**
@@ -184,42 +185,24 @@ Application define:                 Infraestructura implementa:
 
 ## Diagrama de Capas
 
-```
-┌──────────────────────────────────────────────────────────┐
-│  CAPA 4: PRESENTACIÓN                                    │
-│  SoftwareLearningGuide.Api                               │
-│                                                          │
-│  Controllers → _mediator.Send(command)                   │
-│  Middlewares, Extensions, FeatureToggles, Metrics, OTEL  │
-└──────────────────────┬───────────────────────────────────┘
-                       │ despacha hacia
-┌──────────────────────▼───────────────────────────────────┐
-│  CAPA 2: APLICACIÓN                                      │
-│  Application.Command / Application.Query                 │
-│                                                          │
-│  CreateOrderCommandHandler  GetOrderQueryHandler         │
-│  IOrderWriteRepository ─────────────────────────────┐    │
-│  IUnitOfWork ──────────────────────────────────────┐│    │
-└──────────────────────┬─────────────────────────────┘─────┘
-                       │ usa entidades de            
-┌──────────────────────▼───────────────────────────────────┐
-│  CAPA 1: DOMINIO  (sin dependencias externas)            │
-│  SoftwareLearningGuide.Core.Business                     │
-│                                                          │
-│  Order, Product, Customer (Entidades / Agregados)        │
-│  Money, Email, Address (Value Objects)                   │
-│  Domain Events, DomainErrors, Result<T>                  │
-└──────────────────────────────────────────────────────────┘
-                       ▲ implementa los puertos
-┌──────────────────────┴───────────────────────────────────┐
-│  CAPA 3: INFRAESTRUCTURA                                 │
-│  Infraestructure / Infraestructure.Data / .Repositories  │
-│                                                          │
-│  OrderWriteRepository ── implementa IOrderWriteRepository│
-│  UnitOfWork ────────── implementa IUnitOfWork            │
-│  OutboxWriter ─────── implementa IOutboxWriter           │
-│  ApplicationDbContext (EF Core), SqlConnection (Dapper)  │
-└──────────────────────────────────────────────────────────┘
+```mermaid
+graph TD
+    subgraph L4["CAPA 4: PRESENTACIÓN<br/>SoftwareLearningGuide.Api"]
+        Controllers["Controllers → _mediator.Send(command)<br/>Middlewares, Extensions, FeatureToggles, Metrics, OTEL"]
+    end
+    subgraph L2["CAPA 2: APLICACIÓN<br/>Application.Command / Application.Query"]
+        Handlers["CreateOrderCommandHandler  GetOrderQueryHandler<br/>IOrderWriteRepository<br/>IUnitOfWork"]
+    end
+    subgraph L1["CAPA 1: DOMINIO (sin dependencias externas)<br/>SoftwareLearningGuide.Core.Business"]
+        Domain["Order, Product, Customer (Entidades / Agregados)<br/>Money, Email, Address (Value Objects)<br/>Domain Events, DomainErrors, Result&lt;T&gt;"]
+    end
+    subgraph L3["CAPA 3: INFRAESTRUCTURA<br/>Infraestructure / Infraestructure.Data / .Repositories"]
+        Infra["OrderWriteRepository → implementa IOrderWriteRepository<br/>UnitOfWork → implementa IUnitOfWork<br/>OutboxWriter → implementa IOutboxWriter<br/>ApplicationDbContext (EF Core), SqlConnection (Dapper)"]
+    end
+
+    L4 -->|"despacha hacia"| L2
+    L2 -->|"usa entidades de"| L1
+    L3 -.->|"implementa los puertos"| L2
 ```
 
 ---

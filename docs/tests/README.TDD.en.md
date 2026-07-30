@@ -17,32 +17,19 @@ It's not a testing strategy — it's a **design technique** that produces cleane
 
 ## Red-Green-Refactor Cycle
 
-```
-┌─────────────────────────────────────────────────────┐
-│                     RED                             │
-│  1. Write a failing test                           │
-│  2. Define the desired behavior                    │
-│  3. The test doesn't even compile (production      │
-│     code doesn't exist yet)                        │
-└─────────────────────────────────────────────────────┘
-         │
-         ▼
-┌─────────────────────────────────────────────────────┐
-│                    GREEN                            │
-│  1. Write the minimum code to make the test pass   │
-│  2. Regardless of whether "it's not pretty"        │
-│  3. The goal is for the test to compile and pass   │
-└─────────────────────────────────────────────────────┘
-         │
-         ▼
-┌─────────────────────────────────────────────────────┐
-│                  REFACTOR                           │
-│  1. Improve the code without changing behavior     │
-│  2. Remove duplication, improve names, refine      │
-│  3. Tests should still pass                        │
-└─────────────────────────────────────────────────────┘
-         │
-         └──→ Return to RED for the next requirement
+```mermaid
+graph TD
+    R["RED\n1. Write a failing test\n2. Define the desired behavior\n3. The test doesn't even compile (production code doesn't exist yet)"]
+    G["GREEN\n1. Write the minimum code to make the test pass\n2. Regardless of whether 'it's not pretty'\n3. The goal is for the test to compile and pass"]
+    RF["REFACTOR\n1. Improve the code without changing behavior\n2. Remove duplication, improve names, refine\n3. Tests should still pass"]
+
+    R -->|Red| G
+    G -->|Green| RF
+    RF -->|"Return to RED for the next requirement"| R
+
+    style R fill:#ffcccc,stroke:#ff0000,color:#000
+    style G fill:#ccffcc,stroke:#00aa00,color:#000
+    style RF fill:#ccccff,stroke:#0000ff,color:#000
 ```
 
 ---

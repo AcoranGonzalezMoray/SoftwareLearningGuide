@@ -59,14 +59,29 @@ public async Task<Result<Guid>> Handle(CreateOrderCommand request, CancellationT
 
 The project implements a repository hierarchy with dual purpose: **write** (EF Core, with change tracking) and **read** (Dapper, direct SQL).
 
-```
-Application (defines ports)              Infrastructure (implements)
-──────────────────────────               ────────────────────────────
-IBaseRepository<TEntity, TId>    ──►    BaseRepository<TEntity, TId, TIdValue>
-IOrderWriteRepository            ──►    OrderWriteRepository
-IProductWriteRepository          ──►    ProductWriteRepository
-ICustomerWriteRepository         ──►    CustomerWriteRepository
-IUnitOfWork                      ──►    UnitOfWork
+```mermaid
+graph LR
+    subgraph Application["Application (defines ports)"]
+        IB["IBaseRepository&lt;TEntity, TId&gt;"]
+        IOW["IOrderWriteRepository"]
+        IPW["IProductWriteRepository"]
+        ICW["ICustomerWriteRepository"]
+        IUoW["IUnitOfWork"]
+    end
+
+    subgraph Infrastructure["Infrastructure (implements)"]
+        BR["BaseRepository&lt;TEntity, TId, TIdValue&gt;"]
+        OWR["OrderWriteRepository"]
+        PWR["ProductWriteRepository"]
+        CWR["CustomerWriteRepository"]
+        UoW["UnitOfWork"]
+    end
+
+    IB --> BR
+    IOW --> OWR
+    IPW --> PWR
+    ICW --> CWR
+    IUoW --> UoW
 ```
 
 ---
@@ -233,44 +248,16 @@ public sealed class GetOrderQueryHandler : IRequestHandler<GetOrderQuery, Result
 
 ## Pattern Diagram
 
-```
-Handler (Application Layer)
-     │
-     │  _orderRepository.AddAsync(order)
-     │  _orderRepository.GetByIdAsync(id)
-     │
-     ▼
-┌──────────────────────────────────────────────────────────┐
-│  IOrderWriteRepository (Port — in Application/Ports)     │
-│                                                          │
-│  Task<Order?> GetByIdAsync(Guid id)                      │
-│  Task AddAsync(Order entity)                             │
-└─────────────────────────┬────────────────────────────────┘
-                          │ implements (in Infrastructure)
-                          ▼
-┌──────────────────────────────────────────────────────────┐
-│  OrderWriteRepository                                    │
-│  : BaseRepository<Order, OrderId, Guid>                  │
-│  , IOrderWriteRepository                                 │
-│                                                          │
-│  ApplicationDbContext                                    │
-│  DbSet<Order>                                            │
-│  Func<Guid, OrderId> _idFactory ← converts IDs          │
-│                                                          │
-│  GetByIdAsync(Guid id)                                   │
-│    → _idFactory(id)   → OrderId(id)                      │
-│    → _dbSet.FindAsync(new OrderId(id))                   │
-│                                                          │
-│  AddAsync(Order entity)                                  │
-│    → _dbSet.AddAsync(entity)   ← not saved yet           │
-└──────────────────────────────────────────────────────────┘
-                          │
-                          ▼
-┌──────────────────────────────────────────────────────────┐
-│  ApplicationDbContext (EF Core)                          │
-│  DbSet<Order>, DbSet<Product>, DbSet<Customer>           │
-│  SQL Server / Migration / Configurations                 │
-└──────────────────────────────────────────────────────────┘
+```mermaid
+graph TD
+    Handler["Handler (Application Layer)<br/>_orderRepository.AddAsync(order)<br/>_orderRepository.GetByIdAsync(id)"]
+    Port["IOrderWriteRepository<br/>(Port — in Application/Ports)<br/><br/>Task&lt;Order?&gt; GetByIdAsync(Guid id)<br/>Task AddAsync(Order entity)"]
+    Impl["OrderWriteRepository<br/>: BaseRepository&lt;Order, OrderId, Guid&gt;<br/>, IOrderWriteRepository<br/><br/>DbSet&lt;Order&gt;<br/>Func&lt;Guid, OrderId&gt; _idFactory ← converts IDs<br/><br/>GetByIdAsync(Guid id)<br/>  → _idFactory(id) → OrderId(id)<br/>  → _dbSet.FindAsync(new OrderId(id))<br/><br/>AddAsync(Order entity)<br/>  → _dbSet.AddAsync(entity) ← not saved yet"]
+    DbContext["ApplicationDbContext (EF Core)<br/>DbSet&lt;Order&gt;, DbSet&lt;Product&gt;, DbSet&lt;Customer&gt;<br/>SQL Server / Migration / Configurations"]
+
+    Handler -->|"_orderRepository.AddAsync(order)<br/>_orderRepository.GetByIdAsync(id)"| Port
+    Port -->|"implements (in Infrastructure)"| Impl
+    Impl --> DbContext
 ```
 
 ---

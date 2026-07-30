@@ -67,16 +67,16 @@ SoftwareLearningGuide.Core.Business/
 
 `DomainErrors` is organized by categories that reflect the domain's entities and value objects:
 
-```
-DomainErrors
-├── Product           // Product entity errors
-├── OrderLine         // Order Line entity errors
-├── Order             // Order aggregate errors
-├── Customer          // Customer entity errors
-├── MoneyErrors       // Money Value Object errors
-├── AddressErrors     // Address Value Object errors
-├── EmailErrors       // Email Value Object errors
-└── IdErrors          // ID Value Object errors
+```mermaid
+graph TD
+    A[DomainErrors] --> B[Product<br/>Product entity errors]
+    A --> C[OrderLine<br/>Order Line entity errors]
+    A --> D[Order<br/>Order aggregate errors]
+    A --> E[Customer<br/>Customer entity errors]
+    A --> F[MoneyErrors<br/>Money Value Object errors]
+    A --> G[AddressErrors<br/>Address Value Object errors]
+    A --> H[EmailErrors<br/>Email Value Object errors]
+    A --> I[IdErrors<br/>ID Value Object errors]
 ```
 
 ---

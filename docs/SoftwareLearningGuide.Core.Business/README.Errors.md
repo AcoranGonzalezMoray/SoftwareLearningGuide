@@ -67,16 +67,16 @@ SoftwareLearningGuide.Core.Business/
 
 `DomainErrors` se organiza por categorías que reflejan las entidades y value objects del dominio:
 
-```
-DomainErrors
-├── Product           // Errores de la entidad Producto
-├── OrderLine         // Errores de la entidad Línea de Pedido
-├── Order             // Errores del agregado Pedido
-├── Customer          // Errores de la entidad Cliente
-├── MoneyErrors       // Errores del Value Object Money
-├── AddressErrors     // Errores del Value Object Address
-├── EmailErrors       // Errores del Value Object Email
-└── IdErrors          // Errores de Value Objects de ID
+```mermaid
+graph TD
+    A[DomainErrors] --> B[Product<br/>Errores de la entidad Producto]
+    A --> C[OrderLine<br/>Errores de la entidad Línea de Pedido]
+    A --> D[Order<br/>Errores del agregado Pedido]
+    A --> E[Customer<br/>Errores de la entidad Cliente]
+    A --> F[MoneyErrors<br/>Errores del Value Object Money]
+    A --> G[AddressErrors<br/>Errores del Value Object Address]
+    A --> H[EmailErrors<br/>Errores del Value Object Email]
+    A --> I[IdErrors<br/>Errores de Value Objects de ID]
 ```
 
 ---

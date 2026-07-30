@@ -388,23 +388,34 @@ builder.HasMany<OrderLine>("_lines") // Maps the private field
 
 **Result in the DB:**
 
-```
-Orders                          OrderLines
-┌─────────────────────┐        ┌─────────────────────────────┐
-│ Id (PK)             │        │ Id (PK)                     │
-│ CustomerId          │◄───────│ OrderId (FK)                │
-│ Status              │        │ ProductId                   │
-│ ShippingStreet      │        │ ProductName                 │
-│ ShippingCity        │        │ UnitPrice (decimal)         │
-│ ShippingState       │        │ Currency                    │
-│ ShippingPostalCode  │        │ Quantity                    │
-│ ShippingCountry     │        │ CreatedAt                   │
-│ CreatedAt           │        └─────────────────────────────┘
-│ ConfirmedAt         │
-│ ShippedAt           │
-│ DeliveredAt         │
-│ CancelledAt         │
-└─────────────────────┘
+```mermaid
+erDiagram
+    ORDERS {
+        Guid Id PK
+        Guid CustomerId FK
+        string Status
+        string ShippingStreet
+        string ShippingCity
+        string ShippingState
+        string ShippingPostalCode
+        string ShippingCountry
+        datetime CreatedAt
+        datetime ConfirmedAt
+        datetime ShippedAt
+        datetime DeliveredAt
+        datetime CancelledAt
+    }
+    ORDERLINES {
+        Guid Id PK
+        Guid OrderId FK
+        Guid ProductId
+        string ProductName
+        decimal UnitPrice
+        string Currency
+        int Quantity
+        datetime CreatedAt
+    }
+    ORDERS ||--o{ ORDERLINES : "has"
 ```
 
 ---

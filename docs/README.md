@@ -263,68 +263,82 @@ docker-compose ps
 
 ## Estructura de Carpetas
 
-```
-SoftwareLearningGuide/
-├── SoftwareLearningGuide.Core.Business/            # Capa de Dominio (DDD)
-│   ├── Exceptions/                                 # Excepciones del dominio + Result<T>
-│   ├── Errors/                                     # DomainErrors: catalogo centralizado de errores
-│   ├── ValueObjects/                               # Money, Email, Address, OrderId, etc.
-│   ├── Entities/                                   # Product, Customer, OrderLine
-│   └── Aggregates/                                 # Order (raiz del agregado)
-│
-├── SoftwareLearningGuide.Application/              # Capa de Aplicacion
-│   ├── SoftwareLearningGuide.Application.Query/    # Queries (Dapper, lectura)
-│   │   └── GetOrder/                               # GetOrderQuery + Handler
-│   ├── SoftwareLearningGuide.Application.Command/  # Commands (EF Core, escritura)
-│   │   ├── CreateOrder/                            # CreateOrderCommand + Handler
-│   │   └── Ports/                                  # IOrderWriteRepository, IUnitOfWork
-│   ├── README.CQRS.md                              # Guia de CQRS con MediatR
-│   ├── README.VerticalSlicing.md                   # Organizacion por features (slices)
-│   ├── README.Pattern.SOLID.md                     # Principios SOLID con ejemplos del proyecto
-│   ├── README.Pattern.Factory.md                   # Patron Factory en Value Objects y Agregados
-│   ├── README.Pattern.Builder.md                   # Patron Builder para tests y commands complejos
-│   ├── README.Pattern.Repository.md                # Patron Repository: puertos y adaptadores
-│   └── README.Pattern.Mediator.md                  # Patron Mediator con MediatR
-│
-├── SoftwareLearningGuide.Infraestructure/          # Capa de Infraestructura
-│   ├── SoftwareLearningGuide.Infraestructure.Data/ # EF Core, DbContext, Configuraciones
-│   │   ├── Context/                                # ApplicationDbContext
-│   │   ├── Configurations/                         # OrderConfiguration, etc.
-│   │   └── Repositories/                           # OrderWriteRepository, UnitOfWork
-│   ├── Ports/                                      # IOrderWriteRepository
-│   └── Dependencies.cs                             # Registro de DI
-│
-├── SoftwareLearningGuide.Api/                      # API REST ASP.NET Core
-│   ├── Controllers/                                # OrderController, WeatherForecast, etc.
-│   ├── Extensions/                                 # OpenTelemetry, ApiVersioning, Options, ConfigurationBuilder
-│   ├── FeatureToggles/                             # Feature Management: constantes, provider personalizado
-│   ├── Middlewares/                                 # GlobalExceptionMiddleware
-│   ├── Metrics/                                    # OrderMetrics (metricas de negocio)
-│   ├── Startup/                                    # DI: Commands, Queries, Repos, Metrics
-│   ├── Options/                                    # OpenTelemetryOptions, DatabaseOptions, FeatureManagementApiConfigurationOptions
-│   ├── appsettings.json                            # Configuracion base (valores vacios)
-│   ├── appsettings.Development.json                # Configuracion de desarrollo (valores reales)
-│   ├── README.CleanArchitecture.md                 # Capas, regla de dependencias, Ports & Adapters
-│   └── Program.cs                                  # Entry point
-│
-├── SoftwareLearningGuide.OutboxProcessor/          # Worker Service: Outbox → RabbitMQ
-│   ├── Options/                                    # DatabaseOptions, MessageBrokerOptions, OpenTelemetryOptions
-│   ├── Extensions/                                 # Option configuration, OpenTelemetry
-│   ├── Program.cs                                  # Entry point con MassTransit (solo publica)
-│   ├── appsettings.json                            # ConnectionStrings + RabbitMQ config
-│   └── README.OutboxPattern.md                     # Guia del Patron Outbox
-│
-├── SoftwareLearningGuide.Consumer/                 # Worker Service: RabbitMQ → Business Logic
-│   ├── Consumers/                                  # OrderCreatedConsumer, ProductCreatedConsumer, etc.
-│   ├── Events/Input/                               # Integration Events (DTOs de entrada)
-│   ├── Metrics/                                    # ConsumerMetrics (metricas de consumo)
-│   ├── Options/                                    # MessageBrokerOptions, OpenTelemetryOptions
-│   ├── Extensions/                                 # Option configuration, OpenTelemetry
-│   ├── Program.cs                                  # Entry point con MassTransit (solo consume)
-│   └── appsettings.json                            # RabbitMQ config + OpenTelemetry
-│
-├── docker-compose.yml                              # Stack: Aspire + SQL Server + Flagsmith + PostgreSQL + RabbitMQ
-└── README.md                                       # Este archivo
+```mermaid
+graph TD
+    Root["SoftwareLearningGuide/"]
+    
+    Core["Core.Business<br/>Capa de Dominio (DDD)"]
+    CoreExc["Exceptions/<br/>Excepciones del dominio + Result&lt;T&gt;"]
+    CoreErr["Errors/<br/>DomainErrors: catalogo centralizado"]
+    CoreVO["ValueObjects/<br/>Money, Email, Address, OrderId"]
+    CoreEnt["Entities/<br/>Product, Customer, OrderLine"]
+    CoreAgg["Aggregates/<br/>Order (raiz del agregado)"]
+    
+    App["Application/<br/>Capa de Aplicacion"]
+    AppQuery["Application.Query/<br/>Queries (Dapper, lectura)"]
+    AppQueryGet["GetOrder/<br/>GetOrderQuery + Handler"]
+    AppCmd["Application.Command/<br/>Commands (EF Core, escritura)"]
+    AppCmdCreate["CreateOrder/<br/>CreateOrderCommand + Handler"]
+    AppCmdPorts["Ports/<br/>IOrderWriteRepository, IUnitOfWork"]
+    
+    Infra["Infraestructure/<br/>Capa de Infraestructura"]
+    InfraData["Infraestructure.Data/<br/>EF Core, DbContext"]
+    InfraDataCtx["Context/<br/>ApplicationDbContext"]
+    InfraDataConf["Configurations/<br/>OrderConfiguration"]
+    InfraDataRepo["Repositories/<br/>OrderWriteRepository, UnitOfWork"]
+    InfraPorts["Ports/<br/>IOrderWriteRepository"]
+    
+    Api["Api/<br/>API REST ASP.NET Core"]
+    ApiCtrl["Controllers/<br/>OrderController, WeatherForecast"]
+    ApiExt["Extensions/<br/>OpenTelemetry, ApiVersioning"]
+    ApiFeat["FeatureToggles/<br/>Feature Management"]
+    ApiMid["Middlewares/<br/>GlobalExceptionMiddleware"]
+    ApiMet["Metrics/<br/>OrderMetrics"]
+    
+    Outbox["OutboxProcessor/<br/>Worker Service: Outbox → RabbitMQ"]
+    Consumer["Consumer/<br/>Worker Service: RabbitMQ → Business Logic"]
+    Docker["docker-compose.yml"]
+    
+    Root --> Core
+    Root --> App
+    Root --> Infra
+    Root --> Api
+    Root --> Outbox
+    Root --> Consumer
+    Root --> Docker
+    
+    Core --> CoreExc
+    Core --> CoreErr
+    Core --> CoreVO
+    Core --> CoreEnt
+    Core --> CoreAgg
+    
+    App --> AppQuery
+    AppQuery --> AppQueryGet
+    App --> AppCmd
+    AppCmd --> AppCmdCreate
+    AppCmd --> AppCmdPorts
+    
+    Infra --> InfraData
+    InfraData --> InfraDataCtx
+    InfraData --> InfraDataConf
+    InfraData --> InfraDataRepo
+    Infra --> InfraPorts
+    
+    Api --> ApiCtrl
+    Api --> ApiExt
+    Api --> ApiFeat
+    Api --> ApiMid
+    Api --> ApiMet
+    
+    style Root fill:#512BD4,color:#fff,stroke:#4020a6
+    style Core fill:#4ECDC4,color:#fff
+    style App fill:#FF6B6B,color:#fff
+    style Infra fill:#45B7D1,color:#fff
+    style Api fill:#8B5CF6,color:#fff
+    style Outbox fill:#FF4655,color:#fff
+    style Consumer fill:#FF6600,color:#fff
+    style Docker fill:#2496ED,color:#fff
 ```
 
 ---
@@ -335,37 +349,46 @@ Esta seccion explica como interactuan los 3 artefactos del sistema cuando un cli
 
 ### Los 3 Artefactos
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│  1. API (SoftwareLearningGuide.Api)                             │
-│     Recibe HTTP, valida, persiste, genera eventos               │
-├─────────────────────────────────────────────────────────────────┤
-│  2. OutboxProcessor (SoftwareLearningGuide.OutboxProcessor)     │
-│     Lee tabla OutboxMessage, publica a RabbitMQ                 │
-├─────────────────────────────────────────────────────────────────┤
-│  3. Consumer (SoftwareLearningGuide.Consumer)                   │
-│     Escucha RabbitMQ, ejecuta logica de negocio externa         │
-└─────────────────────────────────────────────────────────────────┘
+```mermaid
+graph LR
+    subgraph API["1. API"]
+        API_DESC["Recibe HTTP, valida,<br/>persiste, genera eventos"]
+    end
+    
+    subgraph Outbox["2. OutboxProcessor"]
+        OUTBOX_DESC["Lee tabla OutboxMessage,<br/>publica a RabbitMQ"]
+    end
+    
+    subgraph Consumer["3. Consumer"]
+        CONSUMER_DESC["Escucha RabbitMQ,<br/>ejecuta logica de negocio externa"]
+    end
+    
+    API --> Outbox
+    Outbox --> Consumer
+    
+    style API fill:#8B5CF6,color:#fff
+    style Outbox fill:#FF4655,color:#fff
+    style Consumer fill:#FF6600,color:#fff
 ```
 
 ### Paso 1: El cliente envia POST /api/v1/product
 
 El request llega al `ProductController`, que despacha un `CreateProductCommand` via MediatR:
 
-```
-POST /api/v1/product
-Body: { "name": "Laptop", "description": "Gaming laptop", "price": 1200.00, "currency": "USD", "stock": 10 }
-
-    │
-    ▼
-ProductController.Create()
-    │  [FeatureGate: FT_ENABLE_PRODUCT_CONTROLLER + FT_ENABLE_PRODUCT_CREATION]
-    │
-    ▼
-IMediator.Send(CreateProductCommand)
-    │
-    ▼
-CreateProductCommandHandler.Handle()
+```mermaid
+sequenceDiagram
+    participant C as Cliente
+    participant PC as ProductController
+    participant M as MediatR
+    participant H as CreateProductCommandHandler
+    
+    C->>+PC: POST /api/v1/product
+    Note over PC: FeatureGate check<br/>FT_ENABLE_PRODUCT_CONTROLLER<br/>FT_ENABLE_PRODUCT_CREATION
+    PC->>+M: Send(CreateProductCommand)
+    M->>+H: Handle()
+    H-->>-M: Result
+    M-->>-PC: Result
+    PC-->>-C: 201 Created
 ```
 
 ### Paso 2: El Command Handler crea el dominio
@@ -385,29 +408,41 @@ var product = new Product(productId, "Laptop", "Gaming laptop",
 
 El handler llama a `_unitOfWork.SaveChangesAsync()` que hace dos cosas:
 
-```
-unitOfWork.SaveChangesAsync()
-    │
-    ├── 1. DispatchDomainEventsAsync()
-    │      │
-    │      ├── Busca entidades ProduceEvents con eventos pendientes
-    │      │   └── Encuentra Product con ProductCreatedDomainEvent
-    │      │
-    │      ├── IMediator.Publish(ProductCreatedDomainEvent)
-    │      │   └── ProductCreatedNotificationHandler.Handle()
-    │      │       │
-    │      │       └── Crea ProductCreatedIntegrationEvent
-    │      │           └── IPublishEndpoint.Publish(integrationEvent)
-    │      │               └── MassTransit escribe en OutboxMessage
-    │      │                   (EN LA MISMA TRANSACCION SQL)
-    │      │
-    │      └── ClearDomainEvents() ← Limpia para no re-procesar
-    │
-    └── 2. _context.SaveChangesAsync()
-           │
-           ├── INSERT INTO Products (...) VALUES (...)
-           └── INSERT INTO OutboxMessage (...) VALUES (...)
-           └── COMMIT ← ATOMICO: producto + mensaje juntos
+```mermaid
+sequenceDiagram
+    participant H as Handler
+    participant UoW as UnitOfWork
+    participant M as MediatR
+    participant NH as NotificationHandler
+    participant MT as MassTransit
+    participant DB as SQL Server
+    
+    H->>+UoW: SaveChangesAsync()
+    
+    Note over UoW: 1. DispatchDomainEventsAsync()
+    UoW->>UoW: Busca entidades ProduceEvents
+    Note over UoW: Encuentra Product con<br/>ProductCreatedDomainEvent
+    
+    UoW->>+M: Publish(ProductCreatedDomainEvent)
+    M->>+NH: Handle()
+    NH->>NH: Crea ProductCreatedIntegrationEvent
+    NH->>+MT: Publish(integrationEvent)
+    Note over MT: MassTransit escribe en<br/>OutboxMessage<br/>(EN LA MISMA TRANSACCION SQL)
+    MT-->>-NH: OK
+    NH-->>-M: OK
+    M-->>-UoW: OK
+    
+    Note over UoW: ClearDomainEvents()
+    
+    Note over UoW: 2. _context.SaveChangesAsync()
+    UoW->>+DB: BEGIN TRANSACTION
+    UoW->>DB: INSERT INTO Products (...)
+    UoW->>DB: INSERT INTO OutboxMessage (...)
+    UoW->>DB: COMMIT
+    DB-->>-UoW: OK
+    UoW-->>-H: OK
+    
+    Note over DB: ATOMICO: producto + mensaje juntos
 ```
 
 **Clave:** El producto y el mensaje de outbox se guardan en la **misma transaccion SQL**. Si algo falla, no se guarda el producto y no se genera el mensaje.
@@ -416,20 +451,30 @@ unitOfWork.SaveChangesAsync()
 
 El `OutboxProcessor` es un Worker Service que revisa la tabla `OutboxMessage` cada 5 segundos:
 
-```
-OutboxProcessor (cada 5 segundos)
-    │
-    ├── SELECT * FROM OutboxMessage WHERE Sent IS NULL
-    │   └── Encuentra el registro con ProductCreatedIntegrationEvent
-    │
-    ├── MassTransit lee el body del mensaje
-    │
-    ├── Publica a RabbitMQ
-    │   └── Exchange: ProductCreatedIntegrationEvent
-    │       └── Cola: product-created
-    │
-    └── UPDATE OutboxMessage SET Sent = GETUTCDATE()
-        (o DELETE, segun configuracion)
+```mermaid
+sequenceDiagram
+    participant OP as OutboxProcessor
+    participant DB as SQL Server
+    participant MT as MassTransit
+    participant RMQ as RabbitMQ
+    
+    loop Cada 5 segundos
+        OP->>+DB: SELECT * FROM OutboxMessage WHERE Sent IS NULL
+        DB-->>-OP: Registros pendientes
+        Note over OP: Encuentra registro con<br/>ProductCreatedIntegrationEvent
+        
+        OP->>MT: Lee body del mensaje
+        OP->>+MT: Publica a RabbitMQ
+        MT->>+RMQ: Exchange: ProductCreatedIntegrationEvent
+        Note over RMQ: Cola: product-created
+        RMQ-->>-MT: OK
+        MT-->>-OP: OK
+        
+        OP->>+DB: UPDATE OutboxMessage SET Sent = GETUTCDATE()
+        DB-->>-OP: OK
+    end
+    
+    Note over RMQ: Si RabbitMQ esta caido,<br/>OutboxProcessor reintenta<br/>automaticamente
 ```
 
 **Nota:** Si RabbitMQ esta caido, el OutboxProcessor reintenta automaticamente cuando el broker se recupera. No se pierden mensajes.
@@ -438,72 +483,75 @@ OutboxProcessor (cada 5 segundos)
 
 El `ProductCreatedConsumer` en el servicio Consumer escucha la cola `product-created`:
 
-```
-Consumer (escucha RabbitMQ)
-    │
-    └── ProductCreatedConsumer.Handle()
-        │
-        ├── Recibe ProductCreatedIntegrationEvent:
-        │   { ProductId: "...", Name: "Laptop", Price: 1200, Currency: "USD" }
-        │
-        ├── Log de confirmacion
-        │
-        └── Logica de negocio externa (ejemplo):
-            ├── Enviar email de bienvenida al catalogo
-            ├── Actualizar cache de productos
-            └── Notificar a sistema de inventario
+```mermaid
+sequenceDiagram
+    participant RMQ as RabbitMQ
+    participant C as ProductCreatedConsumer
+    participant L as Logger
+    participant EXT as Sistemas Externos
+    
+    RMQ->>+C: ProductCreatedIntegrationEvent
+    Note over C: { ProductId: "...",<br/>Name: "Laptop",<br/>Price: 1200, Currency: "USD" }
+    
+    C->>+L: Log de confirmacion
+    L-->>-C: OK
+    
+    par Logica de negocio externa
+        C->>+EXT: Enviar email de bienvenida
+        EXT-->>-C: OK
+    and
+        C->>+EXT: Actualizar cache de productos
+        EXT-->>-C: OK
+    and
+        C->>+EXT: Notificar a sistema de inventario
+        EXT-->>-C: OK
+    end
+    
+    C-->>-RMQ: OK
 ```
 
 ### Diagrama Visual Completo
 
-```
-   Cliente                    API                    SQL Server            RabbitMQ              Consumer
-      │                         │                         │                    │                     │
-      │  POST /api/v1/product   │                         │                    │                     │
-      │─────────────────────────│                         │                    │                     │
-      │                         │                         │                    │                     │
-      │                         │    ProductController    │                    │                     │
-      │                         │    FeatureGate check    │                    │                     │
-      │                         │                         │                    │                     │
-      │                         │    CreateProductHandler │                    │                     │
-      │                         │    new Product(...)     │                    │                     │
-      │                         │    AddDomainEvent(...)  │                    │                     │
-      │                         │                         │                    │                     │
-      │                         │UnitOfWork.SaveChangesAsy│                    │                     │
-      │                         │                         │                    │                     │
-      │                         │DispatchDomainEventsAsync│                    │                     │
-      │                         │                         │                    │                     │
-      │                         │    IMediator.Publish()  │                    │                     │
-      │                         │                         │                    │                     │
-      │                         │    NotificationHandler  │                    │                     │
-      │                         │                         │                    │                     │
-      │                         │  MassTransit → OutboxMes│                    │                     │
-      │                         │                         │                    │                     │
-      │                         │  BEGIN TRANSACTION      │                    │                     │
-      │                         │  INSERT INTO Products   │                    │                     │
-      │                         │  INSERT INTO OutboxMsg  │                    │                     │
-      │                         │  COMMIT                 │                    │                     │
-      │                         │◄────────────────────────│                    │                     │
-      │                         │                         │                    │                     │
-      │  201 Created            │                         │                    │                     │
-      │◄────────────────────────│                         │                    │                     │
-      │                         │                         │                    │                     │
-      │                         │OutboxProcessor (cada 5s)│                    │                     │
-      │                         │  SELECT FROM OutboxMsg  │                    │                     │
-      │                         │────────────────────────►│                    │                     │
-      │                         │                         │                    │                     │
-      │                         │  Publica a RabbitMQ     │                    │                     │
-      │                         │────────────────────────────────────────────-►│                     │
-      │                         │                         │                    │                     │
-      │                         │  UPDATE Sent = NOW()    │                    │                     │
-      │                         │────────────────────────►│                    │                     │
-      │                         │                         │                    │                     │
-      │                         │                         │                    │Cola product-created │
-      │                         │                         │                    │  Consume mensaje    │
-      │                         │                         │                    │───────────────────-►│
-      │                         │                         │                    │                     │
-      │                         │                         │                    │                     │ ProductCreatedConsumer
-      │                         │                         │                    │                     │ Log + logica externa
+```mermaid
+sequenceDiagram
+    participant C as Cliente
+    participant API as API
+    participant SQL as SQL Server
+    participant RMQ as RabbitMQ
+    participant CON as Consumer
+    
+    C->>+API: POST /api/v1/product
+    Note over API: ProductController<br/>FeatureGate check
+    Note over API: CreateProductHandler<br/>new Product(...)<br/>AddDomainEvent(...)
+    
+    API->>API: UnitOfWork.SaveChangesAsy
+    Note over API: DispatchDomainEventsAsync
+    Note over API: IMediator.Publish()
+    Note over API: NotificationHandler
+    Note over API: MassTransit → OutboxMsg
+    
+    API->>+SQL: BEGIN TRANSACTION
+    API->>SQL: INSERT INTO Products
+    API->>SQL: INSERT INTO OutboxMsg
+    API->>SQL: COMMIT
+    SQL-->>-API: OK
+    
+    API-->>-C: 201 Created
+    
+    Note over API: OutboxProcessor (cada 5s)
+    API->>+SQL: SELECT FROM OutboxMsg
+    SQL-->>-API: Registros pendientes
+    
+    API->>+RMQ: Publica a RabbitMQ
+    Note over RMQ: Cola product-created
+    RMQ-->>-API: OK
+    
+    API->>+SQL: UPDATE Sent = NOW()
+    SQL-->>-API: OK
+    
+    RMQ->>+CON: Consume mensaje
+    Note over CON: ProductCreatedConsumer<br/>Log + logica externa
+    CON-->>-RMQ: OK
 ```
 
 ### Que sucede si algo falla?

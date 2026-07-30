@@ -76,18 +76,38 @@ else
 
 ### Resumen Visual
 
-```
-Feature Toggle                          Feature Flag
-─────────────────────────────           ─────────────────────────────
-Liberar funcionalidades                 Parallel changes / Migraciones
-│                                       │
-├─ Release gradual a usuarios           ├─ Migracion sin downtime
-├─ Experimentos A/B                     ├─ Despliegue seguro
-├─ Control operacional                  ├─ Kill switch
-└─ Control por rol/mercado              └─ Control por entorno
+```mermaid
+graph TD
+    subgraph FT["Feature Toggle"]
+        direction TD
+        FT1["Liberar funcionalidades"]
+        FT1A["Release gradual a usuarios"]
+        FT1B["Experimentos A/B"]
+        FT1C["Control operacional"]
+        FT1D["Control por rol/mercado"]
+        FT1 --> FT1A
+        FT1 --> FT1B
+        FT1 --> FT1C
+        FT1 --> FT1D
+        FT_L["Vinculado al: Ciclo de vida de la funcionalidad"]
+    end
 
-Vinculado al: Ciclo de vida             Vinculado al: Despliegue
-de la funcionalidad                     y la operacion
+    subgraph FF["Feature Flag"]
+        direction TD
+        FF1["Parallel changes / Migraciones"]
+        FF1A["Migracion sin downtime"]
+        FF1B["Despliegue seguro"]
+        FF1C["Kill switch"]
+        FF1D["Control por entorno"]
+        FF1 --> FF1A
+        FF1 --> FF1B
+        FF1 --> FF1C
+        FF1 --> FF1D
+        FF_L["Vinculado al: Despliegue y la operacion"]
+    end
+
+    style FT fill:#e1f5fe,stroke:#0288d1
+    style FF fill:#e8f5e9,stroke:#388e3c
 ```
 
 > **La diferencia fundamental es el propósito:** un Toggle libera funcionalidades gradualmente (como un grifo que abres poco a poco), mientras que un Flag permite migraciones seguras (como un interruptor que cambias de una pared a otra). En la práctica, muchos usos se superponen, pero entender la diferencia te ayuda a elegir la herramienta correcta.
@@ -140,15 +160,16 @@ public class OrderController : ControllerBase
 
 ### Flujo con FeatureGate
 
-```
-Request: GET /api/v1/order/{id}
-    │
-    ▼
-[FeatureGate(FT_ENABLE_ORDER_RETRIEVAL)] se evalua
-    │
-    ├─ FT_ENABLE_ORDER_RETRIEVAL = true  → Ejecuta GetById()
-    │
-    └─ FT_ENABLE_ORDER_RETRIEVAL = false → Retorna 404 Not Found
+```mermaid
+graph TD
+    A["Request: GET /api/v1/order/{id}"] --> B["[FeatureGate(FT_ENABLE_ORDER_RETRIEVAL)] se evalua"]
+    B --> C{"FT_ENABLE_ORDER_RETRIEVAL = ?"}
+    C -- "true" --> D["Ejecuta GetById()"]
+    C -- "false" --> E["Retorna 404 Not Found"]
+
+    style A fill:#e3f2fd,stroke:#1565c0
+    style D fill:#e8f5e9,stroke:#2e7d32
+    style E fill:#ffebee,stroke:#c62828
 ```
 
 ### Uso Multiple (AND/OR)
@@ -169,28 +190,26 @@ El **Feature Hot Reload** permite que los feature flags se actualicen en tiempo 
 
 ### Como Funciona
 
-```
-Flagsmith (Docker)          Aplicacion .NET
-─────────────────          ─────────────────
-                           Load() + Timer cada N segundos
-                               │
-    Cambias un flag            │
-    en el panel web            │
-         │                     │
-         │    FetchFlags()     │
-         ◄─────────────────────│  ← Polling periodico
-         │                     │
-         │    OnReload()       │
-         │────────────────────►│  ← Notifica a IConfiguration
-                               │
-                               │  IFeatureManager lee nuevos valores
-                               │
-    GET /api/v1/order          │
-    ──────────────────────────►│  ← Feature evaluado con valor actualizado
-         │                     │
-         ◄─────────────────────│
-    Response con nuevo         │
-    comportamiento             │
+```mermaid
+sequenceDiagram
+    participant WP as Panel Web Flagsmith
+    participant F as Flagsmith (Docker)
+    participant App as Aplicacion .NET
+
+    Note over App: Load() + Timer cada N segundos
+
+    WP->>WP: Cambias un flag en el panel web
+
+    App->>F: FetchFlags() (Polling periodico)
+    F-->>App: Devuelve flags actualizados
+
+    App->>App: OnReload() - Notifica a IConfiguration
+
+    Note over App: IFeatureManager lee nuevos valores
+
+    WP->>App: GET /api/v1/order
+    App-->>WP: Response con nuevo comportamiento
+    Note over App: Feature evaluado con valor actualizado
 ```
 
 ### Configuracion
@@ -239,22 +258,19 @@ private readonly IFeatureManagerSnapshot _featureManager;
 
 La implementacion usa una arquitectura de **doble fuente** con prioridad y **hot reload**:
 
-```
-Fuente externa (Flagsmith en Docker)
-    │
-    │  Prioridad ALTA (sobreescribe)
-    ▼
-┌──────────────────────────────────────────────────────┐
-│               Microsoft IConfiguration               │
-│                                                      │
-│  FeatureManagement:FT_ENABLE_ORDER_CREATION = true   │  ← Flagsmith (externo)
-│  FeatureManagement:FT_ENABLE_ORDER_CREATION = false  │  ← appsettings (interno)
-│                                                      │
-│  El ultimo provider registrado gana.                 │
-│  Flagsmith se registra DESPUES de appsettings        │
-│                                                      │
-│  Timer cada N segundos → FetchFlags() → OnReload()   │  ← Hot Reload
-└──────────────────────────────────────────────────────┘
+```mermaid
+graph TD
+    FW[Fuente externa<br/>Flagsmith en Docker] -->|"Prioridad ALTA<br/>(sobreescribe)"| IC[Microsoft IConfiguration]
+
+    subgraph IC [Microsoft IConfiguration]
+        ICF[FeatureManagement:FT_ENABLE_ORDER_CREATION = true<br/><i>Flagsmith (externo)</i>]
+        ICA[FeatureManagement:FT_ENABLE_ORDER_CREATION = false<br/><i>appsettings (interno)</i>]
+        ICR[El ultimo provider registrado gana.<br/>Flagsmith se registra DESPUES de appsettings]
+        ICH[Timer cada N segundos → FetchFlags() → OnReload()<br/><i>Hot Reload</i>]
+    end
+
+    style FW fill:#e1f5fe,stroke:#01579b
+    style IC fill:#fff3e0,stroke:#e65100
 ```
 
 **Flujo de carga:**
@@ -711,50 +727,34 @@ public static class FeatureToggleNames
 
 ## Diagrama de Flujo
 
-```
-App arranca
-    │
-    ▼
-IConfiguration carga appsettings.json
-    │  FeatureManagement:FT_ENABLE_ORDER = false
-    │
-    ▼
-IConfiguration carga appsettings.Development.json
-    │  FeatureManagement:FT_ENABLE_ORDER = true
-    │  FeatureManagementApiConfiguration:ApiUrl = "http://localhost:8000/..."
-    │  FeatureManagementApiConfiguration:ReloadIntervalSeconds = 3
-    │
-    ▼
-ConfigurationBuilderExtensions.AddFeatureManagementConfiguration()
-    │
-    ├─ ApiUrl vacio? → No consulta Flagsmith, usa valores locales
-    │
-    └─ ApiUrl con valor? → FeatureManagementConfigurationProvider.Load()
-         │
-         ├─ FetchFlags() → Consulta Flagsmith, sobreescribe FeatureManagement
-         │
-         └─ Timer cada 3 segundos → FetchFlags() + OnReload()
-              │
-              ├─ Flagsmith responde OK → Actualiza valores + notifica cambios
-              │
-              └─ Flagsmith no responde → Mantiene valores anteriores
-    │
-    ▼
-builder.Services.AddFeatureManagement()
-    │  Registra IFeatureManager + IFeatureManagerSnapshot en DI
-    │
-    ▼
-Request: POST /api/v1/order
-    │
-    ├─ [FeatureGate(FT_ENABLE_ORDER_CONTROLLER)] evalua
-    │   ├─ true  → Continua
-    │   └─ false → 404 Not Found
-    │
-    ├─ [FeatureGate(FT_ENABLE_ORDER_CREATION)] evalua
-    │   ├─ true  → Ejecuta Create()
-    │   └─ false → 404 Not Found
-    │
-    └─ Create() ejecuta logica de negocio
+```mermaid
+graph TD
+    A["App arranca"] --> B["IConfiguration carga appsettings.json<br/>FeatureManagement:FT_ENABLE_ORDER = false"]
+    B --> C["IConfiguration carga appsettings.Development.json<br/>FeatureManagement:FT_ENABLE_ORDER = true<br/>ApiUrl = localhost:8000/...<br/>ReloadIntervalSeconds = 3"]
+    C --> D["ConfigurationBuilderExtensions<br/>.AddFeatureManagementConfiguration()"]
+    D --> E{"ApiUrl vacio?"}
+    E -- "Si" --> F["No consulta Flagsmith<br/>usa valores locales"]
+    E -- "No" --> G["FeatureManagementConfigurationProvider<br/>.Load()"]
+    G --> H["FetchFlags()<br/>Consulta Flagsmith, sobreescribe FeatureManagement"]
+    G --> I["Timer cada 3 segundos<br/>FetchFlags() + OnReload()"]
+    I --> J{"Flagsmith responde?"}
+    J -- "OK" --> K["Actualiza valores<br/>notifica cambios"]
+    J -- "No responde" --> L["Mantiene valores anteriores"]
+    H --> M["builder.Services.AddFeatureManagement()<br/>Registra IFeatureManager +<br/>IFeatureManagerSnapshot en DI"]
+    K --> M
+    L --> M
+    F --> M
+    M --> N["Request: POST /api/v1/order"]
+    N --> O{"[FeatureGate(FT_ENABLE_ORDER_CONTROLLER)]"}
+    O -- "true" --> P{"[FeatureGate(FT_ENABLE_ORDER_CREATION)]"}
+    O -- "false" --> Q["404 Not Found"]
+    P -- "true" --> R["Create() ejecuta logica de negocio"]
+    P -- "false" --> Q
+
+    style A fill:#e3f2fd,stroke:#1565c0
+    style F fill:#fff3e0,stroke:#e65100
+    style Q fill:#ffebee,stroke:#c62828
+    style R fill:#e8f5e9,stroke:#2e7d32
 ```
 
 ---

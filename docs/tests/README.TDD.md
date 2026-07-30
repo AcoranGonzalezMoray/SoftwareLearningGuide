@@ -17,32 +17,19 @@ No es una estrategia de testing — es una **técnica de diseño** que produce c
 
 ## Ciclo Red-Green-Refactor
 
-```
-┌─────────────────────────────────────────────────────┐
-│                     RED                             │
-│  1. Escribe un test que falle                       │
-│  2. Define el comportamiento deseado                │
-│  3. El test ni siquiera compila (aún no existe el   │
-│     código de producción)                           │
-└─────────────────────────────────────────────────────┘
-         │
-         ▼
-┌─────────────────────────────────────────────────────┐
-│                    GREEN                            │
-│  1. Escribe el código mínimo para que el test pase  │
-│  2. Sin importar que "no sea bonito"                │
-│  3. El objetivo es que el test compile y pase       │
-└─────────────────────────────────────────────────────┘
-         │
-         ▼
-┌─────────────────────────────────────────────────────┐
-│                  REFACTOR                           │
-│  1. Mejora el código sin cambiar comportamiento     │
-│  2. Elimina duplicación, mejora nombres, refine     │
-│  3. Los tests deben seguir pasando                  │
-└─────────────────────────────────────────────────────┘
-         │
-         └──→ Vuelve a RED para el siguiente requisito
+```mermaid
+graph TD
+    R["RED\n1. Escribe un test que falle\n2. Define el comportamiento deseado\n3. El test ni siquiera compila (aún no existe el código de producción)"]
+    G["GREEN\n1. Escribe el código mínimo para que el test pase\n2. Sin importar que 'no sea bonito'\n3. El objetivo es que el test compile y pase"]
+    RF["REFACTOR\n1. Mejora el código sin cambiar comportamiento\n2. Elimina duplicación, mejora nombres, refine\n3. Los tests deben seguir pasando"]
+
+    R -->|Red| G
+    G -->|Green| RF
+    RF -->|"Vuelve a RED para el siguiente requisito"| R
+
+    style R fill:#ffcccc,stroke:#ff0000,color:#000
+    style G fill:#ccffcc,stroke:#00aa00,color:#000
+    style RF fill:#ccccff,stroke:#0000ff,color:#000
 ```
 
 ---

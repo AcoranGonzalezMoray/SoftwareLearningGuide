@@ -286,58 +286,38 @@ public async Task CreateProduct_WithDifferentCurrencies_ShouldSucceed(string cur
 
 ## Pattern Diagram
 
-```
-Director (Test / Controller)
-     │
-     │  new OrderBuilder()
-     │     .WithCustomerId(...)
-     │     .WithShippingAddress(...)
-     │     .WithProduct(...)
-     │     .Build()
-     │
-     ▼
-┌──────────────────────────────────────────────────────┐
-│  OrderBuilder                                        │
-│                                                      │
-│  _id = OrderId.Create()          ← default values    │
-│  _customerId = CustomerId.Create()                   │
-│  _address = ...valid address...                      │
-│  _lines = []                                         │
-│                                                      │
-│  + WithId(Guid)           → return this              │
-│  + WithCustomerId(Guid)   → return this              │
-│  + WithShippingAddress()  → return this              │
-│  + WithProduct(p, qty)    → return this              │
-│  + Build()                → Order (final object)     │
-└──────────────────────────────────────────────────────┘
-     │
-     ▼ Build()
-┌──────────────────────────────────────────────────────┐
-│  Order — Object built step by step                   │
-│  Id, CustomerId, ShippingAddress, Lines, Status      │
-└──────────────────────────────────────────────────────┘
+```mermaid
+graph TD
+    A["Director (Test / Controller)"] -->|"new OrderBuilder().With...().Build()"| B
+
+    B["OrderBuilder<br/>─────────────────────<br/>_id = OrderId.Create()  ← default values<br/>_customerId = CustomerId.Create()<br/>_address = ...valid address...<br/>_lines = []<br/>─────────────────────<br/>+ WithId(Guid) → return this<br/>+ WithCustomerId(Guid) → return this<br/>+ WithShippingAddress() → return this<br/>+ WithProduct(p, qty) → return this<br/>+ Build() → Order"]
+
+    B -->|"Build()"| C
+
+    C["Order — Object built step by step<br/>─────────────────────<br/>Id, CustomerId, ShippingAddress,<br/>Lines, Status"]
 ```
 
 ---
 
 ## When to Use Builder vs Factory
 
-```
-Does the object have many optional fields?
-└── YES → Builder (more readable, more flexible)
-└── NO → Factory (more direct)
+```mermaid
+graph TD
+    Q1{"Does the object have many<br/>optional fields?"}
+    Q1 -->|"YES"| B1["Builder<br/>(more readable, more flexible)"]
+    Q1 -->|"NO"| F1["Factory<br/>(more direct)"]
 
-Do you need to create variants of the same object in tests?
-└── YES → Builder with default values
-└── NO → Static factory
+    Q2{"Do you need to create variants<br/>of the same object in tests?"}
+    Q2 -->|"YES"| B2["Builder with default values"]
+    Q2 -->|"NO"| F2["Static factory"]
 
-Do the parameters have a specific construction order?
-└── YES → Builder with methods in order
-└── NO → Static factory
+    Q3{"Do the parameters have a<br/>specific construction order?"}
+    Q3 -->|"YES"| B3["Builder with methods in order"]
+    Q3 -->|"NO"| F3["Static factory"]
 
-Is the object an immutable record with init properties?
-└── YES → record with {} (native C# lightweight Builder)
-└── NO → Classic Builder
+    Q4{"Is the object an immutable record<br/>with init properties?"}
+    Q4 -->|"YES"| B4["record with {}<br/>(native C# lightweight Builder)"]
+    Q4 -->|"NO"| F4["Classic Builder"]
 ```
 
 ---

@@ -29,28 +29,27 @@ Un **middleware** es una clase que procesa cada petición HTTP antes o después 
 - **Cortocircuitar** el pipeline (no llamar al siguiente)
 - Manejar errores
 
-```
-Request → [Middleware 1] → [Middleware 2] → [Controller] → Response
+```mermaid
+graph LR
+    Request --> M1[Middleware 1]
+    M1 --> M2[Middleware 2]
+    M2 --> C[Controller]
+    C --> Response
 ```
 
 ### Analogía
 
 Piensa en el middleware como una **cadena de seguridad** en una fábrica:
 
-```
-Entrada de materiales
-    │
-    ▼
-[Inspección de calidad]  ← middleware
-    │
-    ▼
-[Procesamiento]          ← controller
-    │
-    ▼
-[Empaquetado]            ← otro middleware
-    │
-    ▼
-Salida de producto
+```mermaid
+graph TD
+    A[Entrada de materiales] --> B[Inspección de calidad]:::middleware
+    B --> C[Procesamiento]:::controller
+    C --> D[Empaquetado]:::middleware
+    D --> E[Salida de producto]
+
+    classDef middleware fill:#f9f,stroke:#333,stroke-width:2px
+    classDef controller fill:#bbf,stroke:#333,stroke-width:2px
 ```
 
 Si algo falla en cualquier paso, la cadena de seguridad lo atrapa y reporta el problema sin detener toda la fábrica.
@@ -207,40 +206,43 @@ using (_logger.BeginScope(new Dictionary<string, object>
 
 ### Jerarquía Visual
 
-```
-Request: POST /api/v1/order
-│
-├── [Middleware Scope] CorrelationId=abc, Method=POST, Path=/api/v1/order, IP=127.0.0.1
-│   │
-│   ├── [Controller Scope] CustomerId=550e8400, LineCount=3
-│   │   │
-│   │   ├── Log: "Iniciando creación..."
-│   │   │   → CorrelationId=abc, Method=POST, Path=/api/v1/order, IP=127.0.0.1,
-│   │   │     CustomerId=550e8400, LineCount=3
-│   │   │
-│   │   └── EXCEPCIÓN → Controller scopeDisposed (using block termina)
-│   │
-│   └── catch: _logger.LogError(ex, "Excepción...")
-│       → CorrelationId=abc, Method=POST, Path=/api/v1/order, IP=127.0.0.1
-│       (scope del controller YA NO EXISTE, pero el del middleware SÍ)
+```mermaid
+graph TD
+    R[Request: POST /api/v1/order] --> MS[Middleware Scope<br/>CorrelationId=abc<br/>Method=POST<br/>Path=/api/v1/order<br/>IP=127.0.0.1]
+    MS --> CS[Controller Scope<br/>CustomerId=550e8400<br/>LineCount=3]
+    CS --> L1["Log: 'Iniciando creación...'"]
+    L1 --> C1[CorrelationId=abc<br/>Method=POST<br/>Path=/api/v1/order<br/>IP=127.0.0.1<br/>CustomerId=550e8400<br/>LineCount=3]
+    CS --> EX[EXCEPCIÓN → Controller scope disposed]
+    EX --> CATCH["catch: _logger.LogError(ex)"]
+    CATCH --> C2[CorrelationId=abc<br/>Method=POST<br/>Path=/api/v1/order<br/>IP=127.0.0.1]
+    C2 --> NOTE["Controller scope YA NO EXISTE<br/>pero middleware scope SÍ"]
+
+    style MS fill:#e1f5fe
+    style CS fill:#f3e5f5
+    style EX fill:#ffebee
+    style CATCH fill:#fff3e0
 ```
 
 ### ¿Por qué el Scope del Middleware es Crítico para Excepciones?
 
 Cuando una excepción ocurre dentro del `using` block del controller:
 
-```
-Controller: using (BeginScope({CustomerId, LineCount})) {
-    _mediator.Send(command);  ← ¡EXCEPCIÓN!
-}
-// Dispose() se llama aquí durante stack unwinding
-// El scope del controller YA NO EXISTE
-
-Middleware: catch (Exception ex) {
-    // El scope del controller fue disposed
-    // PERO el scope del middleware SIGUE ACTIVO
-    _logger.LogError(ex, "...");  // ← SÍ tiene CorrelationId, Method, Path
-}
+```mermaid
+sequenceDiagram
+    participant C as Controller
+    participant M as Middleware
+    
+    Note over C: using (BeginScope({CustomerId, LineCount}))
+    C->>C: _mediator.Send(command)
+    Note over C: ¡EXCEPCIÓN!
+    Note over C: Dispose() se llama durante stack unwinding
+    Note over C: Controller scope YA NO EXISTE
+    
+    Note over M: catch (Exception ex)
+    Note over M: El scope del controller fue disposed
+    Note over M: PERO el scope del middleware SIGUE ACTIVO
+    M->>M: _logger.LogError(ex, "...")
+    Note over M: ✓ SÍ tiene CorrelationId, Method, Path
 ```
 
 **Por eso el middleware crea su propio scope**: es el **único** que garantiza que los datos de contexto estén disponibles cuando se loguea la excepción.
@@ -269,15 +271,14 @@ El cliente recibe una respuesta **500** con JSON:
 
 ### Flujo del Error
 
-```
-Cliente envía request → Middleware captura excepción
-                              │
-                    ┌─────────┴─────────┐
-                    ▼                   ▼
-            Log completo         Respuesta JSON
-            (con stack trace,    (genérica, sin
-            correlationId,       detalles internos)
-            contexto)
+```mermaid
+graph TD
+    C[Cliente envía request] --> M[Middleware captura excepción]
+    M --> L[Log completo<br/>con stack trace<br/>correlationId<br/>contexto]
+    M --> R[Respuesta JSON<br/>genérica, sin<br/>detalles internos]
+
+    style L fill:#e8f5e9
+    style R fill:#fff3e0
 ```
 
 ---
@@ -303,65 +304,48 @@ app.Run();
 
 ### Flujo del Pipeline
 
-```
-Request entrante
-    │
-    ▼
-┌─────────────────────────────────┐
-│  GlobalExceptionMiddleware      │
-│  ┌───────────────────────────┐  │
-│  │  BeginScope(request)      │  │
-│  │  ┌─────────────────────┐  │  │
-│  │  │  try {              │  │  │
-│  │  │    await _next(ctx) │──┼──┼──→ UseHttpsRedirection
-│  │  │  }                  │  │  │         │
-│  │  │  catch (Exception) {│  │  │         ▼
-│  │  │    LogError(ex)     │  │  │     UseAuthorization
-│  │  │    Return 500 JSON  │  │  │         │
-│  │  │  }                  │  │  │         ▼
-│  │  └─────────────────────┘  │  │     MapControllers
-│  │  EndScope                 │  │         │
-│  └───────────────────────────┘  │         ▼
-└─────────────────────────────────┘     Controller action
-                                            │
-                                            ▼
-                                        Response
+```mermaid
+graph TD
+    I[Request entrante] --> GEM[GlobalExceptionMiddleware]
+    GEM --> BS[BeginScope request]
+    BS --> TRY[try: await _next ctx]
+    TRY --> UHR[UseHttpsRedirection]
+    UHR --> UA[UseAuthorization]
+    UA --> MC[MapControllers]
+    MC --> CA[Controller action]
+    CA --> RESP[Response]
+    
+    TRY -->|Excepción| CATCH[catch Exception]
+    CATCH --> LE[LogError ex]
+    LE --> R500[Return 500 JSON]
+    
+    style GEM fill:#e3f2fd
+    style TRY fill:#e8f5e9
+    style CATCH fill:#ffebee
+    style LE fill:#fff3e0
+    style R500 fill:#ffebee
 ```
 
 ---
 
 ## Flujo de una Excepción
 
-```
-1. Controller lanza una excepción (ej: StockInsuficienteException)
-         │
-         ▼
-2. El using block del controller hace Dispose() del scope del controller
-   (scope del controller desaparece del contexto de logging)
-         │
-         ▼
-3. La excepción propaga al GlobalExceptionMiddleware
-         │
-         ▼
-4. El middleware entra al bloque catch:
-   a. Lee HttpContext.Items["LogProperties"] (propiedades adicionales del controller)
-   b. Crea un scope anidado con esas propiedades (si existen)
-   c. Loguea el error CON el scope del middleware activo:
-      - CorrelationId: 0HN1H87G5NL2F:00000001
-      - RequestMethod: POST
-      - RequestPath: /api/v1/order
-      - RemoteIpAddress: 127.0.0.1
-      - Exception completa (stack trace)
-         │
-         ▼
-5. Se devuelve respuesta 500 JSON al cliente:
-   {"error":"An unexpected error occurred.","traceId":"0HN1H87G5NL2F:00000001"}
-         │
-         ▼
-6. El scope del middleware se disposed (using block termina)
-         │
-         ▼
-7. El equipo usa el traceId para buscar el error en OpenTelemetry/Grafana/Aspire
+```mermaid
+graph TD
+    S1["1. Controller lanza excepción<br/>(ej: StockInsuficienteException)"] --> S2["2. Using block del controller hace Dispose()<br/>(scope desaparece del contexto de logging)"]
+    S2 --> S3["3. Excepción propaga a<br/>GlobalExceptionMiddleware"]
+    S3 --> S4["4. Middleware entra al bloque catch:<br/>a. Lee HttpContext.Items['LogProperties']<br/>b. Crea scope anidado con propiedades<br/>c. Loguea error CON scope del middleware activo"]
+    S4 --> S5["5. Devuelve respuesta 500 JSON al cliente<br/>{'error':'An unexpected error occurred.',<br/>'traceId':'0HN1H87G5NL2F:00000001'}"]
+    S5 --> S6["6. Scope del middleware se disposed<br/>(using block termina)"]
+    S6 --> S7["7. Equipo usa traceId para buscar error<br/>en OpenTelemetry/Grafana/Aspire"]
+
+    style S1 fill:#e3f2fd
+    style S2 fill:#fff3e0
+    style S3 fill:#e8f5e9
+    style S4 fill:#fce4ec
+    style S5 fill:#e1f5fe
+    style S6 fill:#f3e5f5
+    style S7 fill:#e8f5e9
 ```
 
 ---
@@ -372,34 +356,36 @@ Request entrante
 
 Antes de usar scopes en el middleware, el problema era:
 
-```
-Controller crea scope({ CorrelationId, CustomerId, ... })
-    │
-    ▼
-Excepción → using block dispose el scope
-    │
-    ▼
-Middleware catch → LogError SIN scope → El log NO tiene CorrelationId
-    │
-    ▼
-Resultado: No puedes correlacionar el error con la request
+```mermaid
+graph TD
+    A[Controller crea scope<br/>CorrelationId, CustomerId, ...] --> B[Excepción → using block dispose scope]
+    B --> C[Middleware catch → LogError SIN scope]
+    C --> D[Log NO tiene CorrelationId]
+    D --> E[Resultado: No puedes correlacionar<br/>el error con la request]
+
+    style A fill:#e3f2fd
+    style B fill:#ffebee
+    style C fill:#fff3e0
+    style D fill:#ffebee
+    style E fill:#ffcdd2
 ```
 
 ### La Solución
 
 El middleware crea su **propio scope** que vive durante toda la request:
 
-```
-Middleware crea scope({ CorrelationId, Method, Path, IP })
-    │
-    ▼
-Controller crea scope adicional({ CustomerId, LineCount })
-    │
-    ▼
-Excepción → scope del controller disposed, pero scope del middleware SIGUE
-    │
-    ▼
-Middleware catch → LogError CON scope del middleware → SÍ tiene CorrelationId
+```mermaid
+graph TD
+    A[Middleware crea scope<br/>CorrelationId, Method, Path, IP] --> B[Controller crea scope adicional<br/>CustomerId, LineCount]
+    B --> C[Excepción → scope controller disposed<br/>pero scope middleware SIGUE]
+    C --> D[Middleware catch → LogError CON scope middleware]
+    D --> E[SÍ tiene CorrelationId]
+
+    style A fill:#e3f2fd
+    style B fill:#e8f5e9
+    style C fill:#fff3e0
+    style D fill:#e8f5e9
+    style E fill:#c8e6c9
 ```
 
 ### HttpContext.Items como Puente

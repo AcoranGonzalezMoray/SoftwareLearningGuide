@@ -300,31 +300,20 @@ if (!orderIdResult.IsSuccess)
 
 ## Pattern Diagram
 
-```
-Client (Handler)
-     │
-     │  var result = Money.Create(100.0m, "USD")
-     │
-     ▼
-┌──────────────────────────────────────────────────────┐
-│  Money                          ← Class with Factory │
-│                                                      │
-│  private Money(decimal, string) ← Hidden constructor │
-│                                                      │
-│  + static Create(amount, currency)                   │
-│    ├── Validate amount >= 0                          │
-│    ├── Validate currency not empty                   │
-│    ├── Validate currency == 3 chars                  │
-│    └── return Result<Money>.Success(new Money(...))  │
-└──────────────────────────────────────────────────────┘
-     │
-     ▼
-Result<Money>
-  IsSuccess = true
-  Value = Money { Amount=100, Currency="USD" }
-    — or —
-  IsSuccess = false
-  Error = DomainErrors.Money.NegativeAmount
+```mermaid
+graph TD
+    A["Client (Handler)"] -->|"Money.Create(100.0m, 'USD')"| B["Money"]
+    subgraph B
+        B1["private Money(decimal, string) — Hidden constructor"]
+        B2["+ static Create(amount, currency)"]
+        B2 --> B3["Validate amount >= 0"]
+        B2 --> B4["Validate currency not empty"]
+        B2 --> B5["Validate currency == 3 chars"]
+        B2 --> B6["return Result&lt;Money&gt;.Success(new Money(...))"]
+    end
+    B --> C{"Success?"}
+    C -->|IsSuccess = true| D["Result&lt;Money&gt;\nValue = Money { Amount=100, Currency='USD' }"]
+    C -->|IsSuccess = false| E["Result&lt;Money&gt;\nError = DomainErrors.Money.NegativeAmount"]
 ```
 
 ---

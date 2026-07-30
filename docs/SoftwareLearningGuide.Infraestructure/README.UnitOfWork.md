@@ -28,17 +28,21 @@ El patrón **Unit of Work** garantiza que múltiples operaciones de repositorio 
 
 Piensa en el Unit of Work como un **cajero de banco** que procesa varias transacciones (transferir dinero, pagar un recibo, etc.) y las confirma todas juntas. Si alguna falla, revierte todo. Tú no hablas con cada sistema individualmente; le dices al cajero "confirma todo" y él se encarga. En términos técnicos: el handler le dice al UnitOfWork "guarde todo esto" y el UnitOfWork se encarga de abrir la transacción SQL, ejecutar todos los INSERTs/UPDATEs, y confirmar o revertir. Sin este patrón, el handler tendría que coordinar cada transacción manualmente, lo cual es propenso a errores y viola el principio de responsabilidad única.
 
-```
-┌─────────────────────────────────────────────────┐
-│              Command Handler                    │
-│                                                 │
-│  1. repo1.AddAsync(entity1)  ← en memoria       │
-│  2. repo2.AddAsync(entity2)  ← en memoria       │
-│  3. repo3.Update(entity3)    ← en memoria       │
-│                                                 │
-│  4. unitOfWork.SaveChangesAsync()  ← UNA SOLA   │
-│     Transacción SQL con TODO el cambio          │
-└─────────────────────────────────────────────────┘
+```mermaid
+graph TD
+    subgraph Command Handler
+        A["1. repo1.AddAsync(entity1)"] -->|"en memoria"| B["2. repo2.AddAsync(entity2)"]
+        B -->|"en memoria"| C["3. repo3.Update(entity3)"]
+        C -->|"en memoria"| D["4. unitOfWork.SaveChangesAsync()"]
+    end
+
+    D -->|"UNA SOLA Transacción SQL"| E["Todo el cambio persistido"]
+
+    style A fill:#e1f5fe
+    style B fill:#e1f5fe
+    style C fill:#e1f5fe
+    style D fill:#fff3e0
+    style E fill:#e8f5e9
 ```
 
 ---
@@ -239,37 +243,48 @@ public abstract class BaseRepository<TEntity, TId, TIdValue> : IBaseRepository<T
 
 ## Flujo de Datos
 
-```
-┌──────────────────────────────────────────────────────────────┐
-│                    CreateOrderCommandHandler                 │
-│                                                              │
-│  Step 1:  customerRepo.GetByIdAsync(customerId)              │
-│           → SELECT * FROM Customers WHERE Id = @id           │
-│                                                              │
-│  Step 2:  productRepo.GetByIdAsync(productId)                │
-│           → SELECT * FROM Products WHERE Id = @id            │
-│                                                              │
-│  Step 3:  orderRepo.AddAsync(order)                          │
-│           → EF Core: change tracker agrega a Memory          │
-│           → NO ejecuta INSERT todavía                        │
-│                                                              │
-│  Step 4:  unitOfWork.SaveChangesAsync()                      │
-│           │                                                  │
-│           ├── DispatchDomainEventsAsync()                    │
-│           │   ├── Busca entidades ProduceEvents con eventos  │
-│           │   ├── IMediator.Publish(OrderCreatedEvent)       │
-│           │   │   └── NotificationHandler → OutboxMessage    │
-│           │   └── Ciclo while si hay nuevos eventos          │
-│           │                                                  │
-│           └── _context.SaveChangesAsync()                    │
-│               → SQL: BEGIN TRANSACTION                       │
-│               → SQL: INSERT INTO Orders (...) VALUES (...)   │
-│               → SQL: INSERT INTO OrderLines (...) VALUES (..)│
-│               → SQL: INSERT INTO OutboxMessage (...)         │
-│               → SQL: COMMIT                                  │
-│                                                              │
-│  Si cualquier paso falla → ROLLBACK automático               │
-└──────────────────────────────────────────────────────────────┘
+```mermaid
+graph TD
+    A["CreateOrderCommandHandler"] --> B["Step 1: customerRepo.GetByIdAsync(customerId)"]
+    A --> C["Step 2: productRepo.GetByIdAsync(productId)"]
+    A --> D["Step 3: orderRepo.AddAsync(order)"]
+    A --> E["Step 4: unitOfWork.SaveChangesAsync()"]
+
+    B -->|"SELECT * FROM Customers WHERE Id = @id"| DB1[(Base de Datos)]
+    C -->|"SELECT * FROM Products WHERE Id = @id"| DB1
+
+    D -->|"EF Core: change tracker agrega a Memory\nNO ejecuta INSERT todavía"| MEM["Memoria"]
+
+    E --> F["DispatchDomainEventsAsync()"]
+    E --> G["_context.SaveChangesAsync()"]
+
+    F -->|"Busca entidades ProduceEvents con eventos"| H{"¿Hay eventos?"}
+    H -->|"Sí"| I["IMediator.Publish(OrderCreatedEvent)"]
+    H -->|"No"| K["Continuar"]
+    I --> J["NotificationHandler → OutboxMessage"]
+    J -->|"Ciclo while si hay nuevos eventos"| H
+
+    G -->|"BEGIN TRANSACTION"| L["SQL Transaction"]
+    L -->|"INSERT INTO Orders"| DB1
+    L -->|"INSERT INTO OrderLines"| DB1
+    L -->|"INSERT INTO OutboxMessage"| DB1
+    L -->|"COMMIT"| M["Éxito"]
+
+    DB1 -.->|"Si cualquier paso falla"| N["ROLLBACK automático"]
+
+    style A fill:#fff3e0
+    style B fill:#e1f5fe
+    style C fill:#e1f5fe
+    style D fill:#e1f5fe
+    style E fill:#ffeb3b
+    style F fill:#e8f5e9
+    style G fill:#e8f5e9
+    style H fill:#f3e5f5
+    style I fill:#e8f5e9
+    style J fill:#e8f5e9
+    style L fill:#fce4ec
+    style M fill:#e8f5e9
+    style N fill:#ffcdd2
 ```
 
 ---
