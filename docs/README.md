@@ -52,6 +52,7 @@
 | **APIs REST** | Controladores, versionado, documentacion OpenAPI, streaming | `API` |
 | **Observabilidad** | Trazas distribuidas, metricas, logging estructurado, scopes | `Observability` |
 | **Feature Flags** | Feature Toggles con Microsoft.FeatureManagement y Flagsmith | `Feature Mgmt` |
+| **Cloud Providers** | AWS, MiniStack (emulador local), SSM Parameter Store, proveedores de configuracion | `Cloud Providers` |
 | **Infraestructura** | Docker, Aspire Dashboard, RabbitMQ, SQL Server | `Infra` |
 
 ---
@@ -102,8 +103,8 @@
 
 | Tema | Ubicacion | Descripcion |
 |------|-----------|-------------|
-| **AWS (General)** | [`README.AWS.md`](README.AWS.md) | Que es AWS, regiones, modelo de precios, catalogo de servicios con precios y comandos CLI |
-| **MiniStack (Local AWS)** | [`README.Ministack.md`](README.Ministack.md) | Emulador local gratuito de AWS (60+ servicios), como funciona y su implementacion en este proyecto |
+| **AWS (General)** | [`README.AWS.md`](softwareLearningApplication/README.AWS.md) | Que es AWS, regiones, modelo de precios, catalogo de servicios con precios y comandos CLI |
+| **MiniStack (Local AWS)** | [`README.Ministack.md`](softwareLearningApplication/README.Ministack.md) | Emulador local gratuito de AWS (60+ servicios), como funciona y su implementacion en este proyecto |
 
 ---
 

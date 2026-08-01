@@ -38,5 +38,5 @@
   - [Response Fixture](tests/README.ResponseFixture.en.md)
 
 - **☁️ Cloud Providers**
-  - [AWS (General)](README.AWS.en.md)
-  - [MiniStack (Local AWS)](README.Ministack.en.md)
+  - [AWS (General)](softwareLearningApplication/README.AWS.en.md)
+  - [MiniStack (Local AWS)](softwareLearningApplication/README.Ministack.en.md)

@@ -29,7 +29,7 @@
 </p>
 
 <p align="center">
-  <a href="README.en.md">
+  <a href="docs/README.en.md">
     <img src="https://img.shields.io/badge/English-EN-blue?style=for-the-badge&labelColor=FFD700&color=0066CC" alt="English">
   </a>
   <a href="https://acorangonzalezmoray.github.io/SoftwareLearningGuide/#/README">
@@ -57,6 +57,7 @@
 | **APIs REST** | Controladores, versionado, documentacion OpenAPI, streaming | `API` |
 | **Observabilidad** | Trazas distribuidas, metricas, logging estructurado, scopes | `Observability` |
 | **Feature Flags** | Feature Toggles con Microsoft.FeatureManagement y Flagsmith | `Feature Mgmt` |
+| **Cloud Providers** | AWS, MiniStack (emulador local), SSM Parameter Store, proveedores de configuracion | `Cloud Providers` |
 | **Infraestructura** | Docker, Aspire Dashboard, RabbitMQ, SQL Server | `Infra` |
 
 ---
@@ -107,8 +108,8 @@
 
 | Tema | Ubicacion | Descripcion |
 |------|-----------|-------------|
-| **AWS (General)** | [`README.AWS.md`](docs/README.AWS.md) | Que es AWS, regiones, modelo de precios, catalogo de servicios con precios y comandos CLI |
-| **MiniStack (Local AWS)** | [`README.Ministack.md`](docs/README.Ministack.md) | Emulador local gratuito de AWS (60+ servicios), como funciona y su implementacion en este proyecto |
+| **AWS (General)** | [`README.AWS.md`](docs/softwareLearningApplication/README.AWS.md) | Que es AWS, regiones, modelo de precios, catalogo de servicios con precios y comandos CLI |
+| **MiniStack (Local AWS)** | [`README.Ministack.md`](docs/softwareLearningApplication/README.Ministack.md) | Emulador local gratuito de AWS (60+ servicios), como funciona y su implementacion en este proyecto |
 
 ---
 
