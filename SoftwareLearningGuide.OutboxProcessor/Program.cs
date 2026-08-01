@@ -6,6 +6,9 @@ using System.Data;
 
 var builder = Host.CreateApplicationBuilder(args);
 
+// SSM Parameter Store (MiniStack/AWS): prioriza sobre appsettings; appsettings actúa como fallback
+builder.Configuration.AddSystemsManagerConfiguration(builder.Configuration);
+
 // =========================================================
 // 1. OPTIONS
 // =========================================================

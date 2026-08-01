@@ -98,6 +98,13 @@
 | **Respawn** | [`README.Respawn.en.md`](tests/README.Respawn.en.md) | Automatic database reset between tests |
 | **Response Fixture** | [`README.ResponseFixture.en.md`](tests/README.ResponseFixture.en.md) | JSON files with expected responses for assertions |
 
+#### Cloud Providers
+
+| Topic | Location | Description |
+|-------|----------|-------------|
+| **AWS (General)** | [`README.AWS.en.md`](README.AWS.en.md) | What AWS is, regions, pricing model, service catalog with prices and CLI commands |
+| **MiniStack (Local AWS)** | [`README.Ministack.en.md`](README.Ministack.en.md) | Free local AWS emulator (60+ services), how it works and its implementation in this project |
+
 ---
 
 ## Quick Start

@@ -11,6 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Amazon.Extensions.Configuration.SystemsManager" Version="6.2.2" />
     <PackageReference Include="MassTransit" Version="9.1.2" />
     <PackageReference Include="MassTransit.RabbitMQ" Version="9.1.2" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.10" />
