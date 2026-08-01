@@ -70,6 +70,22 @@ aws ssm put-parameter \
   --type String \
   --overwrite
 
+aws ssm put-parameter \
+  --name "/softwarelearningguide/dev/outboxprocessor/CloudProvidersConfigurations/AWS/Messaging/Enabled" \
+  --value "true" \
+  --type String \
+  --overwrite
+
+aws ssm put-parameter \
+  --name "/softwarelearningguide/dev/outboxprocessor/CloudProvidersConfigurations/AWS/Messaging/Region" \
+  --value "us-east-1" \
+  --type String \
+  --overwrite
+
+aws ssm put-parameter \
+  --name "/softwarelearningguide/dev/outboxprocessor/CloudProvidersConfigurations/AWS/Messaging/ServiceUrl" \
+  --cli-input-json '{"Name": "/softwarelearningguide/dev/outboxprocessor/CloudProvidersConfigurations/AWS/Messaging/ServiceUrl", "Value": "http://localhost:4566", "Type": "String", "Overwrite": true}'
+
 # --- Consumer ---
 aws ssm put-parameter \
   --name "/softwarelearningguide/dev/consumer/MessageBroker/Host" \
@@ -104,5 +120,21 @@ aws ssm put-parameter \
   --value "grpc" \
   --type String \
   --overwrite
+
+aws ssm put-parameter \
+  --name "/softwarelearningguide/dev/consumer/CloudProvidersConfigurations/AWS/Messaging/Enabled" \
+  --value "true" \
+  --type String \
+  --overwrite
+
+aws ssm put-parameter \
+  --name "/softwarelearningguide/dev/consumer/CloudProvidersConfigurations/AWS/Messaging/Region" \
+  --value "us-east-1" \
+  --type String \
+  --overwrite
+
+aws ssm put-parameter \
+  --name "/softwarelearningguide/dev/consumer/CloudProvidersConfigurations/AWS/Messaging/ServiceUrl" \
+  --cli-input-json '{"Name": "/softwarelearningguide/dev/consumer/CloudProvidersConfigurations/AWS/Messaging/ServiceUrl", "Value": "http://localhost:4566", "Type": "String", "Overwrite": true}'
 
 echo "SSM parameters seeded successfully."

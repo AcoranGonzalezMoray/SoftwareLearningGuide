@@ -44,6 +44,14 @@ builder.Services.AddMassTransit(x => {
 });
 
 // =========================================================
+// 3.1 MASSTRANSIT (Bus AWS SQS/SNS - consumidores extra)
+// =========================================================
+
+builder.Services.AddAwsMessageBus(builder.Configuration, x => {
+    x.AddConsumer<CustomerCreatedConsumer>();
+});
+
+// =========================================================
 // 4. METRICS
 // =========================================================
 

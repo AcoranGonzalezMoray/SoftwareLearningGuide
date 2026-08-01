@@ -28,6 +28,7 @@
    - [Initialization script `init-ssm.sh`](#initialization-script-init-ssmsh)
    - [.NET integration](#net-integration)
    - [Complete flow: from startup to loaded configuration](#complete-flow-from-startup-to-loaded-configuration)
+   - [Messaging with SNS/SQS (publish and consume)](#messaging-with-snssqs-publish-and-consume)
 9. [Useful commands](#useful-commands)
 10. [Related documentation](#related-documentation)
 
@@ -311,11 +312,13 @@ This educational project uses MiniStack to **emulate the production configuratio
 
 ### MiniStack services implemented
 
-Out of the **60+ services** that MiniStack offers, this project implements **one**:
+Out of the **60+ services** that MiniStack offers, this project implements **three**:
 
 | MiniStack service | Use in the project |
 |-------------------|--------------------|
-| **SSM Parameter Store** | Stores the configuration for the API, OutboxProcessor, and Consumer (connection strings, message broker, OpenTelemetry) |
+| **SSM Parameter Store** | Stores the configuration for the API, OutboxProcessor, and Consumer (connection strings, message broker, OpenTelemetry, AWS.Messaging) |
+| **SNS** | Topics where the OutboxProcessor publishes the Integration Events (in addition to RabbitMQ) |
+| **SQS** | Queues subscribed to the SNS topics where the Consumer listens with its "extra" consumer (`CustomerCreatedConsumer`) |
 
 For SSM to work, MiniStack needs its persistence backend:
 
@@ -323,7 +326,7 @@ For SSM to work, MiniStack needs its persistence backend:
 |-----------------------------|------|
 | **Redis** (via `REDIS_HOST`) | Backend where MiniStack persists the SSM parameters |
 
-> **Design:** the rest of the services (S3, SQS, DynamoDB...) are not used in this project, but they remain available because MiniStack exposes them on the same port `4566`. If the project needed, for example, an SQS queue tomorrow, it would be used without touching the infrastructure.
+> **Design:** the rest of the services (S3, DynamoDB, Lambda...) are not used in this project, but they remain available because MiniStack exposes them on the same port `4566`. If the project needed, for example, an S3 bucket tomorrow, it would be used without touching the infrastructure.
 
 ### docker-compose configuration
 
@@ -386,6 +389,9 @@ The script uses the AWS CLI (pointed at `localhost:4566`) to create parameters o
 | `/softwarelearningguide/dev/outboxprocessor/MessageBroker/Username` | `guest` |
 | `/softwarelearningguide/dev/outboxprocessor/MessageBroker/Password` | `guest` |
 | `/softwarelearningguide/dev/outboxprocessor/OpenTelemetry/ServiceName` | `SoftwareLearningGuide.OutboxProcessor` |
+| `/softwarelearningguide/dev/outboxprocessor/CloudProvidersConfigurations/AWS/Messaging/Enabled` | `true` |
+| `/softwarelearningguide/dev/outboxprocessor/CloudProvidersConfigurations/AWS/Messaging/Region` | `us-east-1` |
+| `/softwarelearningguide/dev/outboxprocessor/CloudProvidersConfigurations/AWS/Messaging/ServiceUrl` | `http://localhost:4566` |
 
 #### Consumer
 | SSM parameter | Value |
@@ -394,6 +400,9 @@ The script uses the AWS CLI (pointed at `localhost:4566`) to create parameters o
 | `/softwarelearningguide/dev/consumer/MessageBroker/Username` | `guest` |
 | `/softwarelearningguide/dev/consumer/MessageBroker/Password` | `guest` |
 | `/softwarelearningguide/dev/consumer/OpenTelemetry/ServiceName` | `SoftwareLearningGuide.Consumer` |
+| `/softwarelearningguide/dev/consumer/CloudProvidersConfigurations/AWS/Messaging/Enabled` | `true` |
+| `/softwarelearningguide/dev/consumer/CloudProvidersConfigurations/AWS/Messaging/Region` | `us-east-1` |
+| `/softwarelearningguide/dev/consumer/CloudProvidersConfigurations/AWS/Messaging/ServiceUrl` | `http://localhost:4566` |
 
 #### Path convention
 
@@ -428,6 +437,7 @@ public class CloudProvidersConfigurationOptions {
 public class AwsConfigurationOptions {
     public AwsCredentialsOptions Credentials { get; set; } = new();  // AccessKey / AccessSecret
     public SsmConfigurationOptions SSM { get; set; } = new();
+    public AwsMessagingConfigurationOptions Messaging { get; set; } = new();
 }
 
 public class AwsCredentialsOptions {
@@ -443,6 +453,14 @@ public class SsmConfigurationOptions {
     public string Region { get; set; } = "us-east-1";
     public string ServiceUrl { get; set; }       // MiniStack URL (http://localhost:4566) or empty for real AWS
     public int ReloadIntervalSeconds { get; set; } = 300;
+}
+
+public class AwsMessagingConfigurationOptions {
+    public static string SectionName => "Messaging";
+
+    public bool Enabled { get; set; }           // Enables/disables the SNS/SQS bus (MassTransit)
+    public string Region { get; set; } = "us-east-1";
+    public string ServiceUrl { get; set; }       // MiniStack URL (http://localhost:4566) or empty for real AWS
 }
 ```
 
@@ -516,6 +534,11 @@ builder.Configuration.AddSystemsManagerConfiguration(builder.Configuration);
         "Region": "",
         "ServiceUrl": "",
         "ReloadIntervalSeconds": 0
+      },
+      "Messaging": {
+        "Enabled": false,
+        "Region": "",
+        "ServiceUrl": ""
       }
     }
   }
@@ -535,6 +558,11 @@ builder.Configuration.AddSystemsManagerConfiguration(builder.Configuration);
         "Region": "us-east-1",
         "ServiceUrl": "http://localhost:4566",
         "ReloadIntervalSeconds": 300
+      },
+      "Messaging": {
+        "Enabled": true,
+        "Region": "us-east-1",
+        "ServiceUrl": "http://localhost:4566"
       }
     }
   }
@@ -568,6 +596,128 @@ sequenceDiagram
     Note over APP: Final config = appsettings + SSM (SSM wins)
     APP->>APP: GetMessageBrokerOptions() → uses SSM values
     APP->>APP: Connects to RabbitMQ with SSM config
+```
+
+### Messaging with SNS/SQS (publish and consume)
+
+In addition to RabbitMQ, the project uses MiniStack to emulate **SNS (topics)** and **SQS (queues)** as a **second transport** for messaging. This teaches MassTransit's **multi-bus pattern**: the same Integration Event is published to both brokers, and the Consumer listens on the AWS transport with an "extra" consumer.
+
+#### MassTransit multi-bus pattern
+
+MassTransit lets you register **more than one bus** in the same process. To tell them apart, a **marker interface** that inherits from `IBus` is used:
+
+```csharp
+// Buses/IAwsMessageBus.cs (identical in Consumer and OutboxProcessor)
+public interface IAwsMessageBus : IBus;
+```
+
+- The **default bus** (no marker interface) remains **RabbitMQ**.
+- The **AWS bus** (`IAwsMessageBus`) uses the **AmazonSQS** transport of MassTransit, which publishes to **SNS topics** and consumes from **SQS queues** subscribed to those topics.
+
+#### NuGet package
+
+```xml
+<!-- SoftwareLearningGuide.Consumer.csproj (same package in OutboxProcessor) -->
+<PackageReference Include="MassTransit.AmazonSQS" />
+```
+
+(It brings `AWSSDK.SQS` and `AWSSDK.SimpleNotificationService` transitively.)
+
+#### Registering the AWS bus
+
+The bus is only registered when `AWS.Enabled` and `AWS.Messaging.Enabled` are `true`:
+
+```csharp
+// Extensions/AwsMessageBusServiceCollectionExtensions.cs
+services.AddMassTransit<IAwsMessageBus>(x => {
+    x.UsingAmazonSqs((context, cfg) => {
+        cfg.Host(awsOptions.Messaging.Region, h => {
+            h.AccessKey(awsOptions.Credentials.AccessKey);
+            h.SecretKey(awsOptions.Credentials.AccessSecret);
+
+            // ServiceURL → local MiniStack; if empty → real AWS
+            if (!string.IsNullOrEmpty(awsOptions.Messaging.ServiceUrl)) {
+                h.Config(new AmazonSQSConfig { ServiceURL = awsOptions.Messaging.ServiceUrl });
+                h.Config(new AmazonSimpleNotificationServiceConfig { ServiceURL = awsOptions.Messaging.ServiceUrl });
+            }
+        });
+
+        cfg.ConfigureEndpoints(context);
+    });
+});
+```
+
+> **Why two `Config(...)`?** Each AWS service has its own client: SNS and SQS. MiniStack exposes **both** at `http://localhost:4566`, so both clients point to the same endpoint. In real AWS you would leave `ServiceUrl` empty and the SDK would resolve the region.
+
+#### Dual publish in the OutboxProcessor
+
+The worker publishes each Integration Event to **both buses**: RabbitMQ (authoritative) and SNS/SQS (best-effort):
+
+```csharp
+// Workers/CustomOutboxProcessorWorker.cs
+var publishEndpoint = scope.ServiceProvider.GetRequiredService<IPublishEndpoint>(); // RabbitMQ
+var awsBus = scope.ServiceProvider.GetService<IAwsMessageBus>();                     // SNS/SQS (optional)
+
+await publishEndpoint.Publish(deserializedObj, messageType, stoppingToken); // → RabbitMQ
+
+if (awsBus != null) {
+    await awsBus.Publish(deserializedObj, messageType, stoppingToken);     // → SNS/SQS
+}
+```
+
+> **Why best-effort?** RabbitMQ remains the primary broker. If the SNS/SQS publish fails, the message is still marked as processed and only a warning is logged; this avoids a retry that would duplicate the message on RabbitMQ.
+
+#### "Extra" consumer in the Consumer
+
+The Consumer registers the RabbitMQ consumers on the default bus and the AWS-transport consumers on the marked bus:
+
+```csharp
+// Consumer Program.cs
+builder.Services.AddMassTransit(x => {          // Default bus → RabbitMQ
+    x.AddConsumer<OrderCreatedConsumer>();
+    x.AddConsumer<ProductCreatedConsumer>();
+    x.AddConsumer<OrderCancelledConsumer>();
+    x.AddConsumer<ProductStockLowConsumer>();
+    x.UsingRabbitMq(...);
+});
+
+builder.Services.AddAwsMessageBus(builder.Configuration, x => {  // AWS bus → SNS/SQS
+    x.AddConsumer<CustomerCreatedConsumer>();                    // "Extra" consumer
+});
+```
+
+`CustomerCreatedConsumer` listens to `CustomerCreatedEvent` from the SQS queue that MassTransit creates and **automatically subscribes** to the SNS topic (that is what `ConfigureEndpoints` does).
+
+#### What it looks like in MiniStack
+
+```
+OutboxProcessor (publishes)                              Consumer (consumes)
+      │  publish(CustomerCreatedEvent)                        ▲
+      ▼                                                      │
+   SNS topic "CustomerCreatedEvent" ──► SQS queue ───────────┘
+   (SNS)                            (SNS→SQS subscription)
+```
+
+> **Fan-out:** SNS lets **several** consumers subscribe to the same topic. Today there is only one SQS queue, but if another consumer were registered on the AWS bus tomorrow, both would receive the same event without touching the publisher.
+
+#### End-to-end flow with SNS/SQS
+
+```mermaid
+sequenceDiagram
+    participant API as API (.NET)
+    participant OB as Outbox
+    participant OP as OutboxProcessor
+    participant RMQ as RabbitMQ
+    participant SNS as SNS (MiniStack)
+    participant SQS as SQS (MiniStack)
+    participant C as Consumer
+
+    API->>OB: Insert Integration Event (DomainOutboxMessages table)
+    OP->>OB: SELECT pending
+    OP->>RMQ: publish() → default bus
+    OP->>SNS: publish() → IAwsMessageBus (creates topic)
+    SNS->>SQS: SNS→SQS subscription (fan-out)
+    SQS->>C: CustomerCreatedConsumer
 ```
 
 ### Why `source.Optional = true` matters
@@ -617,7 +767,14 @@ aws --endpoint-url=http://localhost:4566 ssm get-parameters-by-path \
 aws --endpoint-url=http://localhost:4566 ssm get-parameter \
   --name "/softwarelearningguide/dev/consumer/MessageBroker/Host"
 
-# Reset MiniStack state (deletes all parameters)
+# List the SNS topics and SQS queues created by MassTransit
+aws --endpoint-url=http://localhost:4566 sns list-topics
+aws --endpoint-url=http://localhost:4566 sqs list-queues
+
+# Inspect the messages sitting in the SQS queues (MiniStack inspection)
+curl http://localhost:4566/_ministack/sqs/messages
+
+# Reset MiniStack state (deletes parameters, topics, and queues)
 curl -X POST "http://localhost:4566/_ministack/reset?init=1"
 ```
 
@@ -639,6 +796,11 @@ In production, the only change needed is:
         "Path": "/softwarelearningguide/prod/consumer/",
         "Region": "us-east-1",
         "ServiceUrl": ""    // ← empty = use real AWS
+      },
+      "Messaging": {
+        "Enabled": true,
+        "Region": "us-east-1",
+        "ServiceUrl": ""    // ← empty = use real AWS (SNS/SQS)
       }
     }
   }

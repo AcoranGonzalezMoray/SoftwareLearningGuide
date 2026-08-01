@@ -67,6 +67,12 @@ builder.Services.AddMassTransit(x => {
 });
 
 // =========================================================
+// 4.1 MASSTRANSIT (Bus AWS SQS/SNS - solo publicación)
+// =========================================================
+
+builder.Services.AddAwsMessageBus(builder.Configuration);
+
+// =========================================================
 // 5. WORKER BACKGROUND SERVICE
 // =========================================================
 

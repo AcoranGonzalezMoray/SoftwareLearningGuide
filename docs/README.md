@@ -116,6 +116,20 @@
 - **Docker Desktop** (para servicios de observabilidad y SQL Server)
 - **Visual Studio 2026** (recomendado) o VS Code
 
+### Servicios Utilizados
+
+| Servicio | Provider | Rol en el proyecto |
+|----------|----------|--------------------|
+| **SQL Server 2022** | Docker (`sqlserver-slg`) | Base de datos principal de la API y del OutboxProcessor |
+| **RabbitMQ** | Docker (`rabbitmq-slg`) | Broker de mensajes principal: publicacion y consumo de Integration Events |
+| **MiniStack** | Docker (`ministack-slg`) | Emulador local de AWS (SSM, SNS, SQS, ...) en `localhost:4566` |
+| **Redis** | Docker (`redis-slg`) | Backend de persistencia de MiniStack |
+| **Aspire Dashboard** | Docker | Observabilidad: recoleccion de trazas/metricas (OTLP) |
+| **Flagsmith + PostgreSQL** | Docker (`flagsmith` + `flagsmith-postgres`) | Feature Management (feature flags) |
+| **SSM Parameter Store** | AWS (via MiniStack) | Configuracion centralizada de las 3 aplicaciones |
+| **SNS** | AWS (via MiniStack) | Topicos donde el OutboxProcessor publica los Integration Events (ademas de RabbitMQ) |
+| **SQS** | AWS (via MiniStack) | Colas suscritas a los topicos SNS que consume el Consumer |
+
 ### Ejecutar la API
 
 El proyecto contiene **tres aplicaciones** que se ejecutan independientemente:
@@ -137,7 +151,7 @@ dotnet run
 
 #### 2. Outbox Processor (`SoftwareLearningGuide.OutboxProcessor`)
 
-Worker Service que lee la tabla OutboxMessage y publica eventos a RabbitMQ. No contiene logica de consumo - solo publica.
+Worker Service que lee la tabla OutboxMessage y publica eventos a **RabbitMQ** y a **SNS/SQS (AWS)**. No contiene logica de consumo - solo publica.
 
 ```bash
 # Ejecuta el Outbox Processor
@@ -148,11 +162,11 @@ cd SoftwareLearningGuide.OutboxProcessor
 dotnet run
 ```
 
-> **Requiere:** SQL Server y RabbitMQ ejecutandose (`docker-compose up -d`)
+> **Requiere:** SQL Server, RabbitMQ y MiniStack ejecutandose (`docker-compose up -d`)
 
 #### 3. Consumer (`SoftwareLearningGuide.Consumer`)
 
-Worker Service que escucha colas de RabbitMQ y procesa los eventos publicados por el OutboxProcessor.
+Worker Service que escucha colas de **RabbitMQ** y de **SNS/SQS (AWS)** y procesa los Integration Events publicados por el OutboxProcessor.
 
 ```bash
 # Ejecuta el Consumer
@@ -163,7 +177,7 @@ cd SoftwareLearningGuide.Consumer
 dotnet run
 ```
 
-> **Requiere:** RabbitMQ ejecutandose (`docker-compose up -d`)
+> **Requiere:** RabbitMQ y MiniStack ejecutandose (`docker-compose up -d`)
 
 #### Endpoints Disponibles
 

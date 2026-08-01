@@ -1,6 +1,7 @@
 using Dapper;
 using MassTransit;
 using SoftwareLearningGuide.Contracts.IntegrationEvents;
+using SoftwareLearningGuide.OutboxProcessor.Buses;
 using System.Data;
 using System.Text.Json;
 
@@ -46,6 +47,7 @@ public sealed partial class CustomOutboxProcessorWorker : BackgroundService {
                 using var scope = _serviceProvider.CreateScope();
                 var connection = scope.ServiceProvider.GetRequiredService<IDbConnection>();
                 var publishEndpoint = scope.ServiceProvider.GetRequiredService<IPublishEndpoint>();
+                var awsBus = scope.ServiceProvider.GetService<IAwsMessageBus>();
 
                 var pendingMessages = (await connection.QueryAsync<SelectOutboxMessage>(SelectPending)).ToList();
 
@@ -63,7 +65,17 @@ public sealed partial class CustomOutboxProcessorWorker : BackgroundService {
                             var deserializedObj = JsonSerializer.Deserialize(message.Content, messageType);
                             if (deserializedObj != null) {
                                 await publishEndpoint.Publish(deserializedObj, messageType, stoppingToken);
-                                _logger.LogInformation("[OutboxProcessorWorker] Publicado {Type} (Id: {Id})", message.Type, message.Id);
+                                _logger.LogInformation("[OutboxProcessorWorker] Publicado {Type} en RabbitMQ (Id: {Id})", message.Type, message.Id);
+
+                                if (awsBus != null) {
+                                    try {
+                                        await awsBus.Publish(deserializedObj, messageType, stoppingToken);
+                                        _logger.LogInformation("[OutboxProcessorWorker] Publicado {Type} en SNS/SQS (Id: {Id})", message.Type, message.Id);
+                                    }
+                                    catch (Exception ex) {
+                                        _logger.LogWarning(ex, "[OutboxProcessorWorker] No se pudo publicar {Type} en SNS/SQS (Id: {Id})", message.Type, message.Id);
+                                    }
+                                }
                             }
 
                             await MarkMessageAsync(connection, message.Id, DateTime.UtcNow, null);

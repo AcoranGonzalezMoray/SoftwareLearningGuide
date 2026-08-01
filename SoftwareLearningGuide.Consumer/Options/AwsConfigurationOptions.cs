@@ -6,6 +6,8 @@ namespace SoftwareLearningGuide.Consumer.Options {
 
         public AwsSSMConfigurationOptions SSM { get; set; } = new();
 
+        public AwsMessagingConfigurationOptions Messaging { get; set; } = new();
+
         public class AwsCredentialsOptions {
             public string AccessKey { get; set; } = string.Empty;
 
@@ -24,6 +26,16 @@ namespace SoftwareLearningGuide.Consumer.Options {
             public string ServiceUrl { get; set; } = string.Empty;
 
             public int ReloadIntervalSeconds { get; set; } = 300;
+        }
+
+        public class AwsMessagingConfigurationOptions {
+            public static string SectionName => "Messaging";
+
+            public bool Enabled { get; set; }
+
+            public string Region { get; set; } = "us-east-1";
+
+            public string ServiceUrl { get; set; } = string.Empty;
         }
     }
 }
