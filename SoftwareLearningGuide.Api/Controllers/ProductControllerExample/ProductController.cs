@@ -1,7 +1,9 @@
 using Asp.Versioning;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.FeatureManagement.Mvc;
+using SoftwareLearningGuide.Api.Extensions;
 using SoftwareLearningGuide.Api.FeatureToggles;
 using SoftwareLearningGuide.Application.Command.CreateProduct;
 using SoftwareLearningGuide.Application.Query.GetAllProducts;
@@ -16,6 +18,7 @@ namespace SoftwareLearningGuide.Api.Controllers.ProductControllerExample;
 /// </summary>
 [ApiController]
 [ApiVersion("1.0")]
+[Authorize(Policy = CognitoPolicies.RequireNormalRole)]
 [FeatureGate(FeatureToggleNames.FT_ENABLE_PRODUCT_CONTROLLER)]
 [Route("api/v{version:apiVersion}/[controller]")]
 public class ProductController : ControllerBase {

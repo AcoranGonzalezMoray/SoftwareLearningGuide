@@ -134,6 +134,7 @@
 | **SSM Parameter Store** | AWS (via MiniStack) | Configuracion centralizada de las 3 aplicaciones |
 | **SNS** | AWS (via MiniStack) | Topicos donde el OutboxProcessor publica los Integration Events (ademas de RabbitMQ) |
 | **SQS** | AWS (via MiniStack) | Colas suscritas a los topicos SNS que consume el Consumer |
+| **Cognito** | AWS (via MiniStack) | User Pool con usuarios/grupos (`admin`, `normal`) que emite los JWT que la API valida (autenticacion + RBAC) |
 
 ### Ejecutar la API
 
@@ -220,6 +221,8 @@ dotnet run
 - **OpenAPI Spec:** `https://localhost:7033/openapi/v1.json`
 
 > **Nota:** Los controllers de Order, Product y Customer estan protegidos por Feature Flags. En modo Development todos estan habilitados.
+>
+> **Autenticacion (Cognito):** los endpoints de Order, Product, Customer (`RequireNormalRole`: roles `normal`/`admin`) y Diagnostics (`RequireAdminRole`: solo `admin`) requieren un **JWT** de Cognito en el header `Authorization: Bearer <token>`. Sin token → `401`; rol insuficiente → `403`. Usuarios de prueba (seed de `cognito-init.sh`): `admin@test.com` / `Test1234!` (admin) y `user@test.com` / `Test1234!` (normal). Detalles en [README.Ministack.md](docs/softwareLearningApplication/README.Ministack.md#autenticación-con-cognito-jwt-y-rbac).
 
 ---
 

@@ -29,6 +29,25 @@ aws ssm put-parameter \
   --type String \
   --overwrite
 
+aws ssm put-parameter \
+  --name "/softwarelearningguide/dev/api/CloudProvidersConfigurations/AWS/Cognito/Enabled" \
+  --value "true" \
+  --type String \
+  --overwrite
+
+aws ssm put-parameter \
+  --name "/softwarelearningguide/dev/api/CloudProvidersConfigurations/AWS/Cognito/Region" \
+  --value "us-east-1" \
+  --type String \
+  --overwrite
+
+# UserPoolId y ClientId los genera cognito-init.sh (son dinámicos en MiniStack)
+# NOTA: el valor empieza por "http://" y AWS CLI v1 lo interpreta como una URL a descargar,
+# guardando el contenido (el XML de ListBuckets de MiniStack) en vez de la URL. Por eso,
+# igual que los demás valores "http://", se pasa con --cli-input-json para evitar la descarga.
+aws ssm put-parameter \
+  --cli-input-json '{"Name": "/softwarelearningguide/dev/api/CloudProvidersConfigurations/AWS/Cognito/ServiceUrl", "Value": "http://localhost:4566", "Type": "String", "Overwrite": true}'
+
 # --- OutboxProcessor ---
 aws ssm put-parameter \
   --name "/softwarelearningguide/dev/outboxprocessor/Database/SoftwareLearningGuide" \

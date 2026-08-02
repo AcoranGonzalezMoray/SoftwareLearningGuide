@@ -20,6 +20,9 @@ namespace SoftwareLearningGuide.Api {
 
             builder.Services.AddOptions(builder.Configuration);
 
+            // Autenticación JWT (Cognito) + policies RBAC; activo solo si AWS.Cognito.Enabled
+            builder.Services.AddCognitoAuthentication(builder.Configuration);
+
             // Feature Toggle/Flags: provider de flags (prioriza sobre appsettings y SSM)
             builder.Configuration.AddFeatureManagementConfiguration(builder.Configuration);
             builder.Services.AddFeatureManagement();
@@ -71,6 +74,7 @@ namespace SoftwareLearningGuide.Api {
             app.UseMiddleware<GlobalExceptionMiddleware>();
 
             app.UseHttpsRedirection();
+            app.UseAuthentication();
             app.UseAuthorization();
             app.MapControllers();
 

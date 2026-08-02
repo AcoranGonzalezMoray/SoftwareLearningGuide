@@ -1,9 +1,11 @@
-using System.Reflection;
 using Asp.Versioning;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.FeatureManagement;
 using Microsoft.FeatureManagement.Mvc;
+using SoftwareLearningGuide.Api.Extensions;
 using SoftwareLearningGuide.Api.FeatureToggles;
+using System.Reflection;
 
 namespace SoftwareLearningGuide.Api.Controllers.DiagnosticsControllerExample;
 
@@ -12,6 +14,7 @@ namespace SoftwareLearningGuide.Api.Controllers.DiagnosticsControllerExample;
 /// </summary>
 [ApiController]
 [ApiVersion("1.0")]
+[Authorize(Policy = CognitoPolicies.RequireAdminRole)]
 [FeatureGate(FeatureToggleNames.FT_ENABLE_DIAGNOSIS_CONTROLLER)]
 [Route("api/v{version:apiVersion}/[controller]")]
 public class DiagnosticsController : ControllerBase {

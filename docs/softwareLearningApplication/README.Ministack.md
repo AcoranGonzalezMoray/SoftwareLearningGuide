@@ -29,6 +29,7 @@
    - [Integración en .NET](#integración-en-net)
    - [Flujo completo: de arranque a configuración cargada](#flujo-completo-de-arranque-a-configuración-cargada)
    - [Mensajería con SNS/SQS (publicar y consumir)](#mensajería-con-snssqs-publicar-y-consumir)
+   - [Autenticación con Cognito (JWT y RBAC)](#autenticación-con-cognito-jwt-y-rbac)
 9. [Comandos útiles](#comandos-útiles)
 10. [Documentación relacionada](#documentación-relacionada)
 
@@ -312,13 +313,14 @@ Este proyecto educativo usa MiniStack para **emular la configuración de producc
 
 ### Servicios de MiniStack implementados
 
-De los **60+ servicios** que MiniStack ofrece, este proyecto implementa **tres**:
+De los **60+ servicios** que MiniStack ofrece, este proyecto implementa **cuatro**:
 
 | Servicio de MiniStack | Uso en el proyecto |
 |-----------------------|--------------------|
-| **SSM Parameter Store** | Almacena la configuración de la API, OutboxProcessor y Consumer (connection strings, message broker, OpenTelemetry, AWS.Messaging) |
+| **SSM Parameter Store** | Almacena la configuración de la API, OutboxProcessor y Consumer (connection strings, message broker, OpenTelemetry, AWS.Messaging, AWS.Cognito) |
 | **SNS** | Tópicos donde el OutboxProcessor publica los Integration Events (además de RabbitMQ) |
 | **SQS** | Colas suscritas a los tópicos SNS donde el Consumer escucha con su consumidor "extra" (`CustomerCreatedConsumer`) |
+| **Cognito (cognito-idp)** | User Pool con usuarios y grupos (`admin` / `normal`) que emite los **JWT** que la API valida para autenticación y RBAC |
 
 Para que SSM funcione, MiniStack necesita su backend de persistencia:
 
@@ -363,12 +365,13 @@ redis:
 
 ### Script de inicialización `init-ssm.sh`
 
-El archivo `scripts/ministack/init-ssm.sh` se ejecuta **automáticamente** cuando MiniStack arranca (via el volumen montado en `ready.d`). Su función es crear todos los parámetros SSM necesarios para el proyecto.
+El archivo `scripts/ministack/init-ssm.sh` se ejecuta **automáticamente** cuando MiniStack arranca (via el volumen montado en `ready.d`). Su función es crear todos los parámetros SSM necesarios para el proyecto. Le acompaña `cognito-init.sh`, que **seeding** el User Pool de Cognito (usuarios, grupos y app client) y guarda los ids generados en SSM.
 
 ```
 scripts/
 └── ministack/
-    └── init-ssm.sh   ← Se ejecuta al arrancar MiniStack
+    ├── init-ssm.sh      ← Se ejecuta al arrancar MiniStack (parámetros SSM)
+    └── cognito-init.sh  ← Se ejecuta al arrancar MiniStack (User Pool de Cognito)
 ```
 
 El script usa el AWS CLI (apuntado a `localhost:4566`) para crear parámetros organizados por servicio:
@@ -380,6 +383,11 @@ El script usa el AWS CLI (apuntado a `localhost:4566`) para crear parámetros or
 | `/softwarelearningguide/dev/api/OpenTelemetry/ServiceName` | `SoftwareLearningGuide` |
 | `/softwarelearningguide/dev/api/OpenTelemetry/Otlp/Endpoint` | `http://localhost:4317` |
 | `/softwarelearningguide/dev/api/OpenTelemetry/Otlp/Protocol` | `grpc` |
+| `/softwarelearningguide/dev/api/CloudProvidersConfigurations/AWS/Cognito/Enabled` | `true` |
+| `/softwarelearningguide/dev/api/CloudProvidersConfigurations/AWS/Cognito/Region` | `us-east-1` |
+| `/softwarelearningguide/dev/api/CloudProvidersConfigurations/AWS/Cognito/ServiceUrl` | `http://localhost:4566` |
+| `/softwarelearningguide/dev/api/CloudProvidersConfigurations/AWS/Cognito/UserPoolId` | generado por `cognito-init.sh` (ej: `us-east-1_aB3dEf9Gh`) |
+| `/softwarelearningguide/dev/api/CloudProvidersConfigurations/AWS/Cognito/ClientId` | generado por `cognito-init.sh` (26 caracteres) |
 
 #### OutboxProcessor
 | Parámetro SSM | Valor |
@@ -438,6 +446,7 @@ public class AwsConfigurationOptions {
     public AwsCredentialsOptions Credentials { get; set; } = new();  // AccessKey / AccessSecret
     public SsmConfigurationOptions SSM { get; set; } = new();
     public AwsMessagingConfigurationOptions Messaging { get; set; } = new();
+    public AwsCognitoConfigurationOptions Cognito { get; set; } = new();
 }
 
 public class AwsCredentialsOptions {
@@ -459,6 +468,16 @@ public class AwsMessagingConfigurationOptions {
     public static string SectionName => "Messaging";
 
     public bool Enabled { get; set; }           // Activa/desactiva el bus SNS/SQS (MassTransit)
+    public string Region { get; set; } = "us-east-1";
+    public string ServiceUrl { get; set; }       // URL de MiniStack (http://localhost:4566) o vacío para AWS real
+}
+
+public class AwsCognitoConfigurationOptions {
+    public static string SectionName => "Cognito";
+
+    public bool Enabled { get; set; }           // Activa/desactiva la autenticación JWT con Cognito
+    public string UserPoolId { get; set; }       // Id del User Pool (generado por MiniStack)
+    public string ClientId { get; set; }         // Id del App Client (generado por MiniStack)
     public string Region { get; set; } = "us-east-1";
     public string ServiceUrl { get; set; }       // URL de MiniStack (http://localhost:4566) o vacío para AWS real
 }
@@ -539,6 +558,13 @@ builder.Configuration.AddSystemsManagerConfiguration(builder.Configuration);
         "Enabled": false,
         "Region": "",
         "ServiceUrl": ""
+      },
+      "Cognito": {
+        "Enabled": false,
+        "UserPoolId": "",
+        "ClientId": "",
+        "Region": "",
+        "ServiceUrl": ""
       }
     }
   }
@@ -561,6 +587,13 @@ builder.Configuration.AddSystemsManagerConfiguration(builder.Configuration);
       },
       "Messaging": {
         "Enabled": true,
+        "Region": "us-east-1",
+        "ServiceUrl": "http://localhost:4566"
+      },
+      "Cognito": {
+        "Enabled": true,
+        "UserPoolId": "",
+        "ClientId": "",
         "Region": "us-east-1",
         "ServiceUrl": "http://localhost:4566"
       }
@@ -720,6 +753,162 @@ sequenceDiagram
     SQS->>C: CustomerCreatedConsumer
 ```
 
+### Autenticación con Cognito (JWT y RBAC)
+
+La API protege sus endpoints con **JWT de AWS Cognito**: un usuario se autentica contra el User Pool (emulado por MiniStack), obtiene un **access token** y lo envía en el header `Authorization: Bearer <token>`. La API valida la firma, el issuer y el audience, y aplica **RBAC** según el claim `cognito:groups`.
+
+#### Cómo lo emula MiniStack
+
+MiniStack implementa la API de Cognito (`cognito-idp`, 62 operaciones): User Pools, App Clients, grupos, usuarios y emisión de tokens. Los detalles que importan:
+
+- El **UserPoolId** (`us-east-1_<9 chars>`) y el **ClientId** (26 chars) son **aleatorios** → los genera y guarda en SSM `cognito-init.sh`.
+- Los tokens **JWT** se firman con una **clave RSA local** y se exponen en el JWKS: `http://localhost:4566/{poolId}/.well-known/jwks.json`.
+- El discovery doc OIDC está en `http://localhost:4566/{poolId}/.well-known/openid-configuration`. Su `issuer` es la **URL real de AWS** (`https://cognito-idp.{region}.amazonaws.com/{poolId}`) — el JWT lleva ese mismo valor en `iss`, y los SDKs solo lo comparan como string (nadie lo descarga). Por eso la API valida `iss` contra la URL de AWS real aunque los tokens vengan de MiniStack.
+- El claim `cognito:groups` viaja en el token cuando el usuario pertenece a un grupo.
+- **Matiz importante:** el **access token** de Cognito (MiniStack y AWS real) lleva el claim `client_id`, **no** `aud`; solo el **id token** lleva `aud`. La validación acepta ambos.
+
+#### Script de seeding `cognito-init.sh`
+
+```bash
+# Se ejecuta automáticamente al arrancar MiniStack (junto a init-ssm.sh).
+# Reutiliza el pool si ya existe (idempotente). Crea:
+#   - User Pool  "softwarelearningguide"
+#   - App Client "softwarelearningguide-app" (sin secret, flujo USER_PASSWORD_AUTH)
+#   - Grupos:  admin, normal
+#   - Usuarios: admin@test.com → grupo admin   |  user@test.com → grupo normal
+#   - Guarda UserPoolId y ClientId en SSM
+# También se puede ejecutar manualmente:
+sh scripts/ministack/cognito-init.sh
+```
+
+| Usuario | Contraseña | Grupo | Puede acceder a |
+|---------|-----------|-------|-----------------|
+| `admin@test.com` | `Test1234!` | `admin` | Diagnostics + Order/Customer/Product |
+| `user@test.com` | `Test1234!` | `normal` | Order/Customer/Product |
+
+#### Paquetes NuGet (API)
+
+```xml
+<!-- SoftwareLearningGuide.Api.csproj -->
+<PackageReference Include="AWSSDK.CognitoIdentityProvider" />
+<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
+```
+
+> El `Microsoft.AspNetCore.Authentication.JwtBearer` **ya no viene** en el framework compartido de .NET 10: hay que referenciarlo explícitamente.
+
+#### Registro: `AddCognitoAuthentication`
+
+Se registra solo si `AWS.Cognito.Enabled = true` y hay `UserPoolId`/`ClientId`:
+
+```csharp
+// Extensions/CognitoAuthenticationServiceCollectionExtensions.cs
+services.AddCognitoAuthentication(builder.Configuration);
+
+// Internamente:
+var issuer = $"https://cognito-idp.{cognito.Region}.amazonaws.com";
+var authority = string.IsNullOrEmpty(cognito.ServiceUrl)
+    ? $"{issuer}/{cognito.UserPoolId}"            // AWS real
+    : $"{cognito.ServiceUrl}/{cognito.UserPoolId}"; // MiniStack (discovery local)
+
+services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options => {
+        options.Authority = authority;                       // → discovery + JWKS
+        options.RequireHttpsMetadata = string.IsNullOrEmpty(cognito.ServiceUrl);
+        options.TokenValidationParameters = new TokenValidationParameters {
+            ValidateIssuer = true,
+            ValidIssuer = $"{issuer}/{cognito.UserPoolId}",  // iss = URL real de AWS
+            ValidateAudience = true,
+            ValidAudience = cognito.ClientId,
+            AudienceValidator = ValidateCognitoAudience,     // acepta client_id (access) o aud (id token)
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.FromSeconds(30)
+        };
+    });
+```
+
+#### Policies RBAC
+
+```csharp
+public static class CognitoRoles {
+    public const string Admin = "admin";
+    public const string Normal = "normal";
+}
+
+public static class CognitoPolicies {
+    public const string RequireAdminRole = "RequireAdminRole";
+    public const string RequireNormalRole = "RequireNormalRole";
+}
+
+services.AddAuthorization(options => {
+    // "normal" o "admin" (admin es superconjunto)
+    options.AddPolicy(CognitoPolicies.RequireNormalRole, policy =>
+        policy.RequireAuthenticatedUser()
+              .RequireClaim("cognito:groups", CognitoRoles.Admin, CognitoRoles.Normal));
+
+    // solo "admin"
+    options.AddPolicy(CognitoPolicies.RequireAdminRole, policy =>
+        policy.RequireAuthenticatedUser()
+              .RequireClaim("cognito:groups", CognitoRoles.Admin));
+});
+```
+
+```csharp
+// Program.cs — el middleware de autenticación va ANTES del de autorización
+app.UseAuthentication();
+app.UseAuthorization();
+```
+
+#### Cómo se aplica en los controllers
+
+```csharp
+[ApiController]
+[Authorize(Policy = CognitoPolicies.RequireAdminRole)]   // solo admin
+[FeatureGate(FeatureToggleNames.FT_ENABLE_DIAGNOSIS_CONTROLLER)]
+public class DiagnosticsController : ControllerBase { ... }
+
+[ApiController]
+[Authorize(Policy = CognitoPolicies.RequireNormalRole)] // admin o normal
+[FeatureGate(FeatureToggleNames.FT_ENABLE_ORDER_CONTROLLER)]
+public class OrderController : ControllerBase { ... }
+// CustomerController y ProductController usan RequireNormalRole igual que Order.
+```
+
+| Endpoint | Policy | Sin token | Rol `normal` | Rol `admin` |
+|----------|--------|-----------|--------------|-------------|
+| `/api/v1/diagnostics/*` | `RequireAdminRole` | `401` | `403` | `200` |
+| `/api/v1/order/*`, `/api/v1/customer/*`, `/api/v1/product/*` | `RequireNormalRole` | `401` | `200` | `200` |
+
+#### Obtener un token de prueba
+
+```bash
+# Access token para admin (group cognito:groups = ["admin"])
+TOKEN=$(aws --endpoint-url=http://localhost:4566 cognito-idp initiate-auth \
+  --client-id <CLIENT_ID> \
+  --auth-flow USER_PASSWORD_AUTH \
+  --auth-parameters USERNAME=admin@test.com,PASSWORD=Test1234! \
+  --query "AuthenticationResult.AccessToken" --output text)
+
+curl -H "Authorization: Bearer $TOKEN" http://localhost:5000/api/v1/diagnostics/feature-toggles
+# Sin token → 401; con user@test.com → 403 en diagnostics; con admin → 200
+```
+
+#### Flujo de autenticación
+
+```mermaid
+sequenceDiagram
+    participant U as Usuario (curl)
+    participant C as Cognito (MiniStack)
+    participant API as API (.NET)
+    participant JWKS as JWKS (MiniStack)
+
+    U->>C: initiate-auth (USERNAME, PASSWORD)
+    C-->>U: AuthenticationResult (AccessToken)
+    U->>API: GET /api/v1/order (Bearer <AccessToken>)
+    API->>JWKS: Descarga JWKS (clave pública RSA)
+    API->>API: Valida firma + iss (URL AWS) + client_id/aud + cognito:groups
+    API-->>U: 200 OK (si rol normal/admin) | 403 (si no)
+```
+
 ### Por qué `source.Optional = true` es importante
 
 ```csharp
@@ -774,6 +963,18 @@ aws --endpoint-url=http://localhost:4566 sqs list-queues
 # Ver los mensajes que hay en las colas SQS (inspección de MiniStack)
 curl http://localhost:4566/_ministack/sqs/messages
 
+# Listar los User Pools de Cognito
+aws --endpoint-url=http://localhost:4566 cognito-idp list-user-pools --max-results 10
+
+# Obtener un access token de prueba (admin)
+aws --endpoint-url=http://localhost:4566 cognito-idp initiate-auth \
+  --client-id <CLIENT_ID> \
+  --auth-flow USER_PASSWORD_AUTH \
+  --auth-parameters USERNAME=admin@test.com,PASSWORD=Test1234!
+
+# Ver el JWKS del pool (clave pública que firma los tokens)
+curl http://localhost:4566/<USER_POOL_ID>/.well-known/jwks.json
+
 # Resetear el estado de MiniStack (borra parámetros, tópicos y colas)
 curl -X POST "http://localhost:4566/_ministack/reset?init=1"
 ```
@@ -801,6 +1002,13 @@ En producción, el único cambio necesario es:
         "Enabled": true,
         "Region": "us-east-1",
         "ServiceUrl": ""    // ← vacío = usa AWS real (SNS/SQS)
+      },
+      "Cognito": {
+        "Enabled": true,
+        "UserPoolId": "us-east-1_XXXXXXXXX",  // ← pool real
+        "ClientId": "<CLIENT_ID>",            // ← app client real
+        "Region": "us-east-1",
+        "ServiceUrl": ""                      // ← vacío = discovery en AWS real
       }
     }
   }

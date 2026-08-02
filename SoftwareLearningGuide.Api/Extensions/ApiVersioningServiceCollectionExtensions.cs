@@ -3,7 +3,6 @@
 namespace SoftwareLearningGuide.Api.Extensions {
     public static class ApiVersioningServiceCollectionExtensions {
         public static IServiceCollection AddCustomApiVersioning(this IServiceCollection services) {
-            // Registrar servicio de versionado
             services.AddApiVersioning(options => {
                 options.DefaultApiVersion = new ApiVersion(1, 0);
                 options.AssumeDefaultVersionWhenUnspecified = true;
@@ -13,10 +12,7 @@ namespace SoftwareLearningGuide.Api.Extensions {
                 options.SubstituteApiVersionInUrl = true;
             });
 
-            // Registrar los documentos OpenAPI explícitos
-            services.AddOpenApi("v1");
-            services.AddOpenApi("v2");
-
+            services.AddCustomOpenApi();
             return services;
         }
     }

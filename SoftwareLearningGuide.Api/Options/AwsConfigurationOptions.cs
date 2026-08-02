@@ -6,6 +6,8 @@ namespace SoftwareLearningGuide.Api.Options {
 
         public AwsSSMConfigurationOptions SSM { get; set; } = new();
 
+        public AwsCognitoConfigurationOptions Cognito { get; set; } = new();
+
         public class AwsCredentialsOptions {
             public string AccessKey { get; set; } = string.Empty;
 
@@ -24,6 +26,20 @@ namespace SoftwareLearningGuide.Api.Options {
             public string ServiceUrl { get; set; } = string.Empty;
 
             public int ReloadIntervalSeconds { get; set; } = 300;
+        }
+
+        public class AwsCognitoConfigurationOptions {
+            public static string SectionName => "Cognito";
+
+            public bool Enabled { get; set; }
+
+            public string UserPoolId { get; set; } = string.Empty;
+
+            public string ClientId { get; set; } = string.Empty;
+
+            public string Region { get; set; } = "us-east-1";
+
+            public string ServiceUrl { get; set; } = string.Empty;
         }
     }
 }
