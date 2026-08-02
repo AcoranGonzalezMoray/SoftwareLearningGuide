@@ -222,7 +222,7 @@ dotnet run
 
 > **Nota:** Los controllers de Order, Product y Customer estan protegidos por Feature Flags. En modo Development todos estan habilitados.
 >
-> **Autenticacion (Cognito):** los endpoints de Order, Product, Customer (`RequireNormalRole`: roles `normal`/`admin`) y Diagnostics (`RequireAdminRole`: solo `admin`) requieren un **JWT** de Cognito en el header `Authorization: Bearer <token>`. Sin token → `401`; rol insuficiente → `403`. Usuarios de prueba (seed de `cognito-init.sh`): `admin@test.com` / `Test1234!` (admin) y `user@test.com` / `Test1234!` (normal). Detalles en [README.Ministack.md](docs/softwareLearningApplication/README.Ministack.md#autenticación-con-cognito-jwt-y-rbac).
+> **Autenticacion (Cognito):** los endpoints de Order, Product, Customer (`RequireNormalRole`: roles `normal`/`admin`) y Diagnostics (`RequireAdminRole`: solo `admin`) requieren un **JWT** de Cognito en el header `Authorization: Bearer <token>`. Sin token → `401`; rol insuficiente → `403`. Usuarios de prueba (seed de `cognito-init.sh`): `admin@test.com` / `Test1234!` (admin) y `user@test.com` / `Test1234!` (normal). Puedes obtener un token con `POST /api/v1/token` (user/password) o con el boton **Authorize** de Swagger. Detalles en [README.Ministack.md](docs/softwareLearningApplication/README.Ministack.md#autenticación-con-cognito-jwt-y-rbac).
 
 ---
 

@@ -771,7 +771,8 @@ MiniStack implementa la API de Cognito (`cognito-idp`, 62 operaciones): User Poo
 
 ```bash
 # Se ejecuta automáticamente al arrancar MiniStack (junto a init-ssm.sh).
-# Reutiliza el pool si ya existe (idempotente). Crea:
+# Reutiliza el pool si ya existe; grupos y usuarios son idempotentes (se recrean
+# sin error). Crea:
 #   - User Pool  "softwarelearningguide"
 #   - App Client "softwarelearningguide-app" (sin secret, flujo USER_PASSWORD_AUTH)
 #   - Grupos:  admin, normal
@@ -785,6 +786,8 @@ sh scripts/ministack/cognito-init.sh
 |---------|-----------|-------|-----------------|
 | `admin@test.com` | `Test1234!` | `admin` | Diagnostics + Order/Customer/Product |
 | `user@test.com` | `Test1234!` | `normal` | Order/Customer/Product |
+
+> **Matiz de idempotencia:** solo el User Pool se reutiliza. El App Client se crea **siempre** (`create-user-pool-client` sin comprobación), por lo que cada ejecución acumula un client nuevo; SSM apunta al último. Con `_ministack/reset` se limpia todo y el seeding regenera un ClientId distinto.
 
 #### Paquetes NuGet (API)
 
@@ -888,9 +891,32 @@ TOKEN=$(aws --endpoint-url=http://localhost:4566 cognito-idp initiate-auth \
   --auth-parameters USERNAME=admin@test.com,PASSWORD=Test1234! \
   --query "AuthenticationResult.AccessToken" --output text)
 
-curl -H "Authorization: Bearer $TOKEN" http://localhost:5000/api/v1/diagnostics/feature-toggles
+curl -H "Authorization: Bearer $TOKEN" http://localhost:5089/api/v1/diagnostics/feature-toggles
 # Sin token → 401; con user@test.com → 403 en diagnostics; con admin → 200
 ```
+
+#### Endpoint de ayuda `POST /api/v1/token` y Swagger
+
+Para no depender del AWS CLI, la API expone un endpoint **público** (`TokenController`) que intercambia usuario/contraseña por un access token de Cognito:
+
+```bash
+curl -X POST http://localhost:5089/api/v1/token \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "username=admin@test.com&password=Test1234!"
+```
+
+```json
+{
+  "access_token": "<JWT>",
+  "token_type": "Bearer",
+  "expires_in": 3600,
+  "refresh_token": "<refresh token>",
+  "id_token": "<id token>"
+}
+```
+
+- Respuestas: `200` con el token; `401` si el usuario o la contraseña son incorrectos; `400` si Cognito no está configurado (`Enabled=false` o `ClientId` vacío).
+- Swagger ya viene preparado: `OpenApiServiceCollectionExtensions.cs` declara el security scheme OAuth2 `CognitoOAuth2` (password flow) con `tokenUrl` = `/api/v1/token`. Los endpoints protegidos muestran el candado y el botón **Authorize** de Swagger permite introducir usuario/contraseña; la UI adjunta el token automáticamente a cada request.
 
 #### Flujo de autenticación
 
@@ -971,6 +997,11 @@ aws --endpoint-url=http://localhost:4566 cognito-idp initiate-auth \
   --client-id <CLIENT_ID> \
   --auth-flow USER_PASSWORD_AUTH \
   --auth-parameters USERNAME=admin@test.com,PASSWORD=Test1234!
+
+# O lo mismo a través de la API (POST /api/v1/token)
+curl -X POST http://localhost:5089/api/v1/token \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "username=admin@test.com&password=Test1234!"
 
 # Ver el JWKS del pool (clave pública que firma los tokens)
 curl http://localhost:4566/<USER_POOL_ID>/.well-known/jwks.json
