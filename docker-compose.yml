@@ -64,6 +64,27 @@ services:
       - rabbitmq-data:/var/lib/rabbitmq
     restart: unless-stopped
 
+  ministack:
+    image: ministackorg/ministack
+    container_name: ministack-slg
+    ports:
+      - "4566:4566"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./scripts/ministack:/docker-entrypoint-initaws.d/ready.d
+    environment:
+      - REDIS_HOST=redis
+    depends_on:
+      - redis
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis-slg
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+
 
 volumes:
   sqlserver-data:

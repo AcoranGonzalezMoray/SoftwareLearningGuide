@@ -52,6 +52,7 @@
 | **APIs REST** | Controladores, versionado, documentacion OpenAPI, streaming | `API` |
 | **Observabilidad** | Trazas distribuidas, metricas, logging estructurado, scopes | `Observability` |
 | **Feature Flags** | Feature Toggles con Microsoft.FeatureManagement y Flagsmith | `Feature Mgmt` |
+| **Cloud Providers** | AWS, MiniStack (emulador local), SSM Parameter Store, proveedores de configuracion | `Cloud Providers` |
 | **Infraestructura** | Docker, Aspire Dashboard, RabbitMQ, SQL Server | `Infra` |
 
 ---
@@ -98,6 +99,13 @@
 | **Respawn** | [`README.Respawn.md`](tests/README.Respawn.md) | Reseteo automatico de base de datos entre tests |
 | **Response Fixture** | [`README.ResponseFixture.md`](tests/README.ResponseFixture.md) | Archivos JSON con respuestas esperadas para asserts |
 
+#### Proveedores en la Nube
+
+| Tema | Ubicacion | Descripcion |
+|------|-----------|-------------|
+| **AWS (General)** | [`README.AWS.md`](softwareLearningApplication/README.AWS.md) | Que es AWS, regiones, modelo de precios, catalogo de servicios con precios y comandos CLI |
+| **MiniStack (Local AWS)** | [`README.Ministack.md`](softwareLearningApplication/README.Ministack.md) | Emulador local gratuito de AWS (60+ servicios), como funciona y su implementacion en este proyecto |
+
 ---
 
 ## Inicio Rapido
@@ -107,6 +115,21 @@
 - **.NET 10 SDK** o superior
 - **Docker Desktop** (para servicios de observabilidad y SQL Server)
 - **Visual Studio 2026** (recomendado) o VS Code
+
+### Servicios Utilizados
+
+| Servicio | Provider | Rol en el proyecto |
+|----------|----------|--------------------|
+| **SQL Server 2022** | Docker (`sqlserver-slg`) | Base de datos principal de la API y del OutboxProcessor |
+| **RabbitMQ** | Docker (`rabbitmq-slg`) | Broker de mensajes principal: publicacion y consumo de Integration Events |
+| **MiniStack** | Docker (`ministack-slg`) | Emulador local de AWS (SSM, SNS, SQS, ...) en `localhost:4566` |
+| **Redis** | Docker (`redis-slg`) | Backend de persistencia de MiniStack |
+| **Aspire Dashboard** | Docker | Observabilidad: recoleccion de trazas/metricas (OTLP) |
+| **Flagsmith + PostgreSQL** | Docker (`flagsmith` + `flagsmith-postgres`) | Feature Management (feature flags) |
+| **SSM Parameter Store** | AWS (via MiniStack) | Configuracion centralizada de las 3 aplicaciones |
+| **SNS** | AWS (via MiniStack) | Topicos donde el OutboxProcessor publica los Integration Events (ademas de RabbitMQ) |
+| **SQS** | AWS (via MiniStack) | Colas suscritas a los topicos SNS que consume el Consumer |
+| **Cognito** | AWS (via MiniStack) | User Pool con usuarios/grupos (`admin`, `normal`) que emite los JWT que la API valida (autenticacion + RBAC) |
 
 ### Ejecutar la API
 
@@ -129,7 +152,7 @@ dotnet run
 
 #### 2. Outbox Processor (`SoftwareLearningGuide.OutboxProcessor`)
 
-Worker Service que lee la tabla OutboxMessage y publica eventos a RabbitMQ. No contiene logica de consumo - solo publica.
+Worker Service que lee la tabla OutboxMessage y publica eventos a **RabbitMQ** y a **SNS/SQS (AWS)**. No contiene logica de consumo - solo publica.
 
 ```bash
 # Ejecuta el Outbox Processor
@@ -140,11 +163,11 @@ cd SoftwareLearningGuide.OutboxProcessor
 dotnet run
 ```
 
-> **Requiere:** SQL Server y RabbitMQ ejecutandose (`docker-compose up -d`)
+> **Requiere:** SQL Server, RabbitMQ y MiniStack ejecutandose (`docker-compose up -d`)
 
 #### 3. Consumer (`SoftwareLearningGuide.Consumer`)
 
-Worker Service que escucha colas de RabbitMQ y procesa los eventos publicados por el OutboxProcessor.
+Worker Service que escucha colas de **RabbitMQ** y de **SNS/SQS (AWS)** y procesa los Integration Events publicados por el OutboxProcessor.
 
 ```bash
 # Ejecuta el Consumer
@@ -155,7 +178,7 @@ cd SoftwareLearningGuide.Consumer
 dotnet run
 ```
 
-> **Requiere:** RabbitMQ ejecutandose (`docker-compose up -d`)
+> **Requiere:** RabbitMQ y MiniStack ejecutandose (`docker-compose up -d`)
 
 #### Endpoints Disponibles
 
@@ -193,6 +216,8 @@ dotnet run
 - **OpenAPI Spec:** `https://localhost:7033/openapi/v1.json`
 
 > **Nota:** Los controllers de Order, Product y Customer estan protegidos por Feature Flags. En modo Development todos estan habilitados.
+>
+> **Autenticacion (Cognito):** los endpoints de Order, Product, Customer (`RequireNormalRole`: roles `normal`/`admin`) y Diagnostics (`RequireAdminRole`: solo `admin`) requieren un **JWT** de Cognito en el header `Authorization: Bearer <token>`. Sin token → `401`; rol insuficiente → `403`. Usuarios de prueba (seed de `cognito-init.sh`): `admin@test.com` / `Test1234!` (admin) y `user@test.com` / `Test1234!` (normal). Puedes obtener un token con `POST /api/v1/token` (user/password) o con el boton **Authorize** de Swagger. Detalles en [README.Ministack.md](softwareLearningApplication/README.Ministack.md#autenticación-con-cognito-jwt-y-rbac).
 
 ---
 

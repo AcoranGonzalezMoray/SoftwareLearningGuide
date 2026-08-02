@@ -6,7 +6,7 @@ namespace SoftwareLearningGuide.Api.Extensions {
             services.Configure<OpenTelemetryOptions>(configuration.GetSection(OpenTelemetryOptions.SectionName));
             services.Configure<DatabaseOptions>(configuration.GetSection(DatabaseOptions.SectionName));
             services.Configure<FeatureManagementApiConfigurationOptions>(configuration.GetSection(FeatureManagementApiConfigurationOptions.SectionName));
-
+            services.Configure<CloudProvidersConfigurationOptions>(configuration.GetSection(CloudProvidersConfigurationOptions.SectionName));
             return services;
         }
 
@@ -20,6 +20,14 @@ namespace SoftwareLearningGuide.Api.Extensions {
             return configuration
                 .GetSection(DatabaseOptions.SectionName)
                 .Get<DatabaseOptions>() ?? new DatabaseOptions();
+        }
+
+        public static AwsConfigurationOptions.AwsCognitoConfigurationOptions GetCognitoOptions(this IConfiguration configuration) {
+            return configuration
+                .GetSection(CloudProvidersConfigurationOptions.SectionName)
+                .GetSection(nameof(CloudProvidersConfigurationOptions.AWS))
+                .GetSection(AwsConfigurationOptions.AwsCognitoConfigurationOptions.SectionName)
+                .Get<AwsConfigurationOptions.AwsCognitoConfigurationOptions>() ?? new AwsConfigurationOptions.AwsCognitoConfigurationOptions();
         }
     }
 }

@@ -1,7 +1,9 @@
 using Asp.Versioning;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.FeatureManagement.Mvc;
+using SoftwareLearningGuide.Api.Extensions;
 using SoftwareLearningGuide.Api.FeatureToggles;
 using SoftwareLearningGuide.Application.Command.CreateCustomer;
 using SoftwareLearningGuide.Application.Query.GetAllCustomer;
@@ -14,6 +16,7 @@ namespace SoftwareLearningGuide.Api.Controllers.CustomerControllerExample;
 /// </summary>
 [ApiController]
 [ApiVersion("1.0")]
+[Authorize(Policy = CognitoPolicies.RequireNormalRole)]
 [FeatureGate(FeatureToggleNames.FT_ENABLE_CUSTOMER_CONTROLLER)]
 [Route("api/v{version:apiVersion}/[controller]")]
 public class CustomerController : ControllerBase {

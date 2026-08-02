@@ -9,6 +9,9 @@ namespace SoftwareLearningGuide.Api {
         public static void Main(string[] args) {
             var builder = WebApplication.CreateBuilder(args);
 
+            // SSM Parameter Store (MiniStack/AWS): prioriza sobre appsettings; appsettings actúa como fallback
+            builder.Configuration.AddSystemsManagerConfiguration(builder.Configuration);
+
             // =========================================================
             // 1. REGISTRO DE SERVICIOS
             // =========================================================
@@ -17,7 +20,10 @@ namespace SoftwareLearningGuide.Api {
 
             builder.Services.AddOptions(builder.Configuration);
 
-            // Feature Toggle/Flags: provider de flags (prioriza sobre appsettings)
+            // Autenticación JWT (Cognito) + policies RBAC; activo solo si AWS.Cognito.Enabled
+            builder.Services.AddCognitoAuthentication(builder.Configuration);
+
+            // Feature Toggle/Flags: provider de flags (prioriza sobre appsettings y SSM)
             builder.Configuration.AddFeatureManagementConfiguration(builder.Configuration);
             builder.Services.AddFeatureManagement();
 
@@ -68,6 +74,7 @@ namespace SoftwareLearningGuide.Api {
             app.UseMiddleware<GlobalExceptionMiddleware>();
 
             app.UseHttpsRedirection();
+            app.UseAuthentication();
             app.UseAuthorization();
             app.MapControllers();
 

@@ -6,6 +6,9 @@ using System.Data;
 
 var builder = Host.CreateApplicationBuilder(args);
 
+// SSM Parameter Store (MiniStack/AWS): prioriza sobre appsettings; appsettings actúa como fallback
+builder.Configuration.AddSystemsManagerConfiguration(builder.Configuration);
+
 // =========================================================
 // 1. OPTIONS
 // =========================================================
@@ -62,6 +65,12 @@ builder.Services.AddMassTransit(x => {
         cfg.ConfigureEndpoints(context);
     });
 });
+
+// =========================================================
+// 4.1 MASSTRANSIT (Bus AWS SQS/SNS - solo publicación)
+// =========================================================
+
+builder.Services.AddAwsMessageBus(builder.Configuration);
 
 // =========================================================
 // 5. WORKER BACKGROUND SERVICE

@@ -13,5 +13,6 @@ namespace SoftwareLearningGuide.Api.FeatureToggles {
         public const string FT_ENABLE_CUSTOMER_CREATION = nameof(FT_ENABLE_CUSTOMER_CREATION);
         public const string FT_ENABLE_CUSTOMER_RETRIEVAL = nameof(FT_ENABLE_CUSTOMER_RETRIEVAL);
         public const string FT_ENABLE_CUSTOMER_LIST = nameof(FT_ENABLE_CUSTOMER_LIST);
+        public const string FT_ENABLE_DIAGNOSIS_CONTROLLER = nameof(FT_ENABLE_DIAGNOSIS_CONTROLLER);
     }
 }
