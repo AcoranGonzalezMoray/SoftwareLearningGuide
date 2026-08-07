@@ -258,8 +258,8 @@ public record Money {
 
 ```csharp
 // Con records, la igualdad se basa en los valores automáticamente
-var money1 = new Money(100, "USD");
-var money2 = new Money(100, "USD");
+var money1 = Money.Create(100, "USD").Value!;
+var money2 = Money.Create(100, "USD").Value!;
 
 money1 == money2; // true - Son iguales por valor
 money1.Equals(money2); // true
@@ -1597,7 +1597,7 @@ La clave es entender cuándo usar cada uno: **Value Objects** para conceptos sin
 | **Ciclo de Vida** | No tiene | Nace, vive, se modifica, muere |
 | **Persistencia** | Se persiste como parte de una entidad | Se persiste independientemente |
 | **Ejemplo** | Money, Email, Address | Product, Customer, Order |
-| **Creación** | `new Money(100, "USD")` | Factory method o constructor |
+| **Creación** | `Money.Create(100, "USD")` | `Product.Create(...)` (factory) |
 | **Validación** | En constructor | En constructor y métodos |
 
 ### Entidades vs Agregados
@@ -1643,9 +1643,9 @@ public class Product
 	}
 }
 
-// El constructor valida automáticamente
-var product = new Product { Price = new Money(-100, "USD") };
-// Lanza: ArgumentException - El monto no puede ser negativo
+// El factory valida automáticamente
+var priceResult = Money.Create(-100m, "USD");
+// Result: Failure - El monto no puede ser negativo
 ```
 
 ---
@@ -1658,17 +1658,30 @@ var product = new Product { Price = new Money(-100, "USD") };
 // Crear agregado Order
 var orderId = OrderId.Create();
 var customerId = CustomerId.Create();
-var shippingAddress = new Address("Calle 123", "Madrid", "Madrid", "28001", "España");
-var order = new Order(orderId, customerId, shippingAddress);
+
+var addressResult = Address.Create("Calle 123", "Madrid", "Madrid", "28001", "España");
+if (!addressResult.IsSuccess) return;
+
+var orderResult = Order.Create(orderId, customerId, addressResult.Value!);
+if (!orderResult.IsSuccess) return;
+
+var order = orderResult.Value!;
 
 // Agregar productos
 var productId = ProductId.Create();
-var product = new Product(
+
+var priceResult = Money.Create(1000m, "USD");
+if (!priceResult.IsSuccess) return;
+
+var productResult = Product.Create(
 	productId,
 	"Laptop",
 	"Laptop de alta performance",
-	new Money(1000, "USD"),
+	priceResult.Value!,
 	5);
+if (!productResult.IsSuccess) return;
+
+var product = productResult.Value!;
 
 var addResult = order.AddProduct(product, 2);
 if (!addResult.IsSuccess)
@@ -1710,7 +1723,7 @@ var negativeResult = order.AddProduct(product, -1);
 // Resultado: Failure - "La cantidad debe ser mayor a cero."
 
 // Intento de confirmar un pedido vacío
-var emptyOrder = new Order(OrderId.Create(), customerId, shippingAddress);
+var emptyOrder = Order.Create(OrderId.Create(), customerId, addressResult.Value!).Value!;
 var confirmResult = emptyOrder.Confirm();
 // Resultado: Failure - "No se puede confirmar un pedido vacío."
 

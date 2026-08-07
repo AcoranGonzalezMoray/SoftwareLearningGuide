@@ -100,14 +100,14 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
         builder.Property(o => o.Id)
             .HasConversion(
                 id => id.Value,
-                value => new OrderId(value))
+                value => OrderId.From(value).Value)
             .ValueGeneratedNever();
 
         // Value Conversion: CustomerId → Guid
         builder.Property(o => o.CustomerId)
             .HasConversion(
                 id => id.Value,
-                value => new CustomerId(value));
+                value => CustomerId.From(value).Value);
 
         // Enum → string
         builder.Property(o => o.Status)
@@ -165,13 +165,13 @@ public class OrderLineConfiguration : IEntityTypeConfiguration<OrderLine>
         builder.Property(ol => ol.Id)
             .HasConversion(
                 id => id.Value,
-                value => new OrderLineId(value))
+                value => OrderLineId.From(value).Value)
             .ValueGeneratedNever();
 
         builder.Property(ol => ol.ProductId)
             .HasConversion(
                 id => id.Value,
-                value => new ProductId(value));
+                value => ProductId.From(value).Value);
 
         builder.Property(ol => ol.ProductName).HasMaxLength(200).IsRequired();
 
@@ -209,7 +209,7 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
         builder.Property(p => p.Id)
             .HasConversion(
                 id => id.Value,
-                value => new ProductId(value))
+                value => ProductId.From(value).Value)
             .ValueGeneratedNever();
 
         builder.Property(p => p.Name).HasMaxLength(200).IsRequired();
@@ -250,7 +250,7 @@ public class CustomerConfiguration : IEntityTypeConfiguration<Customer>
         builder.Property(c => c.Id)
             .HasConversion(
                 id => id.Value,
-                value => new CustomerId(value))
+                value => CustomerId.From(value).Value)
             .ValueGeneratedNever();
 
         builder.Property(c => c.FirstName).HasMaxLength(100).IsRequired();
@@ -355,7 +355,7 @@ For Value Objects wrapping a single value (IDs):
 builder.Property(o => o.Id)
     .HasConversion(
         id => id.Value,              // OrderId → Guid (for DB)
-        value => new OrderId(value)) // Guid → OrderId (for C#)
+        value => OrderId.From(value).Value) // Guid → OrderId (for C#)
     .ValueGeneratedNever();
 ```
 
@@ -428,13 +428,13 @@ All IDs use Value Conversions to map Value Objects to `Guid`:
 builder.Property(o => o.Id)
     .HasConversion(
         id => id.Value,              // OrderId → Guid
-        value => new OrderId(value)) // Guid → OrderId
+        value => OrderId.From(value).Value) // Guid → OrderId
     .ValueGeneratedNever();
 
 builder.Property(o => o.CustomerId)
     .HasConversion(
         id => id.Value,
-        value => new CustomerId(value));
+        value => CustomerId.From(value).Value);
 ```
 
 `ValueGeneratedNever()` indicates that EF Core **doesn't generate** the value automatically (we generate it in the domain).

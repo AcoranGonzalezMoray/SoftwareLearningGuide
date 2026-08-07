@@ -80,7 +80,7 @@ Un servicio de procesamiento independiente (`OutboxProcessor`) lee periodicament
 graph TD
     subgraph API["API Principal (ASP.NET Core)"]
         CommandHandler["CommandHandler"]
-        CommandHandler -->|"new Order(...) → AddDomainEvent(...)"| Repository["_repository.Add(order)"]
+        CommandHandler -->|"Order.Create(...) → AddDomainEvent(...)"| Repository["_repository.Add(order)"]
         Repository --> UoW["_unitOfWork.SaveChangesAsync()"]
         UoW --> Dispatch["UnitOfWork.DispatchDomainEventsAsync()"]
         Dispatch --> Mediator["IMediator.Publish(domainEvent)"]
@@ -348,7 +348,7 @@ sequenceDiagram
     participant Consumer as OrderCreatedConsumer
 
     API->>Handler: Handle(command)
-    Handler->>Order: new Order(orderId, customerId, address)
+    Handler->>Order: Order.Create(orderId, customerId, address)
     Order-->>Handler: AddDomainEvent(OrderCreatedDomainEvent) [en memoria]
     Handler->>Order: order.AddProduct(product, quantity)
     Handler->>Order: order.Confirm()

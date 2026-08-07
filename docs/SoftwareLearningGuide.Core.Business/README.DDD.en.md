@@ -460,9 +460,17 @@ public class Order : ProduceEvents {
                 return updateResult;
         }
         else {
-            var lineId = OrderLineId.Create();
-            var line = new OrderLine(lineId, product.Id, product.Name, product.Price, quantity);
-            _orderLines.Add(line);
+            var lineResult = OrderLine.Create(
+                OrderLineId.Create(),
+                product.Id,
+                product.Name,
+                product.Price,
+                quantity);
+
+            if (!lineResult.IsSuccess)
+                return Result.Failure(lineResult.Error!);
+
+            _orderLines.Add(lineResult.Value!);
         }
 
         return Result.Success();
@@ -858,7 +866,7 @@ The key is understanding when to use each one: **Value Objects** for concepts wi
 | **Lifecycle** | Has none | Born, lives, modified, dies |
 | **Persistence** | Persisted as part of an entity | Persisted independently |
 | **Example** | Money, Email, Address | Product, Customer, Order |
-| **Creation** | `new Money(100, "USD")` | Factory method or constructor |
+| **Creation** | `Money.Create(100, "USD")` | `Product.Create(...)` (factory) |
 | **Validation** | In constructor | In constructor and methods |
 
 ### Entities vs Aggregates
@@ -904,9 +912,9 @@ public class Product
 	}
 }
 
-// Constructor validates automatically
-var product = new Product { Price = new Money(-100, "USD") };
-// Throws: ArgumentException - Amount cannot be negative
+// The factory validates automatically
+var priceResult = Money.Create(-100m, "USD");
+// Result: Failure - Amount cannot be negative
 ```
 
 ---
@@ -919,17 +927,30 @@ var product = new Product { Price = new Money(-100, "USD") };
 // Create Order aggregate
 var orderId = OrderId.Create();
 var customerId = CustomerId.Create();
-var shippingAddress = new Address("123 Main St", "Madrid", "Madrid", "28001", "Spain");
-var order = new Order(orderId, customerId, shippingAddress);
+
+var addressResult = Address.Create("123 Main St", "Madrid", "Madrid", "28001", "Spain");
+if (!addressResult.IsSuccess) return;
+
+var orderResult = Order.Create(orderId, customerId, addressResult.Value!);
+if (!orderResult.IsSuccess) return;
+
+var order = orderResult.Value!;
 
 // Add products
 var productId = ProductId.Create();
-var product = new Product(
+
+var priceResult = Money.Create(1000m, "USD");
+if (!priceResult.IsSuccess) return;
+
+var productResult = Product.Create(
 	productId,
 	"Laptop",
 	"High performance laptop",
-	new Money(1000, "USD"),
+	priceResult.Value!,
 	5);
+if (!productResult.IsSuccess) return;
+
+var product = productResult.Value!;
 
 var addResult = order.AddProduct(product, 2);
 if (!addResult.IsSuccess)
@@ -971,7 +992,7 @@ var negativeResult = order.AddProduct(product, -1);
 // Result: Failure - "Quantity must be greater than zero."
 
 // Attempt to confirm an empty order
-var emptyOrder = new Order(OrderId.Create(), customerId, shippingAddress);
+var emptyOrder = Order.Create(OrderId.Create(), customerId, addressResult.Value!).Value!;
 var confirmResult = emptyOrder.Confirm();
 // Result: Failure - "Cannot confirm an empty order."
 

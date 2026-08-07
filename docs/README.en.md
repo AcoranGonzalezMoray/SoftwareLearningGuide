@@ -293,77 +293,126 @@ graph TD
     Root["SoftwareLearningGuide/"]
     
     Core["Core.Business<br/>Domain Layer (DDD)"]
-    CoreExc["Exceptions/<br/>Domain exceptions + Result&lt;T&gt;"]
+    CoreExc["Exceptions/<br/>Result&lt;T&gt; and Result (Result pattern)"]
     CoreErr["Errors/<br/>DomainErrors: centralized error catalog"]
-    CoreVO["ValueObjects/<br/>Money, Email, Address, OrderId"]
+    CoreVO["ValueObjects/<br/>Money, Email, Address, OrderId, ProductId"]
     CoreEnt["Entities/<br/>Product, Customer, OrderLine"]
-    CoreAgg["Aggregates/<br/>Order (aggregate root)"]
+    CoreAgg["Aggregates/<br/>Order (aggregate root), OrderStatus"]
+    CoreDom["DomainEvents/<br/>ProduceEvents, ProductCreatedDomainEvent"]
     
-    App["Application/<br/>Application Layer"]
-    AppQuery["Application.Query/<br/>Queries (Dapper, read)"]
-    AppQueryGet["GetOrder/<br/>GetOrderQuery + Handler"]
+    App["Application/<br/>Application Layer (contracts)"]
+    AppPorts["Ports/<br/>IBaseRepository, IOrderWriteRepository, IUnitOfWork"]
+    
     AppCmd["Application.Command/<br/>Commands (EF Core, write)"]
-    AppCmdCreate["CreateOrder/<br/>CreateOrderCommand + Handler"]
-    AppCmdPorts["Ports/<br/>IOrderWriteRepository, IUnitOfWork"]
+    AppCmdCreate["CreateProduct, CreateOrder,<br/>CreateCustomer + Handlers"]
+    AppCmdNh["NotificationHandlers/<br/>ProductCreated, OrderCreated, ..."]
+    AppCmdPorts["Ports/<br/>IOutboxWriter"]
+    
+    AppQuery["Application.Query/<br/>Queries (Dapper, read)"]
+    AppQueryGet["GetProduct, GetOrder, GetCustomer,<br/>GetAllProducts, GetAllOrders, GetAllCustomer"]
+    
+    Contracts["Contracts/<br/>Integration contracts"]
+    ContractsEvents["Events/<br/>ProductCreatedEvent, OrderCreatedEvent, ..."]
     
     Infra["Infraestructure/<br/>Infrastructure Layer"]
+    InfraRepo["Repositories/<br/>BaseRepository, OrderWriteRepository,<br/>ProductWriteRepository, UnitOfWork"]
+    InfraServ["Services/<br/>OutboxWriter"]
+    
     InfraData["Infraestructure.Data/<br/>EF Core, DbContext"]
     InfraDataCtx["Context/<br/>ApplicationDbContext"]
-    InfraDataConf["Configurations/<br/>OrderConfiguration"]
-    InfraDataRepo["Repositories/<br/>OrderWriteRepository, UnitOfWork"]
-    InfraPorts["Ports/<br/>IOrderWriteRepository"]
+    InfraDataConf["Configurations/<br/>OrderConfiguration, ProductConfiguration"]
+    InfraDataEnt["Entities/<br/>OutboxMessageEntity"]
+    InfraDataMig["Migrations/<br/>EF Core migrations"]
     
     Api["Api/<br/>ASP.NET Core REST API"]
-    ApiCtrl["Controllers/<br/>OrderController, WeatherForecast"]
-    ApiExt["Extensions/<br/>OpenTelemetry, ApiVersioning"]
-    ApiFeat["FeatureToggles/<br/>Feature Management"]
+    ApiCtrl["Controllers/<br/>One subfolder per feature:<br/>ProductControllerExample, OrderControllerExample"]
+    ApiExt["Extensions/<br/>OpenTelemetry, ApiVersioning, CognitoAuth"]
+    ApiFeat["FeatureToggles/<br/>FeatureToggles, FeatureManagementProvider"]
     ApiMid["Middlewares/<br/>GlobalExceptionMiddleware"]
     ApiMet["Metrics/<br/>OrderMetrics"]
+    ApiOpt["Options/<br/>DatabaseOptions, OpenTelemetryOptions, ..."]
+    ApiSta["Startup/<br/>CqrsStartup, DbConnectionsStartup, ..."]
     
     Outbox["OutboxProcessor/<br/>Worker Service: Outbox → RabbitMQ"]
+    OutboxBus["Buses/<br/>IAwsMessageBus (SQS/SNS)"]
+    OutboxWkr["Workers/<br/>CustomOutboxProcessorWorker"]
+    
     Consumer["Consumer/<br/>Worker Service: RabbitMQ → Business Logic"]
+    ConsumerBus["Buses/<br/>IAwsMessageBus (SQS/SNS)"]
+    ConsumerCons["Consumers/<br/>ProductCreatedConsumer, OrderCreatedConsumer, ..."]
+    
+    Tests["tests/<br/>NUnit + Testcontainers"]
+    
     Docker["docker-compose.yml"]
+    Docs["docs/<br/>Documentation (Docsify)"]
     
     Root --> Core
     Root --> App
+    Root --> AppCmd
+    Root --> AppQuery
+    Root --> Contracts
     Root --> Infra
+    Root --> InfraData
     Root --> Api
     Root --> Outbox
     Root --> Consumer
+    Root --> Tests
     Root --> Docker
+    Root --> Docs
     
     Core --> CoreExc
     Core --> CoreErr
     Core --> CoreVO
     Core --> CoreEnt
     Core --> CoreAgg
+    Core --> CoreDom
     
-    App --> AppQuery
-    AppQuery --> AppQueryGet
-    App --> AppCmd
+    App --> AppPorts
+    
     AppCmd --> AppCmdCreate
+    AppCmd --> AppCmdNh
     AppCmd --> AppCmdPorts
     
-    Infra --> InfraData
+    AppQuery --> AppQueryGet
+    
+    Contracts --> ContractsEvents
+    
+    Infra --> InfraRepo
+    Infra --> InfraServ
+    
     InfraData --> InfraDataCtx
     InfraData --> InfraDataConf
-    InfraData --> InfraDataRepo
-    Infra --> InfraPorts
+    InfraData --> InfraDataEnt
+    InfraData --> InfraDataMig
     
     Api --> ApiCtrl
     Api --> ApiExt
     Api --> ApiFeat
     Api --> ApiMid
     Api --> ApiMet
+    Api --> ApiOpt
+    Api --> ApiSta
+    
+    Outbox --> OutboxBus
+    Outbox --> OutboxWkr
+    
+    Consumer --> ConsumerBus
+    Consumer --> ConsumerCons
     
     style Root fill:#512BD4,color:#fff,stroke:#4020a6
     style Core fill:#4ECDC4,color:#fff
     style App fill:#FF6B6B,color:#fff
+    style AppCmd fill:#FF6B6B,color:#fff
+    style AppQuery fill:#FF6B6B,color:#fff
+    style Contracts fill:#FFD93D,color:#000
     style Infra fill:#45B7D1,color:#fff
+    style InfraData fill:#45B7D1,color:#fff
     style Api fill:#8B5CF6,color:#fff
     style Outbox fill:#FF4655,color:#fff
     style Consumer fill:#FF6600,color:#fff
+    style Tests fill:#2ECC71,color:#fff
     style Docker fill:#2496ED,color:#fff
+    style Docs fill:#959DA5,color:#fff
 ```
 
 ---
@@ -421,11 +470,25 @@ sequenceDiagram
 The handler creates the `Product` entity which **inherits from `ProduceEvents`**, validating business rules and triggering a domain event:
 
 ```csharp
-// Product.cs inherits from ProduceEvents
-var product = new Product(productId, "Laptop", "Gaming laptop",
-    new Money(1200.00m, "USD"), 10);
-// Internally executes:
-//   AddDomainEvent(new ProductCreatedDomainEvent { ... })
+// The constructors of Product, Money and ProductId are private:
+// creation goes through factories that return Result
+var productId = ProductId.Create();
+
+var priceResult = Money.Create(request.Price, request.Currency);
+if (!priceResult.IsSuccess)
+    return Result<Guid>.Failure(priceResult.Error!);
+
+var productResult = Product.Create(
+    productId,
+    request.Name,
+    request.Description,
+    priceResult.Value!,
+    request.StockQuantity);
+
+if (!productResult.IsSuccess)
+    return Result<Guid>.Failure(productResult.Error!);
+// Product.Create internally executes:
+//   AddDomainEvent(new ProductCreatedDomainEvent { ProductId, Name, Price, Currency })
 // The event remains in memory within the _domainEvents list
 ```
 
@@ -472,7 +535,7 @@ sequenceDiagram
 
 **Key:** The product and outbox message are saved in the **same SQL transaction**. If something fails, the product is not saved and no message is generated.
 
-### Step 4: OutboxProcessor publishes to RabbitMQ
+### Step 4: OutboxProcessor publishes to RabbitMQ and SNS/SQS
 
 The `OutboxProcessor` is a Worker Service that checks the `OutboxMessage` table every 5 seconds:
 
@@ -482,6 +545,7 @@ sequenceDiagram
     participant DB as SQL Server
     participant MT as MassTransit
     participant RMQ as RabbitMQ
+    participant AWS as AWS SNS/SQS
     
     loop Every 5 seconds
         OP->>+DB: SELECT * FROM OutboxMessage WHERE Sent IS NULL
@@ -495,6 +559,12 @@ sequenceDiagram
         RMQ-->>-MT: OK
         MT-->>-OP: OK
         
+        OP->>+MT: Publishes to SNS/SQS (if AWS enabled)
+        MT->>+AWS: SNS Topic: ProductCreatedIntegrationEvent
+        Note over AWS: SQS queue subscribed to the topic
+        AWS-->>-MT: OK
+        MT-->>-OP: OK
+        
         OP->>+DB: UPDATE OutboxMessage SET Sent = GETUTCDATE()
         DB-->>-OP: OK
     end
@@ -502,7 +572,7 @@ sequenceDiagram
     Note over RMQ: If RabbitMQ is down,<br/>OutboxProcessor retries<br/>automatically
 ```
 
-**Note:** If RabbitMQ is down, the OutboxProcessor automatically retries when the broker recovers. No messages are lost.
+**Note:** If RabbitMQ is down, the OutboxProcessor automatically retries when the broker recovers. No messages are lost. Additionally, if AWS is enabled in the configuration, the same message is also published to SNS/SQS through a second MassTransit bus.
 
 ### Step 5: Consumer processes the event
 
@@ -543,11 +613,12 @@ sequenceDiagram
     participant API as API
     participant SQL as SQL Server
     participant RMQ as RabbitMQ
+    participant AWS as AWS SNS/SQS
     participant CON as Consumer
     
     C->>+API: POST /api/v1/product
     Note over API: ProductController<br/>FeatureGate check
-    Note over API: CreateProductHandler<br/>new Product(...)<br/>AddDomainEvent(...)
+    Note over API: CreateProductCommandHandler<br/>Product.Create(...)<br/>AddDomainEvent(...)
     
     API->>API: UnitOfWork.SaveChangesAsy
     Note over API: DispatchDomainEventsAsync
@@ -570,6 +641,10 @@ sequenceDiagram
     API->>+RMQ: Publishes to RabbitMQ
     Note over RMQ: Queue product-created
     RMQ-->>-API: OK
+    
+    API->>+AWS: Publishes to SNS/SQS (if AWS enabled)
+    Note over AWS: SNS Topic: ProductCreatedEvent<br/>SQS queue subscribed
+    AWS-->>-API: OK
     
     API->>+SQL: UPDATE Sent = NOW()
     SQL-->>-API: OK

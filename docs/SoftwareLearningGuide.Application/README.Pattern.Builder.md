@@ -63,13 +63,13 @@ public sealed class OrderBuilder
     // Métodos fluidos — retornan this para encadenar
     public OrderBuilder WithId(Guid id)
     {
-        _id = new OrderId(id);
+        _id = OrderId.From(id).Value;
         return this;
     }
 
     public OrderBuilder WithCustomerId(Guid customerId)
     {
-        _customerId = new CustomerId(customerId);
+        _customerId = CustomerId.From(customerId).Value;
         return this;
     }
 
@@ -173,7 +173,12 @@ public sealed class ProductBuilder
     }
     public ProductBuilder WithStock(int stock) { _stock = stock; return this; }
 
-    public Product Build() => new Product(_id, _name, _description, _price, _stock);
+    public Product Build() {
+        var result = Product.Create(_id, _name, _description, _price, _stock);
+        if (!result.IsSuccess)
+            throw new InvalidOperationException($"ProductBuilder failed: {result.Error}");
+        return result.Value!;
+    }
 }
 ```
 
