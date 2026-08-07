@@ -347,7 +347,7 @@ sequenceDiagram
     participant MT as MassTransit
     participant SQL as SQL Server
 
-    CH->>Order: new Order(id, customerId, address)
+    CH->>Order: Order.Create(id, customerId, address)
     Note right of Order: OrderCreatedDomainEvent agregado en memoria
     CH->>Order: AddProduct(product, 2)
     CH->>Order: Confirm()
@@ -371,7 +371,7 @@ sequenceDiagram
 ```mermaid
 graph TD
     subgraph CreateOrderCommandHandler
-        H1["1. new Order(id, customerId, address)"]
+        H1["1. Order.Create(id, customerId, address)"]
         H2["→ AddDomainEvent(OrderCreatedDomainEvent) [en memoria]"]
         H3["2. order.AddProduct(product, quantity)"]
         H4["3. order.Confirm()"]

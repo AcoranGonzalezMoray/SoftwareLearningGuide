@@ -31,7 +31,7 @@ The **Repository Pattern** abstracts data access behind a collection-oriented in
 // The handler accesses the DB directly — coupled to EF Core
 public async Task<Result<Guid>> Handle(CreateOrderCommand request, CancellationToken ct)
 {
-    var order = new Order(...);
+    var order = Order.Create(...).Value!;
     _context.Orders.Add(order);             // ← EF Core directly
     await _context.SaveChangesAsync(ct);    // ← EF Core directly
     return Result<Guid>.Success(order.Id.Value);
@@ -45,7 +45,7 @@ public async Task<Result<Guid>> Handle(CreateOrderCommand request, CancellationT
 // The handler uses the abstraction — doesn't know EF Core, SQL, or DbContext
 public async Task<Result<Guid>> Handle(CreateOrderCommand request, CancellationToken ct)
 {
-    var order = new Order(...);
+    var order = Order.Create(...).Value!;
     await _orderRepository.AddAsync(order, ct);  // ← Interface, no EF Core
     await _unitOfWork.SaveChangesAsync(ct);       // ← Interface, no DbContext
     return Result<Guid>.Success(order.Id.Value);
@@ -171,8 +171,8 @@ public sealed class OrderWriteRepository
     : BaseRepository<Order, OrderId, Guid>, IOrderWriteRepository
 {
     public OrderWriteRepository(ApplicationDbContext context)
-        : base(context, guid => new OrderId(guid)) { }
-    // The lambda "guid => new OrderId(guid)" is the factory that converts Guid → OrderId
+        : base(context, guid => OrderId.From(guid).Value) { }
+    // The lambda "guid => OrderId.From(guid).Value" is the factory that converts Guid → OrderId
 }
 ```
 
@@ -182,7 +182,7 @@ public sealed class ProductWriteRepository
     : BaseRepository<Product, ProductId, Guid>, IProductWriteRepository
 {
     public ProductWriteRepository(ApplicationDbContext context)
-        : base(context, guid => new ProductId(guid)) { }
+        : base(context, guid => ProductId.From(guid).Value) { }
 }
 ```
 
@@ -252,7 +252,7 @@ public sealed class GetOrderQueryHandler : IRequestHandler<GetOrderQuery, Result
 graph TD
     Handler["Handler (Application Layer)<br/>_orderRepository.AddAsync(order)<br/>_orderRepository.GetByIdAsync(id)"]
     Port["IOrderWriteRepository<br/>(Port — in Application/Ports)<br/><br/>Task&lt;Order?&gt; GetByIdAsync(Guid id)<br/>Task AddAsync(Order entity)"]
-    Impl["OrderWriteRepository<br/>: BaseRepository&lt;Order, OrderId, Guid&gt;<br/>, IOrderWriteRepository<br/><br/>DbSet&lt;Order&gt;<br/>Func&lt;Guid, OrderId&gt; _idFactory ← converts IDs<br/><br/>GetByIdAsync(Guid id)<br/>  → _idFactory(id) → OrderId(id)<br/>  → _dbSet.FindAsync(new OrderId(id))<br/><br/>AddAsync(Order entity)<br/>  → _dbSet.AddAsync(entity) ← not saved yet"]
+    Impl["OrderWriteRepository<br/>: BaseRepository&lt;Order, OrderId, Guid&gt;<br/>, IOrderWriteRepository<br/><br/>DbSet&lt;Order&gt;<br/>Func&lt;Guid, OrderId&gt; _idFactory ← converts IDs<br/><br/>GetByIdAsync(Guid id)<br/>  → _idFactory(id) → OrderId.From(id).Value<br/>  → _dbSet.FindAsync(OrderId.From(id).Value)<br/><br/>AddAsync(Order entity)<br/>  → _dbSet.AddAsync(entity) ← not saved yet"]
     DbContext["ApplicationDbContext (EF Core)<br/>DbSet&lt;Order&gt;, DbSet&lt;Product&gt;, DbSet&lt;Customer&gt;<br/>SQL Server / Migration / Configurations"]
 
     Handler -->|"_orderRepository.AddAsync(order)<br/>_orderRepository.GetByIdAsync(id)"| Port

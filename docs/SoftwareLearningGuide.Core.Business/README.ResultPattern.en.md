@@ -308,7 +308,7 @@ public class Result
 
 ```csharp
 // Result<T> - Operation that returns a value
-var money = new Money(100, "USD");
+var money = Money.Create(100, "USD").Value!;
 return Result<Money>.Success(money);
 
 // Result - Operation without return value
@@ -392,7 +392,7 @@ catch (InvalidOperationException ex)
 
 ```csharp
 // Result<Money>.Map() - Transform money to another currency
-var priceInUsd = new Money(100, "USD");
+var priceInUsd = Money.Create(100, "USD").Value!;
 var moneyResult = Result<Money>.Success(priceInUsd);
 
 // Apply discount
@@ -410,9 +410,9 @@ else
 }
 
 // Chain multiple transformations
-var finalPrice = Result<Money>.Success(new Money(100, "USD"))
+var finalPrice = Result<Money>.Success(Money.Create(100, "USD").Value!)
 	.Map(money => money.Multiply(0.9))  // 10% discount
-	.Map(discounted => discounted.Add(new Money(5, "USD"))) // +$5 tax
+	.Map(discounted => discounted.Add(Money.Create(5, "USD").Value!)) // +$5 tax
 	.Map(withTax => withTax.Divide(2)); // Split between 2 people
 ```
 
@@ -422,7 +422,7 @@ var finalPrice = Result<Money>.Success(new Money(100, "USD"))
 
 ```csharp
 // Tap allows executing code without changing the result
-var result = product.UpdatePrice(new Money(99.99, "USD"))
+var result = product.UpdatePrice(Money.Create(99.99m, "USD").Value!)
 	.Tap(() => logger.LogInformation("Price updated"))
 	.Tap(() => NotifyPriceChange());
 
@@ -643,14 +643,17 @@ public Result AddProduct(Product product, int quantity)
 	}
 	else
 	{
-		var line = new OrderLine(
+		var lineResult = OrderLine.Create(
 			OrderLineId.Create(),
 			product.Id,
 			product.Name,
 			product.Price,
 			quantity);
 
-		_lines.Add(line);
+		if (!lineResult.IsSuccess)
+			return Result.Failure(lineResult.Error!);
+
+		_lines.Add(lineResult.Value!);
 		return Result.Success();
 	}
 }
@@ -718,7 +721,11 @@ public class OrderService
 			return Result<OrderDto>.Failure($"Invalid address: {addressResult.Error}");
 
 		// Create order
-		var order = new Order(OrderId.Create(), customer.Id, addressResult.Value!);
+		var orderResult = Order.Create(OrderId.Create(), customer.Id, addressResult.Value!);
+		if (!orderResult.IsSuccess)
+			return Result<OrderDto>.Failure($"Error creating order: {orderResult.Error}");
+
+		var order = orderResult.Value!;
 
 		// Add products
 		foreach (var lineRequest in request.Lines)
@@ -808,18 +815,18 @@ public Result<Money> CalculateFinalPrice(Product product, decimal discount)
 
 ```csharp
 // ✅ Clean with Map
-Result<Money> result = Result<Money>.Success(new Money(100, "USD"))
+Result<Money> result = Result<Money>.Success(Money.Create(100, "USD").Value!)
 	.Map(money => money.Multiply(0.9))
-	.Map(discounted => discounted.Add(new Money(5, "USD")));
+	.Map(discounted => discounted.Add(Money.Create(5, "USD").Value!));
 
 // ❌ Verbose without Map
-var step1 = Result<Money>.Success(new Money(100, "USD"));
+var step1 = Result<Money>.Success(Money.Create(100, "USD").Value!);
 if (!step1.IsSuccess) return step1;
 
 var step2WithDiscount = step1.Value!.Multiply(0.9);
 if (!step2WithDiscount.IsSuccess) return step2WithDiscount;
 
-var step3WithTax = step2WithDiscount.Value!.Add(new Money(5, "USD"));
+var step3WithTax = step2WithDiscount.Value!.Add(Money.Create(5, "USD").Value!);
 if (!step3WithTax.IsSuccess) return step3WithTax;
 
 Result<Money> result = step3WithTax;
@@ -883,8 +890,13 @@ public Result<Money> CalculateTotal(int quantity)
 [Test]
 public void CalculateSubtotal_WithInvalidQuantity_ReturnFailure()
 {
-	var product = new Product(ProductId.Create(), "Laptop", "High-end", 
-							 new Money(1000, "USD"), 5);
+	var productResult = Product.Create(
+		ProductId.Create(),
+		"Laptop",
+		"High-end",
+		Money.Create(1000, "USD").Value!,
+		5);
+	var product = productResult.Value!;
 
 	var result = product.CalculateSubtotal(-5);
 
@@ -895,13 +907,18 @@ public void CalculateSubtotal_WithInvalidQuantity_ReturnFailure()
 [Test]
 public void CalculateSubtotal_WithValidQuantity_ReturnSuccess()
 {
-	var product = new Product(ProductId.Create(), "Laptop", "High-end",
-							 new Money(1000, "USD"), 5);
+	var productResult = Product.Create(
+		ProductId.Create(),
+		"Laptop",
+		"High-end",
+		Money.Create(1000, "USD").Value!,
+		5);
+	var product = productResult.Value!;
 
 	var result = product.CalculateSubtotal(3);
 
 	Assert.IsTrue(result.IsSuccess);
-	Assert.AreEqual(new Money(3000, "USD"), result.Value);
+	Assert.AreEqual(Money.Create(3000, "USD").Value!, result.Value);
 }
 ```
 

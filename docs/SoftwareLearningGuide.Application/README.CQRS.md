@@ -334,12 +334,12 @@ public abstract class BaseRepository<TEntity, TId, TIdValue> : IBaseRepository<T
 // [`SoftwareLearningGuide.Infraestructure/Repositories/OrderWriteRepository.cs`](../../SoftwareLearningGuide.Infraestructure/Repositories/OrderWriteRepository.cs)
 public sealed class OrderWriteRepository : BaseRepository<Order, OrderId, Guid>, IOrderWriteRepository {
     public OrderWriteRepository(ApplicationDbContext context)
-        : base(context, guid => new OrderId(guid)) {
+        : base(context, guid => OrderId.From(guid).Value) {
     }
 }
 ```
 
-> **¿Por qué `BaseRepository` tiene `TIdValue` como parámetro genérico adicional?** Porque `OrderId` es un value object (no un `Guid` simple), y `GetByIdAsync` necesita convertir el `Guid` recibido en un `OrderId` internamente. El factory `_idFactory` maneja esa conversión de forma encapsulada.
+> **¿Por qué `BaseRepository` tiene `TIdValue` como parámetro genérico adicional?** Porque `OrderId` es un value object (no un `Guid` simple), y `GetByIdAsync` necesita convertir el `Guid` recibido en un `OrderId` internamente. El factory `_idFactory` maneja esa conversión de forma encapsulada, usando `OrderId.From(guid)` para validar el valor.
 
 ---
 

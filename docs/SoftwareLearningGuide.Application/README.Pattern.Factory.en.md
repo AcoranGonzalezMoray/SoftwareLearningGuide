@@ -327,7 +327,7 @@ graph TD
 | `Address` | `Address.Create(street, city, ...)` | required fields not empty |
 | `OrderId` | `OrderId.Create()` / `OrderId.From(guid)` | guid != Guid.Empty |
 | `Order` | `Order.Create(id, customerId, address)` | all required fields, triggers event |
-| `Product` | `new Product(id, name, price, stock)` | validations in constructor + event |
+| `Product` | `Product.Create(id, name, description, price, stock)` | validations in factory + event |
 
 ---
 
