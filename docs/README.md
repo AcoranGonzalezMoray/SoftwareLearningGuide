@@ -535,7 +535,7 @@ sequenceDiagram
 
 **Clave:** El producto y el mensaje de outbox se guardan en la **misma transaccion SQL**. Si algo falla, no se guarda el producto y no se genera el mensaje.
 
-### Paso 4: OutboxProcessor publica a RabbitMQ
+### Paso 4: OutboxProcessor publica a RabbitMQ y SNS/SQS
 
 El `OutboxProcessor` es un Worker Service que revisa la tabla `OutboxMessage` cada 5 segundos:
 
@@ -545,6 +545,7 @@ sequenceDiagram
     participant DB as SQL Server
     participant MT as MassTransit
     participant RMQ as RabbitMQ
+    participant AWS as AWS SNS/SQS
     
     loop Cada 5 segundos
         OP->>+DB: SELECT * FROM OutboxMessage WHERE Sent IS NULL
@@ -558,6 +559,12 @@ sequenceDiagram
         RMQ-->>-MT: OK
         MT-->>-OP: OK
         
+        OP->>+MT: Publica a SNS/SQS (si AWS habilitado)
+        MT->>+AWS: Topic SNS: ProductCreatedIntegrationEvent
+        Note over AWS: Cola SQS suscrita al topic
+        AWS-->>-MT: OK
+        MT-->>-OP: OK
+        
         OP->>+DB: UPDATE OutboxMessage SET Sent = GETUTCDATE()
         DB-->>-OP: OK
     end
@@ -565,7 +572,7 @@ sequenceDiagram
     Note over RMQ: Si RabbitMQ esta caido,<br/>OutboxProcessor reintenta<br/>automaticamente
 ```
 
-**Nota:** Si RabbitMQ esta caido, el OutboxProcessor reintenta automaticamente cuando el broker se recupera. No se pierden mensajes.
+**Nota:** Si RabbitMQ esta caido, el OutboxProcessor reintenta automaticamente cuando el broker se recupera. No se pierden mensajes. Ademas, si AWS esta habilitado en la configuracion, el mismo mensaje se publica tambien a SNS/SQS a traves de un segundo bus de MassTransit.
 
 ### Paso 5: Consumer procesa el evento
 
@@ -606,6 +613,7 @@ sequenceDiagram
     participant API as API
     participant SQL as SQL Server
     participant RMQ as RabbitMQ
+    participant AWS as AWS SNS/SQS
     participant CON as Consumer
     
     C->>+API: POST /api/v1/product
@@ -633,6 +641,10 @@ sequenceDiagram
     API->>+RMQ: Publica a RabbitMQ
     Note over RMQ: Cola product-created
     RMQ-->>-API: OK
+    
+    API->>+AWS: Publica a SNS/SQS (si AWS habilitado)
+    Note over AWS: Topic SNS: ProductCreatedEvent<br/>Cola SQS suscrita
+    AWS-->>-API: OK
     
     API->>+SQL: UPDATE Sent = NOW()
     SQL-->>-API: OK

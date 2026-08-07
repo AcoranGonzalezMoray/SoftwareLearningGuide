@@ -477,7 +477,7 @@ unitOfWork.SaveChangesAsync()
 
 **Clave:** El producto y el mensaje de outbox se guardan en la **misma transaccion SQL**. Si algo falla, no se guarda el producto y no se genera el mensaje.
 
-### Paso 4: OutboxProcessor publica a RabbitMQ
+### Paso 4: OutboxProcessor publica a RabbitMQ y SQS/SNS
 
 El `OutboxProcessor` es un Worker Service que revisa la tabla `OutboxMessage` cada 5 segundos:
 
@@ -493,11 +493,15 @@ OutboxProcessor (cada 5 segundos)
     │   └── Exchange: ProductCreatedIntegrationEvent
     │       └── Cola: product-created
     │
+    ├── Publica a SNS/SQS (si AWS esta habilitado)
+    │   └── Topic SNS: ProductCreatedIntegrationEvent
+    │       └── Cola SQS: suscrita al topic
+    │
     └── UPDATE OutboxMessage SET Sent = GETUTCDATE()
         (o DELETE, segun configuracion)
 ```
 
-**Nota:** Si RabbitMQ esta caido, el OutboxProcessor reintenta automaticamente cuando el broker se recupera. No se pierden mensajes.
+**Nota:** Si RabbitMQ esta caido, el OutboxProcessor reintenta automaticamente cuando el broker se recupera. No se pierden mensajes. Ademas, si AWS esta habilitado en la configuracion, el mismo mensaje se publica tambien a SNS/SQS a traves de un segundo bus de MassTransit.
 
 ### Paso 5: Consumer procesa el evento
 
@@ -522,53 +526,55 @@ Consumer (escucha RabbitMQ)
 ### Diagrama Visual Completo
 
 ```
-   Cliente                    API                    SQL Server            RabbitMQ              Consumer
-      │                         │                         │                    │                     │
-      │  POST /api/v1/product   │                         │                    │                     │
-      │─────────────────────────│                         │                    │                     │
-      │                         │                         │                    │                     │
-      │                         │    ProductController    │                    │                     │
-      │                         │    FeatureGate check    │                    │                     │
-      │                         │                         │                    │                     │
-      │                         │    CreateProductCommand  │                    │                     │
-      │                         │    Product.Create(...)  │                    │                     │
-      │                         │    AddDomainEvent(...)  │                    │                     │
-      │                         │                         │                    │                     │
-      │                         │UnitOfWork.SaveChangesAsy│                    │                     │
-      │                         │                         │                    │                     │
-      │                         │DispatchDomainEventsAsync│                    │                     │
-      │                         │                         │                    │                     │
-      │                         │    IMediator.Publish()  │                    │                     │
-      │                         │                         │                    │                     │
-      │                         │    NotificationHandler  │                    │                     │
-      │                         │                         │                    │                     │
-      │                         │  MassTransit → OutboxMes│                    │                     │
-      │                         │                         │                    │                     │
-      │                         │  BEGIN TRANSACTION      │                    │                     │
-      │                         │  INSERT INTO Products   │                    │                     │
-      │                         │  INSERT INTO OutboxMsg  │                    │                     │
-      │                         │  COMMIT                 │                    │                     │
-      │                         │◄────────────────────────│                    │                     │
-      │                         │                         │                    │                     │
-      │  201 Created            │                         │                    │                     │
-      │◄────────────────────────│                         │                    │                     │
-      │                         │                         │                    │                     │
-      │                         │OutboxProcessor (cada 5s)│                    │                     │
-      │                         │  SELECT FROM OutboxMsg  │                    │                     │
-      │                         │────────────────────────►│                    │                     │
-      │                         │                         │                    │                     │
-      │                         │  Publica a RabbitMQ     │                    │                     │
-      │                         │────────────────────────────────────────────-►│                     │
-      │                         │                         │                    │                     │
-      │                         │  UPDATE Sent = NOW()    │                    │                     │
-      │                         │────────────────────────►│                    │                     │
-      │                         │                         │                    │                     │
-      │                         │                         │                    │Cola product-created │
-      │                         │                         │                    │  Consume mensaje    │
-      │                         │                         │                    │───────────────────-►│
-      │                         │                         │                    │                     │
-      │                         │                         │                    │                     │ ProductCreatedConsumer
-      │                         │                         │                    │                     │ Log + logica externa
+   Cliente                    API                    SQL Server            RabbitMQ              AWS SNS/SQS           Consumer
+      │                         │                         │                    │                     │                     │
+      │  POST /api/v1/product   │                         │                    │                     │                     │
+      │─────────────────────────│                         │                    │                     │                     │
+      │                         │                         │                    │                     │                     │
+      │                         │    ProductController    │                    │                     │                     │
+      │                         │    FeatureGate check    │                    │                     │                     │
+      │                         │                         │                    │                     │                     │
+      │                         │   CreateProductCommand  │                    │                     │                     │
+      │                         │    Product.Create(...)  │                    │                     │                     │
+      │                         │    AddDomainEvent(...)  │                    │                     │                     │
+      │                         │                         │                    │                     │                     │
+      │                         │UnitOfWork.SaveChangesAsy│                    │                     │                     │
+      │                         │                         │                    │                     │                     │
+      │                         │DispatchDomainEventsAsync│                    │                     │                     │
+      │                         │                         │                    │                     │                     │
+      │                         │    IMediator.Publish()  │                    │                     │                     │
+      │                         │                         │                    │                     │                     │
+      │                         │    NotificationHandler  │                    │                     │                     │
+      │                         │                         │                    │                     │                     │
+      │                         │  MassTransit → OutboxMes│                    │                     │                     │
+      │                         │                         │                    │                     │                     │
+      │                         │  BEGIN TRANSACTION      │                    │                     │                     │
+      │                         │  INSERT INTO Products   │                    │                     │                     │
+      │                         │  INSERT INTO OutboxMsg  │                    │                     │                     │
+      │                         │  COMMIT                 │                    │                     │                     │
+      │                         │◄────────────────────────│                    │                     │                     │
+      │                         │                         │                    │                     │                     │
+      │  201 Created            │                         │                    │                     │                     │
+      │◄────────────────────────│                         │                    │                     │                     │
+      │                         │                         │                    │                     │                     │
+      │                         │OutboxProcessor (cada 5s)│                    │                     │                     │
+      │                         │  SELECT FROM OutboxMsg  │                    │                     │                     │
+      │                         │────────────────────────►│                    │                     │                     │
+      │                         │                         │                    │                     │                     │
+      │                         │  Publica a RabbitMQ     │                    │                     │                     │
+      │                         │────────────────────────────────────────────-►│                     │                     │
+      │                         │                         │                    │                     │                     │
+      │                         │  Publica a SNS/SQS      │                    │                     │                     │
+      │                         │──────────────────────────────────────────────────────────────────► │                     │
+      │                         │                         │                    │                     │                     │
+      │                         │  UPDATE Sent = NOW()    │                    │                     │                     │
+      │                         │────────────────────────►│                    │                     │                     │
+      │                         │                         │                    │                     │Cola product-created │
+      │                         │                         │                    │                     │  Consume mensaje    │
+      │                         │                         │                    │─────────────────────────────────────────► │
+      │                         │                         │                    │                     │                     │
+      │                         │                         │                    │                     │                     │ ProductCreatedConsumer
+      │                         │                         │                    │                     │                     │ Log + logica externa
 ```
 
 ### Que sucede si algo falla?

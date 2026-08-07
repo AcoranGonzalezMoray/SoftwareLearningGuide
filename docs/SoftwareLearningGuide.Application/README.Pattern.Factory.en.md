@@ -263,12 +263,18 @@ if (!result.IsSuccess)
 **Identity Value Objects** also use factory:
 
 ```csharp
-public sealed class OrderId
+public record OrderId
 {
     public Guid Value { get; }
 
-    // Internal constructor for reconstruction from DB
-    internal OrderId(Guid value) => Value = value;
+    // Private constructor for reconstruction from DB
+    private OrderId(Guid value)
+    {
+        if (value == Guid.Empty)
+            throw new ArgumentException(DomainErrors.IdErrors.OrderIdCannotBeEmpty());
+
+        Value = value;
+    }
 
     // Factory to create a new ID (generates the GUID)
     public static OrderId Create() => new(Guid.NewGuid());
@@ -276,11 +282,17 @@ public sealed class OrderId
     // Factory to reconstruct from an existing Guid (from DB or request)
     public static Result<OrderId> From(Guid value)
     {
-        if (value == Guid.Empty)
-            return Result<OrderId>.Failure(DomainErrors.Order.InvalidId);
-
-        return Result<OrderId>.Success(new OrderId(value));
+        try
+        {
+            return Result<OrderId>.Success(new OrderId(value));
+        }
+        catch (ArgumentException ex)
+        {
+            return Result<OrderId>.Failure(ex.Message);
+        }
     }
+
+    public override string ToString() => Value.ToString();
 }
 ```
 

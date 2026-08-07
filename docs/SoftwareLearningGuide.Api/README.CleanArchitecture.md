@@ -61,18 +61,36 @@ El corazón de la aplicación. **Sin referencias externas** (solo primitivos .NE
 
 ```csharp
 // El dominio NO tiene referencias a EF Core, ASP.NET, ni ningún framework
-public sealed class Product : ProduceEvents
+public class Product : ProduceEvents
 {
-    public ProductId Id { get; private set; }
+    public ProductId Id { get; }
+    public string Name { get; private set; }
     public Money Price { get; private set; }  // Value Object inmutable
+    public int StockQuantity { get; private set; }
 
-    public Product(ProductId id, string name, Money price, int stock)
+    // Constructor privado — solo el factory Create puede instanciar
+    private Product() { }
+
+    private Product(ProductId id, string name, Money price, int stockQuantity)
     {
         // Validaciones de negocio puras — sin EF Core, sin SQL
-        Id = id; Price = price;
+        Id = id; Name = name; Price = price; StockQuantity = stockQuantity;
 
         // Domain Event: hecho de negocio que ocurrió
         AddDomainEvent(new ProductCreatedDomainEvent { ProductId = id.Value, Name = name });
+    }
+
+    // Factory que valida y devuelve Result<T> en lugar de lanzar excepciones
+    public static Result<Product> Create(ProductId id, string name, Money price, int stockQuantity)
+    {
+        try
+        {
+            return Result<Product>.Success(new Product(id, name, price, stockQuantity));
+        }
+        catch (Exception ex)
+        {
+            return Result<Product>.Failure(ex.Message);
+        }
     }
 }
 ```

@@ -61,18 +61,36 @@ The heart of the application. **No external references** (only .NET primitives).
 
 ```csharp
 // The domain has NO references to EF Core, ASP.NET, or any framework
-public sealed class Product : ProduceEvents
+public class Product : ProduceEvents
 {
-    public ProductId Id { get; private set; }
+    public ProductId Id { get; }
+    public string Name { get; private set; }
     public Money Price { get; private set; }  // Immutable Value Object
+    public int StockQuantity { get; private set; }
 
-    public Product(ProductId id, string name, Money price, int stock)
+    // Private constructor — only the Create factory can instantiate
+    private Product() { }
+
+    private Product(ProductId id, string name, Money price, int stockQuantity)
     {
         // Pure business validations — no EF Core, no SQL
-        Id = id; Price = price;
+        Id = id; Name = name; Price = price; StockQuantity = stockQuantity;
 
         // Domain Event: business fact that occurred
         AddDomainEvent(new ProductCreatedDomainEvent { ProductId = id.Value, Name = name });
+    }
+
+    // Factory that validates and returns Result<T> instead of throwing
+    public static Result<Product> Create(ProductId id, string name, Money price, int stockQuantity)
+    {
+        try
+        {
+            return Result<Product>.Success(new Product(id, name, price, stockQuantity));
+        }
+        catch (Exception ex)
+        {
+            return Result<Product>.Failure(ex.Message);
+        }
     }
 }
 ```
