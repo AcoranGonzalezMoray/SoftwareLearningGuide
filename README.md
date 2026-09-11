@@ -110,6 +110,9 @@
 |------|-----------|-------------|
 | **AWS (General)** | [`README.AWS.md`](docs/softwareLearningApplication/README.AWS.md) | Que es AWS, regiones, modelo de precios, catalogo de servicios con precios y comandos CLI |
 | **MiniStack (Local AWS)** | [`README.Ministack.md`](docs/softwareLearningApplication/README.Ministack.md) | Emulador local gratuito de AWS (60+ servicios), como funciona y su implementacion en este proyecto |
+| **Terraform (IaC)** | [`README.Terraform.md`](docs/softwareLearningApplication/README.Terraform.md) | Infraestructura como codigo con Terraform: VPC, ECR, EKS. Emulacion local con MiniStack y despliegue real en AWS |
+| **Helm (Kubernetes)** | [`README.Helm.md`](docs/softwareLearningApplication/README.Helm.md) | Gestion de paquetes para Kubernetes: los 3 charts (API, OutboxProcessor, Consumer), instalacion, operaciones diarias |
+| **Despliegue completo** | [`docs/softwareLearningApplication/README.Deploy.md`](docs/softwareLearningApplication/README.Deploy.md) | Guia completa de despliegue: IaC con Terraform, Helm, flujo emulado con MiniStack, despliegue real en AWS |
 
 ---
 
@@ -297,7 +300,11 @@ docker-compose ps
 SoftwareLearningGuide/
 ├── .github/workflows/                              # GitHub Actions (CI/CD)
 ├── docs/                                           # Documentacion (Docsify: README.md / README.en.md + guias por proyecto)
-├── scripts/ministack/                              # Init scripts para Ministack (AWS local: cognito, SSM)
+├── deploy/                                             # IaC (Terraform) + Helm charts + scripts
+│   ├── README.Deploy.md                                # Guia de despliegue (IaC + Helm)
+│   ├── IaC/                                            # Terraform (VPC, ECR, EKS)
+│   ├── helm/                                           # Charts Helm (API, OutboxProcessor, Consumer)
+│   └── scripts/                                        # Scripts de utilidad
 ├── SoftwareLearningGuide.slnx                      # Solucion
 ├── docker-compose.yml                              # Stack: Aspire + SQL Server + Flagsmith + RabbitMQ + Ministack + Redis
 │

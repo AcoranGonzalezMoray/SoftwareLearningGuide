@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "slg.fullname" . }}-config
+  labels:
+    {{- include "slg.labels" . | nindent 4 }}
+data:
+  # appsettings.Production.json se monta como archivo vía subPath
+  # y .NET lo carga automáticamente al detectar ASPNETCORE_ENVIRONMENT=Production.
+  appsettings.Production.json: |-
+    {{- toPrettyJson .Values.config | nindent 4 }}

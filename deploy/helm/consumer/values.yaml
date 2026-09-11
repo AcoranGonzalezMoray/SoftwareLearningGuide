@@ -1,0 +1,82 @@
+# =========================================================
+# consumer · Default values
+#
+# Es un worker: NO expone Service, NO tiene probes HTTP.
+#
+# La emulación local NO usa Helm: las apps corren con `dotnet run`
+# y su appsettings.Development.json (que ya apunta a MiniStack).
+# Este chart se usa para el despliegue en AWS EKS.
+#
+# AWS ECR:
+#   helm upgrade --install consumer ./deploy/helm/consumer \
+#     --set image.repository=<account>.dkr.ecr.us-east-1.amazonaws.com/softwarelearningguide-consumer \
+#     --set image.tag=latest
+# =========================================================
+
+replicaCount: 1
+
+image:
+  repository: 000000000000.dkr.ecr.us-east-1.amazonaws.com/softwarelearningguide-consumer
+  pullPolicy: Always
+  tag: latest
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+# ---------------------------------------------------------
+# Resources
+# ---------------------------------------------------------
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 300m
+    memory: 256Mi
+
+# ---------------------------------------------------------
+# Environment
+# ---------------------------------------------------------
+extraEnv: []
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+# ---------------------------------------------------------
+# appsettings.Production.json → ConfigMap → /app/appsettings.Production.json
+# ---------------------------------------------------------
+config:
+  Logging:
+    LogLevel:
+      Default: "Information"
+      MassTransit: "Information"
+
+  MessageBroker:
+    Host: "localhost"
+    Username: "guest"
+    Password: "guest"
+
+  OpenTelemetry:
+    ServiceName: "SoftwareLearningGuide.Consumer"
+    Otlp:
+      Endpoint: ""
+      Protocol: "grpc"
+
+  CloudProvidersConfigurations:
+    AWS:
+      Enabled: false
+      Credentials:
+        AccessKey: "test"
+        AccessSecret: "test"
+      SSM:
+        Enabled: false
+        Path: "/softwarelearningguide/dev/consumer/"
+        Region: "us-east-1"
+        ServiceUrl: ""
+        ReloadIntervalSeconds: 300
+      Messaging:
+        Enabled: false
+        Region: "us-east-1"
+        ServiceUrl: ""

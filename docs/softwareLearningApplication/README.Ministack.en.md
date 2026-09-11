@@ -968,6 +968,13 @@ docker-compose logs -f ministack
 # Verify MiniStack is alive
 curl http://localhost:4566/_ministack/health
 
+# Run `aws configure` and enter dummy values:
+#AWS Access Key ID: test
+#AWS Secret Access Key: test
+#Default region name: us-east-1
+#Default output format: json
+aws configure
+
 # Verify the parameters were created correctly
 aws --endpoint-url=http://localhost:4566 ssm get-parameters-by-path \
   --path "/softwarelearningguide/dev/consumer/" \

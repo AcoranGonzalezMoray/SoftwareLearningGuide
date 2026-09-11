@@ -5,7 +5,9 @@ COPY SoftwareLearningGuide.Core.Business/SoftwareLearningGuide.Core.Business.csp
 COPY SoftwareLearningGuide.Application/SoftwareLearningGuide.Application.csproj SoftwareLearningGuide.Application/
 COPY SoftwareLearningGuide.Application.Command/SoftwareLearningGuide.Application.Command.csproj SoftwareLearningGuide.Application.Command/
 COPY SoftwareLearningGuide.Infraestructure.Data/SoftwareLearningGuide.Infraestructure.Data.csproj SoftwareLearningGuide.Infraestructure.Data/
+COPY SoftwareLearningGuide.Contracts/SoftwareLearningGuide.Contracts.csproj SoftwareLearningGuide.Contracts/
 COPY SoftwareLearningGuide.OutboxProcessor/SoftwareLearningGuide.OutboxProcessor.csproj SoftwareLearningGuide.OutboxProcessor/
+
 RUN dotnet restore SoftwareLearningGuide.OutboxProcessor/SoftwareLearningGuide.OutboxProcessor.csproj
 
 COPY . .

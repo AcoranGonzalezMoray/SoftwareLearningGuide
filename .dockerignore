@@ -1,0 +1,40 @@
+# =========================================================
+# .dockerignore — contexto de build limpio (raíz del repo)
+# Reduce el tamaño del contexto que se envía al daemon de
+# Docker y evita copiar binarios/estado/secretos a la imagen.
+# =========================================================
+
+# .NET build artifacts
+**/bin
+**/obj
+**/[Dd]ebug/
+**/[Rr]elease/
+artifacts/
+
+# Git / IDE
+.git
+.vs
+.vscode
+.idea
+
+# Documentación y entorno local (no se empaquetan en la imagen)
+docs/
+scripts/
+deploy/
+tests/
+
+# Terraform
+*.tfstate
+*.tfstate.*
+deploy/IaC/.terraform/
+.terraform/
+
+# Secretos y configuración local
+*.user
+*.suo
+.env
+.env.*
+appsettings.local.json
+
+# Logs
+*.log

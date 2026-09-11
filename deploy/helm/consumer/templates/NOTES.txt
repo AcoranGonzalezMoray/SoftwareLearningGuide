@@ -1,0 +1,10 @@
+Consumer desplegado: {{ include "slg.fullname" . }}.
+
+1) Comprueba el estado:
+   kubectl get deploy,pods -l app.kubernetes.io/instance={{ .Release.Name }}
+
+2) Logs (recibe los Integration Events publicados por el OutboxProcessor):
+   kubectl logs -l app.kubernetes.io/instance={{ .Release.Name }} -f
+
+3) Actualiza la configuración:
+   helm upgrade {{ .Release.Name }} . --reuse-values

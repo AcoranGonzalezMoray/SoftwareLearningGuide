@@ -1,0 +1,125 @@
+# =========================================================
+# software-guide-api · Default values
+#
+# La emulación local NO usa Helm: las apps corren con `dotnet run`
+# y su appsettings.Development.json (que ya apunta a MiniStack).
+# Este chart se usa para el despliegue en AWS EKS.
+#
+# Despliegue en AWS ECR:
+#   helm upgrade --install api ./deploy/helm/software-guide-api \
+#     --set image.repository=<account>.dkr.ecr.us-east-1.amazonaws.com/softwarelearningguide-api \
+#     --set image.tag=latest
+# =========================================================
+
+replicaCount: 2
+
+image:
+  repository: 000000000000.dkr.ecr.us-east-1.amazonaws.com/softwarelearningguide-api
+  pullPolicy: Always
+  tag: latest
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+# ---------------------------------------------------------
+# Service (ClusterIP por defecto; usa port-forward para acceder desde local)
+# ---------------------------------------------------------
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8080
+  # nodePort: 30089   # descomentar para tipo NodePort
+
+# ---------------------------------------------------------
+# Resources (contenedor principal)
+# ---------------------------------------------------------
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+# ---------------------------------------------------------
+# Environment
+# ---------------------------------------------------------
+env:
+  aspnetUrls: "http://+:8080"
+
+extraEnv: []
+# - name: SOME_VAR
+#   value: "some-value"
+
+# ---------------------------------------------------------
+# Pod scheduling
+# ---------------------------------------------------------
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+# ---------------------------------------------------------
+# appsettings.Production.json  →  ConfigMap →  /app/appsettings.Production.json
+#
+# El bloque completo de configuración se monta como archivo;
+# ASPNETCORE_ENVIRONMENT=Production hace que .NET lo cargue automáticamente.
+# Valores calculados en tiempo de despliegue (conexiones a servicios, etc.)
+# se pueden sobreescribir con --set config.<section>.<clave>=valor.
+# ---------------------------------------------------------
+config:
+  Logging:
+    LogLevel:
+      Default: "Information"
+      Microsoft.AspNetCore: "Warning"
+
+  ConnectionStrings:
+    # Valor ilustrativo de la emulación local; en AWS real se sobreescribe
+    # con --set config.ConnectionStrings.SoftwareLearningGuide (o via SSM).
+    SoftwareLearningGuide: "Server=localhost,1433;Database=SoftwareLearningGuide;User Id=sa;Password=YourStrong!Passw0rd;TrustServerCertificate=True;"
+
+  FeatureManagement:
+    FT_APPLY_MIGRATIONS_ON_START: true
+    FT_ENABLE_ORDER_CONTROLLER: true
+    FT_ENABLE_ORDER_CREATION: true
+    FT_ENABLE_ORDER_RETRIEVAL: true
+    FT_ENABLE_ORDER_LIST: true
+    FT_ENABLE_PRODUCT_CONTROLLER: true
+    FT_ENABLE_PRODUCT_CREATION: true
+    FT_ENABLE_PRODUCT_RETRIEVAL: true
+    FT_ENABLE_PRODUCT_LIST: true
+    FT_ENABLE_CUSTOMER_CONTROLLER: true
+    FT_ENABLE_CUSTOMER_CREATION: true
+    FT_ENABLE_CUSTOMER_RETRIEVAL: true
+    FT_ENABLE_CUSTOMER_LIST: true
+    FT_ENABLE_DIAGNOSIS_CONTROLLER: true
+
+  FeatureManagementApiConfiguration:
+    ApiUrl: ""
+    ApiKey: ""
+    ReloadIntervalSeconds: 0
+
+  OpenTelemetry:
+    ServiceName: "SoftwareLearningGuide"
+    Otlp:
+      Endpoint: ""
+      Protocol: "grpc"
+
+  CloudProvidersConfigurations:
+    AWS:
+      Enabled: false
+      Credentials:
+        AccessKey: "test"
+        AccessSecret: "test"
+      SSM:
+        Enabled: false
+        Path: "/softwarelearningguide/dev/api/"
+        Region: "us-east-1"
+        ServiceUrl: ""
+        ReloadIntervalSeconds: 300
+      Cognito:
+        Enabled: false
+        UserPoolId: ""
+        ClientId: ""
+        Region: "us-east-1"
+        ServiceUrl: ""

@@ -1,0 +1,27 @@
+# =========================================================
+# Values para el entorno emulado (MiniStack + k3s en Docker).
+#
+# Uso:
+#   helm upgrade --install software-guide-api ./deploy/helm/software-guide-api \
+#     -n slg --create-namespace -f ./deploy/helm/software-guide-api/values-emulated.yaml
+#
+# image.repository/tag ya apuntan al ECR emulado por defecto (values.yaml).
+# =========================================================
+
+config:
+  ConnectionStrings:
+    # Comillas: helm -f no parsea comas como en --set; el valor llega completo.
+    SoftwareLearningGuide: "Server=host.docker.internal,1433;Database=SoftwareLearningGuide;User Id=sa;Password=YourStrong!Passw0rd;TrustServerCertificate=True;"
+
+  CloudProvidersConfigurations:
+    AWS:
+      Enabled: true
+      SSM:
+        Enabled: true
+        ServiceUrl: "http://host.docker.internal:4566"
+      Cognito:
+        ServiceUrl: "http://host.docker.internal:4566"
+
+  OpenTelemetry:
+    Otlp:
+      Endpoint: "http://host.docker.internal:4317"

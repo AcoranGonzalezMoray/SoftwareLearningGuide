@@ -1,0 +1,65 @@
+# =========================================================
+# Variables para ejecutar TODO el IaC contra MiniStack (emulador AWS local).
+#
+#   docker-compose up -d ministack redis     # MiniStack en http://localhost:4566
+#   terraform init
+#   terraform plan  -var-file="terraform.minstack.tfvars.example"
+#   terraform apply -var-file="terraform.minstack.tfvars.example"
+#
+# Con estas variables NO se toca AWS real: VPC/ECR/EKS se crean/emulan dentro
+# de MiniStack (EKS crea un clúster k3s embebido en Docker).
+# =========================================================
+
+project_name = "softwarelearningguide"
+environment  = "dev"
+region       = "us-east-1"
+
+# --- Credenciales y endpoint → MiniStack --------------------
+aws_access_key         = "test"
+aws_secret_key         = "test"
+aws_minstack_endpoint  = "http://localhost:4566"
+
+# Sin llamadas a STS (MiniStack no da acceso a un Account ID real).
+aws_skip_credentials_validation = true
+aws_skip_requesting_account_id  = true
+
+# --- VPC ----------------------------------------------------
+# MiniStack emula EC2/VPC (1.4.9+). Si tu versión no soporta NAT/EIP,
+# desactívalo: sin NAT los nodos no saldrán a internet (no hace falta en local).
+availability_zones = ["us-east-1a", "us-east-1b"]
+vpc_cidr           = "10.0.0.0/16"
+enable_nat_gateway = false
+single_nat_gateway = false
+enable_vpc_flow_logs = false
+
+# --- ECR ----------------------------------------------------
+ecr_repositories = [
+  "softwarelearningguide-api",
+  "softwarelearningguide-outboxprocessor",
+  "softwarelearningguide-consumer",
+]
+ecr_image_tag_mutability = "MUTABLE"
+ecr_scan_on_push         = false
+ecr_lifecycle_max_images = 10
+ecr_force_delete         = true
+
+# --- EKS (modo MiniStack) ------------------------------------
+eks_cluster_version          = "1.31"
+eks_enable_cluster_logging   = []
+eks_endpoint_public_access      = true
+eks_endpoint_public_access_cidrs = ["0.0.0.0/0"]
+
+# MiniStack emula EKS creando un clúster k3s/k3d embebido con su propio nodo.
+# Sus coredns/CNI vienen incluidos → desactivamos las partes de EKS gestionado.
+eks_enable_access_config      = false
+eks_create_managed_node_group = false
+eks_create_addons             = false
+eks_create_access_entries     = false
+eks_create_oidc_provider      = false
+eks_admin_arns                = []
+
+tags = {
+  Project   = "softwarelearningguide"
+  ManagedBy = "terraform"
+  Target    = "ministack"
+}

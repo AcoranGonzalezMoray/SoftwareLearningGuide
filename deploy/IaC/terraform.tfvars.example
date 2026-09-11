@@ -1,0 +1,62 @@
+# Ejemplo de variables para terraform (copia a terraform.tfvars y ajusta).
+#   cp terraform.tfvars.example terraform.tfvars
+#   terraform apply -var-file="terraform.tfvars"
+
+project_name = "softwarelearningguide"
+environment  = "dev"
+region       = "us-east-1"
+
+# provider AWS (sin valores = cadena habitual de credenciales del entorno)
+# aws_access_key = ""
+# aws_secret_key = ""
+
+# Despliegue emulado contra MiniStack (emulador AWS local): rellena el endpoint
+# y usa credenciales "test"/"test". Ver terraform.minstack.tfvars.example.
+# aws_minstack_endpoint = "http://localhost:4566"
+
+# No llamar a STS durante plan/apply (necesario para MiniStack; evita también
+# el fallo de plan sin credenciales con AWS real).
+aws_skip_credentials_validation = true
+aws_skip_requesting_account_id  = true
+
+availability_zones = ["us-east-1a", "us-east-1b", "us-east-1c"]
+vpc_cidr           = "10.0.0.0/16"
+enable_nat_gateway = true
+single_nat_gateway = false
+
+ecr_repositories = [
+  "softwarelearningguide-api",
+  "softwarelearningguide-outboxprocessor",
+  "softwarelearningguide-consumer",
+]
+ecr_image_tag_mutability = "MUTABLE"
+ecr_scan_on_push         = true
+ecr_lifecycle_max_images = 10
+ecr_force_delete         = true
+
+eks_cluster_version      = "1.31"
+eks_node_desired_size    = 2
+eks_node_min_size        = 2
+eks_node_max_size        = 6
+eks_node_instance_types  = ["t3.medium"]
+eks_node_disk_size       = 50
+eks_node_capacity_type   = "ON_DEMAND"
+eks_enable_cluster_logging = ["api", "audit", "authenticator"]
+
+# ARNs que podrán gobernar el clúster con kubectl/helm (Access Entries):
+# eks_admin_arns = [
+#   "arn:aws:iam::123456789012:user/acorangonzalez",
+#   "arn:aws:iam::123456789012:role/DevOpsRole",
+# ]
+
+# Toggles de EKS (true → AWS real; ver terraform.minstack.tfvars.example)
+eks_enable_access_config      = true
+eks_create_managed_node_group = true
+eks_create_addons             = true
+eks_create_access_entries     = true
+eks_create_oidc_provider      = true
+
+tags = {
+  Project   = "softwarelearningguide"
+  ManagedBy = "terraform"
+}
