@@ -1,0 +1,10 @@
+OutboxProcessor desplegado: {{ include "slg.fullname" . }}.
+
+1) Comprueba el estado:
+   kubectl get deploy,pods -l app.kubernetes.io/instance={{ .Release.Name }}
+
+2) Logs (cada ~5s revisa la tabla OutboxMessage y publica a RabbitMQ/SNS):
+   kubectl logs -l app.kubernetes.io/instance={{ .Release.Name }} -f
+
+3) Actualiza la configuración:
+   helm upgrade {{ .Release.Name }} . --reuse-values

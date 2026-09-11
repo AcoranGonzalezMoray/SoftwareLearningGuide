@@ -361,3 +361,14 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# =========================================================
+# Terraform (deploy/IaC)
+# =========================================================
+deploy/IaC/.terraform/
+deploy/IaC/*.tfstate
+deploy/IaC/*.tfstate.*
+deploy/IaC/*.tfplan
+deploy/IaC/crash.log
+*.tfvars
+!deploy/IaC/terraform.tfvars.example

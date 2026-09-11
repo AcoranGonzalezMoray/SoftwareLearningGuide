@@ -1,0 +1,18 @@
+SoftwareLearningGuide API desplegada: {{ include "slg.fullname" . }}.
+
+1) Comprueba el estado del Deployment:
+   kubectl get deploy,svc,pods -l app.kubernetes.io/instance={{ .Release.Name }}
+
+2) Expón la API en tu máquina (ClusterIP):
+   kubectl port-forward svc/{{ include "slg.fullname" . }} 5089:{{ .Values.service.port }}
+
+   Documentación OpenAPI:
+   - Scalar:    http://localhost:5089/scalar/v1
+   - SwaggerUI: http://localhost:5089/swagger
+   - OpenAPI:   http://localhost:5089/openapi/v1.json
+
+3) Logs:
+   kubectl logs -l app.kubernetes.io/instance={{ .Release.Name }} -f
+
+4) Actualiza la configuración (aplica cambios de la ConfigMap):
+   helm upgrade {{ .Release.Name }} . --reuse-values

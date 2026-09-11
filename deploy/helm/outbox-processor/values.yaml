@@ -1,0 +1,101 @@
+# =========================================================
+# outbox-processor · Default values
+#
+# Es un worker: NO expone Service, NO tiene probes HTTP.
+#
+# La emulación local NO usa Helm: las apps corren con `dotnet run`
+# y su appsettings.Development.json (que ya apunta a MiniStack).
+# Este chart se usa para el despliegue en AWS EKS.
+#
+# AWS ECR:
+#   helm upgrade --install outbox ./deploy/helm/outbox-processor \
+#     --set image.repository=<account>.dkr.ecr.us-east-1.amazonaws.com/softwarelearningguide-outboxprocessor \
+#     --set image.tag=latest
+# =========================================================
+
+replicaCount: 1
+
+image:
+  repository: 000000000000.dkr.ecr.us-east-1.amazonaws.com/softwarelearningguide-outboxprocessor
+  pullPolicy: Always
+  tag: latest
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+# ---------------------------------------------------------
+# Resources
+# ---------------------------------------------------------
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 300m
+    memory: 256Mi
+
+# ---------------------------------------------------------
+# Environment
+# ---------------------------------------------------------
+extraEnv: []
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+# ---------------------------------------------------------
+# appsettings.Production.json → ConfigMap → /app/appsettings.Production.json
+# ---------------------------------------------------------
+config:
+  Logging:
+    LogLevel:
+      Default: "Information"
+      MassTransit: "Information"
+
+  Database:
+    # Valor ilustrativo; en AWS real se sobreescribe via SSM o --set.
+    SoftwareLearningGuide: "Server=localhost,1433;Database=SoftwareLearningGuide;User Id=sa;Password=YourStrong!Passw0rd;TrustServerCertificate=True;"
+
+  MessageBroker:
+    Host: "localhost"
+    Username: "guest"
+    Password: "guest"
+
+  OpenTelemetry:
+    ServiceName: "SoftwareLearningGuide.OutboxProcessor"
+    Otlp:
+      Endpoint: ""
+      Protocol: "grpc"
+
+  ResilienceConfiguration:
+    MessageBrokerApi:
+      Retry:
+        MaxRetryCount: 3
+        InitialRetryIntervalSeconds: 1
+        MaxRetryIntervalSeconds: 30
+        IntervalDeltaSeconds: 5
+      CircuitBreaker:
+        TripThreshold: 15
+        ActiveThreshold: 10
+        TrackingPeriodMinutes: 1
+        ResetIntervalMinutes: 5
+      TimeOut:
+        TimeoutSeconds: 30
+
+  CloudProvidersConfigurations:
+    AWS:
+      Enabled: false
+      Credentials:
+        AccessKey: "test"
+        AccessSecret: "test"
+      SSM:
+        Enabled: false
+        Path: "/softwarelearningguide/dev/outboxprocessor/"
+        Region: "us-east-1"
+        ServiceUrl: ""
+        ReloadIntervalSeconds: 300
+      Messaging:
+        Enabled: false
+        Region: "us-east-1"
+        ServiceUrl: ""

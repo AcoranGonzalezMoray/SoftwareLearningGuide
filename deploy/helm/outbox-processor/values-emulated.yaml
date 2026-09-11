@@ -1,0 +1,28 @@
+# =========================================================
+# Values para el entorno emulado (MiniStack + k3s en Docker).
+#
+# Uso:
+#   helm upgrade --install outbox-processor ./deploy/helm/outbox-processor \
+#     -n slg -f ./deploy/helm/outbox-processor/values-emulated.yaml
+# =========================================================
+
+config:
+  Database:
+    SoftwareLearningGuide: "Server=host.docker.internal,1433;Database=SoftwareLearningGuide;User Id=sa;Password=YourStrong!Passw0rd;TrustServerCertificate=True;"
+
+  MessageBroker:
+    Host: "host.docker.internal"
+
+  CloudProvidersConfigurations:
+    AWS:
+      Enabled: true
+      SSM:
+        Enabled: true
+        ServiceUrl: "http://host.docker.internal:4566"
+      Messaging:
+        Enabled: true
+        ServiceUrl: "http://host.docker.internal:4566"
+
+  OpenTelemetry:
+    Otlp:
+      Endpoint: "http://host.docker.internal:4317"

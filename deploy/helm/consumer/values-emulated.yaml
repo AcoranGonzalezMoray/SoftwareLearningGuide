@@ -1,0 +1,25 @@
+# =========================================================
+# Values para el entorno emulado (MiniStack + k3s en Docker).
+#
+# Uso:
+#   helm upgrade --install consumer ./deploy/helm/consumer \
+#     -n slg -f ./deploy/helm/consumer/values-emulated.yaml
+# =========================================================
+
+config:
+  MessageBroker:
+    Host: "host.docker.internal"
+
+  CloudProvidersConfigurations:
+    AWS:
+      Enabled: true
+      SSM:
+        Enabled: true
+        ServiceUrl: "http://host.docker.internal:4566"
+      Messaging:
+        Enabled: true
+        ServiceUrl: "http://host.docker.internal:4566"
+
+  OpenTelemetry:
+    Otlp:
+      Endpoint: "http://host.docker.internal:4317"

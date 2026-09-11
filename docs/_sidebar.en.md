@@ -40,3 +40,8 @@
 - **☁️ Cloud Providers**
   - [AWS (General)](softwareLearningApplication/README.AWS.en.md)
   - [MiniStack (Local AWS)](softwareLearningApplication/README.Ministack.en.md)
+  - [Terraform (IaC)](softwareLearningApplication/README.Terraform.en.md)
+  - [Helm (Kubernetes)](softwareLearningApplication/README.Helm.en.md)
+
+- **🚀 Deployment**
+  - [Deployment (IaC + Helm)](softwareLearningApplication/README.Deploy.en.md)

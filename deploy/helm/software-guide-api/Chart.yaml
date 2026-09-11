@@ -1,0 +1,6 @@
+apiVersion: v2
+name: software-guide-api
+description: API REST ASP.NET Core del proyecto Software Learning Guide
+type: application
+version: 0.1.0
+appVersion: "0.1.0"

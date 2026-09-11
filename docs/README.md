@@ -105,6 +105,9 @@
 |------|-----------|-------------|
 | **AWS (General)** | [`README.AWS.md`](softwareLearningApplication/README.AWS.md) | Que es AWS, regiones, modelo de precios, catalogo de servicios con precios y comandos CLI |
 | **MiniStack (Local AWS)** | [`README.Ministack.md`](softwareLearningApplication/README.Ministack.md) | Emulador local gratuito de AWS (60+ servicios), como funciona y su implementacion en este proyecto |
+| **Terraform (IaC)** | [`README.Terraform.md`](softwareLearningApplication/README.Terraform.md) | Infraestructura como codigo con Terraform: VPC, ECR, EKS. Emulacion local con MiniStack y despliegue real en AWS |
+| **Helm (Kubernetes)** | [`README.Helm.md`](softwareLearningApplication/README.Helm.md) | Gestión de paquetes para Kubernetes: los 3 charts (API, OutboxProcessor, Consumer), installation, operaciones diarias |
+| **Despliegue completo** | [`README.Deploy.md`](softwareLearningApplication/README.Deploy.md) | Guia completa de despliegue: IaC con Terraform, Helm, flujo emulado con MiniStack, despliegue real en AWS |
 
 ---
 

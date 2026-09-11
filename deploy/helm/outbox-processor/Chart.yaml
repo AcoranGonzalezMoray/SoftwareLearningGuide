@@ -1,0 +1,6 @@
+apiVersion: v2
+name: outbox-processor
+description: Worker de procesamiento del Transactional Outbox (público RabbitMQ + SNS/SQS)
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
