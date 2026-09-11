@@ -298,21 +298,21 @@ With `terraform.minstack.tfvars.example`, Terraform connects to MiniStack (`http
 
 ```
 ┌──────────────────────────────────────────────────────────┐
-│  MINISTACK (Docker Container)                              │
+│  MINISTACK (Docker Container)                            │
 │  ┌────────────────────────────────────────────────────┐  │
-│  │  Port 4566                                           │  │
-│  │  ├── /ecr   → Emulated ECR repositories         │  │
-│  │  ├── /eks   → Embedded k3s cluster               │  │
-│  │  ├── /ec2   → Emulated VPC, subnets, NAT        │  │
-│  │  └── /iam   → Emulated roles/policies             │  │
+│  │  Port 4566                                         │  │
+│  │  ├── /ecr   → Emulated ECR repositories            │  │
+│  │  ├── /eks   → Embedded k3s cluster                 │  │
+│  │  ├── /ec2   → Emulated VPC, subnets, NAT           │  │
+│  │  └── /iam   → Emulated roles/policies              │  │
 │  └────────────────────────────────────────────────────┘  │
 └──────────────────────────┬───────────────────────────────┘
                            │ localhost:4566
                            ▼
 ┌──────────────────────────────────────────────────────────┐
-│  TERRAFORM (your machine)                                 │
-│  terraform plan -var-file="terraform.minstack.tfvars"   │
-│  terraform apply -var-file="terraform.minstack.tfvars"  │
+│  TERRAFORM (your machine)                                │
+│  terraform plan -var-file="terraform.minstack.tfvars"    │
+│  terraform apply -var-file="terraform.minstack.tfvars"   │
 └──────────────────────────────────────────────────────────┘
 ```
 

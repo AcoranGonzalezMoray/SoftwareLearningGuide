@@ -409,10 +409,10 @@ Cuando usas `terraform.minstack.tfvars.example`, Terraform se conecta a MiniStac
 │  MINISTACK (Docker contenedor)                           │
 │  ┌────────────────────────────────────────────────────┐  │
 │  │  Puerto 4566                                       │  │
-│  │  ├── /ecr   → Repositorios ECR emulados           │  │
-│  │  ├── /eks   → Clúster k3s embebido                │  │
-│  │  ├── /ec2   → VPC, subredes, NAT emulados         │  │
-│  │  └── /iam   → Roles/policies emulados             │  │
+│  │  ├── /ecr   → Repositorios ECR emulados            │  │
+│  │  ├── /eks   → Clúster k3s embebido                 │  │
+│  │  ├── /ec2   → VPC, subredes, NAT emulados          │  │
+│  │  └── /iam   → Roles/policies emulados              │  │
 │  └────────────────────────────────────────────────────┘  │
 └──────────────────────────────────────────────────────────┘
          ↕ localhost:4566 (aws_minstack_endpoint)

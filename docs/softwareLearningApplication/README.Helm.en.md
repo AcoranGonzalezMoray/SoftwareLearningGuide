@@ -82,10 +82,10 @@ This project has **three .NET applications** that need to be deployed to Kuberne
                            ▼
 ┌──────────────────────────────────────────────────────────┐
 │  3. Helm (Charts)                                        │
-│     helm upgrade --install → Deploys 3 apps             │
+│     helm upgrade --install → Deploys 3 apps              │
 │     ├── software-guide-api  → REST API                   │
-│     ├── outbox-processor    → Outbox Worker               │
-│     └── consumer            → Consumer Worker             │
+│     ├── outbox-processor    → Outbox Worker              │
+│     └── consumer            → Consumer Worker            │
 └──────────────────────────────────────────────────────────┘
 ```
 

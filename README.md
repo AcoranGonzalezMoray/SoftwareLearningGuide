@@ -112,7 +112,7 @@
 | **MiniStack (Local AWS)** | [`README.Ministack.md`](docs/softwareLearningApplication/README.Ministack.md) | Emulador local gratuito de AWS (60+ servicios), como funciona y su implementacion en este proyecto |
 | **Terraform (IaC)** | [`README.Terraform.md`](docs/softwareLearningApplication/README.Terraform.md) | Infraestructura como codigo con Terraform: VPC, ECR, EKS. Emulacion local con MiniStack y despliegue real en AWS |
 | **Helm (Kubernetes)** | [`README.Helm.md`](docs/softwareLearningApplication/README.Helm.md) | Gestion de paquetes para Kubernetes: los 3 charts (API, OutboxProcessor, Consumer), instalacion, operaciones diarias |
-| **Despliegue completo** | [`docs/softwareLearningApplication/README.Deploy.md`](docs/softwareLearningApplication/README.Deploy.md) | Guia completa de despliegue: IaC con Terraform, Helm, flujo emulado con MiniStack, despliegue real en AWS |
+| **Despliegue completo** | [`README.Deploy.md`](docs/softwareLearningApplication/README.Deploy.md) | Guia completa de despliegue: IaC con Terraform, Helm, flujo emulado con MiniStack, despliegue real en AWS |
 
 ---
 

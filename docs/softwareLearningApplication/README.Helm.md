@@ -69,13 +69,13 @@ Este proyecto tiene **tres aplicaciones .NET** que necesitan desplegarse en Kube
 
 ```
 ┌──────────────────────────────────────────────────────────┐
-│  1. Terraform (IaC)                                     │
-│     Crea la infraestructura: VPC + EKS + ECR            │
+│  1. Terraform (IaC)                                      │
+│     Crea la infraestructura: VPC + EKS + ECR             │
 └──────────────────────────┬───────────────────────────────┘
                            │
                            ▼
 ┌──────────────────────────────────────────────────────────┐
-│  2. Construir imágenes Docker                           │
+│  2. Construir imágenes Docker                            │
 │     dotnet build → Dockerfile → push a ECR               │
 └──────────────────────────┬───────────────────────────────┘
                            │
@@ -84,8 +84,8 @@ Este proyecto tiene **tres aplicaciones .NET** que necesitan desplegarse en Kube
 │  3. Helm (Charts)                                        │
 │     helm upgrade --install → Despliega las 3 apps        │
 │     ├── software-guide-api  → API REST                   │
-│     ├── outbox-processor    → Worker Outbox               │
-│     └── consumer            → Worker Consumer             │
+│     ├── outbox-processor    → Worker Outbox              │
+│     └── consumer            → Worker Consumer            │
 └──────────────────────────────────────────────────────────┘
 ```
 

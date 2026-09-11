@@ -107,7 +107,7 @@
 | **MiniStack (Local AWS)** | [`README.Ministack.en.md`](softwareLearningApplication/README.Ministack.en.md) | Free local AWS emulator (60+ services), how it works and its implementation in this project |
 | **Terraform (IaC)** | [`README.Terraform.en.md`](softwareLearningApplication/README.Terraform.en.md) | Infrastructure as Code with Terraform: VPC, ECR, EKS. Local emulation with MiniStack and real AWS deployment |
 | **Helm (Kubernetes)** | [`README.Helm.en.md`](softwareLearningApplication/README.Helm.en.md) | Kubernetes package management: the 3 charts (API, OutboxProcessor, Consumer), installation, daily operations |
-| **Full Deployment** | [`softwareLearningApplication/README.Deploy.en.md`](softwareLearningApplication/README.Deploy.en.md) | Complete deployment guide: IaC with Terraform, Helm, emulated flow with MiniStack, real AWS deployment |
+| **Full Deployment** | [`README.Deploy.en.md`](softwareLearningApplication/README.Deploy.en.md) | Complete deployment guide: IaC with Terraform, Helm, emulated flow with MiniStack, real AWS deployment |
 
 ---
 
